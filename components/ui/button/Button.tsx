@@ -1,6 +1,8 @@
 import React, { forwardRef } from "react";
 import { tv } from "tailwind-variants";
 
+import { IconProps } from "../icon/Icon";
+
 const button = tv({
   base: "inline-flex items-center justify-center gap-2.5 rounded-[7px] text-[13.5px] font-semibold transition-colors",
   variants: {
@@ -17,7 +19,7 @@ const button = tv({
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "provider";
-  icon?: React.ReactNode;
+  icon?: IconProps["icon"] | React.ReactNode;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(

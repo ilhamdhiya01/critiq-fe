@@ -57,7 +57,6 @@ const LoginForm = () => {
         <a href="#" className="text-primary-300 hover:underline">
           Terms of Service
         </a>
-        .
       </p>
     </>
   );
