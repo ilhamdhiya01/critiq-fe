@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  /* Primary scale — placeholder blue, swap for the real brand color */
-  --primary-50: oklch(97% 0.014 254.6);
-  --primary-100: oklch(93.2% 0.032 255.6);
-  --primary-200: oklch(88.2% 0.059 254.1);
-  --primary-300: oklch(80.9% 0.105 251.8);
-  --primary-400: oklch(70.7% 0.165 254.6);
-  --primary-500: oklch(62.3% 0.214 259.8);
-  --primary-600: oklch(54.6% 0.245 262.9);
-  --primary-700: oklch(48.8% 0.243 264.4);
-  --primary-800: oklch(42.4% 0.199 265.6);
-  --primary-900: oklch(37.9% 0.146 265.5);
-  --primary-950: oklch(28.2% 0.091 267.9);
+  /* Primary scale — brand indigo, anchored at #6366F1 (600) and #A5B4FC (300) */
+  --primary-50: oklch(90.7% 0.039 277);
+  --primary-100: oklch(87.9% 0.052 277);
+  --primary-200: oklch(84.1% 0.071 277);
+  --primary-300: oklch(78.5% 0.104 277);
+  --primary-400: oklch(70.7% 0.147 277);
+  --primary-500: oklch(64.4% 0.182 277);
+  --primary-600: oklch(58.5% 0.204 277);
+  --primary-700: oklch(54.1% 0.203 277);
+  --primary-800: oklch(49.2% 0.171 277);
+  --primary-900: oklch(45.8% 0.133 277);
+  --primary-950: oklch(38.4% 0.094 277);
 
   /* Neutral scale — overrides Tailwind's stock grayscale */
   --neutral-50: oklch(98.5% 0 0);
@@ -27,13 +27,32 @@
   --neutral-900: oklch(20.5% 0 0);
   --neutral-950: oklch(14.5% 0 0);
 
-  /* Semantic tokens — light mode only */
-  --background: #ffffff;
-  --foreground: var(--neutral-900);
-  --success: oklch(62.7% 0.194 149.2);
-  --warning: oklch(76.9% 0.188 70.1);
-  --danger: oklch(63.7% 0.237 25.3);
-  --info: var(--primary-600);
+  /* Elevation scale — dark surfaces, darkest to lightest */
+  --surface: #111111;
+  --raised: #161616;
+  --raised-alt: #1a1a1a;
+  --border-default: #2a2a2a;
+  --border-subtle: #232323;
+  --border-row: #191919;
+
+  /* Text tokens */
+  --text-secondary: #8a8a8a;
+  --text-muted: #6e6e6e;
+
+  /* Semantic tokens — dark mode only, this app has no light mode */
+  --background: #0a0a0a;
+  --foreground: #f5f5f5;
+  --success: #22c55e;
+  --success-light: #4ade80;
+  --warning: #f59e0b;
+  --warning-light: #fbbf24;
+  --danger: #ef4444;
+  --danger-light: #f87171;
+  --info: #3b82f6;
+  --info-light: #60a5fa;
+
+  /* Vendor tokens */
+  --vendor-gitlab: #fc6d26;
 }
 
 @theme inline {
@@ -61,19 +80,35 @@
   --color-neutral-900: var(--neutral-900);
   --color-neutral-950: var(--neutral-950);
 
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-raised-alt: var(--raised-alt);
+  --color-border-default: var(--border-default);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-row: var(--border-row);
+
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-success: var(--success);
+  --color-success-light: var(--success-light);
   --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
   --color-danger: var(--danger);
+  --color-danger-light: var(--danger-light);
   --color-info: var(--info);
+  --color-info-light: var(--info-light);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-vendor-gitlab: var(--vendor-gitlab);
+
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
 }
