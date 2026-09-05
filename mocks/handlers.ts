@@ -143,7 +143,7 @@ export const handlers = [
     const repo = await dbOps.get<Repository>("repos", String(params.id));
     if (!repo) {
       return HttpResponse.json(
-        { message: "Repository not found" },
+        { errors: [{ field: "id", message: "Repository not found" }] },
         { status: 404 },
       );
     }
@@ -161,7 +161,10 @@ export const handlers = [
 
   http.post("*/repos", async ({ request }) => {
     if (!isAuthorized(request)) {
-      return HttpResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return HttpResponse.json(
+        { errors: [{ field: "authorization", message: "Unauthorized" }] },
+        { status: 401 },
+      );
     }
 
     await ensureSeeded();
@@ -185,7 +188,10 @@ export const handlers = [
 
   http.delete("*/repos/:id", async ({ request, params }) => {
     if (!isAuthorized(request)) {
-      return HttpResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return HttpResponse.json(
+        { errors: [{ field: "authorization", message: "Unauthorized" }] },
+        { status: 401 },
+      );
     }
 
     await ensureSeeded();
@@ -195,7 +201,10 @@ export const handlers = [
 
   http.post("*/repos/:id/rescan", async ({ request, params }) => {
     if (!isAuthorized(request)) {
-      return HttpResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return HttpResponse.json(
+        { errors: [{ field: "authorization", message: "Unauthorized" }] },
+        { status: 401 },
+      );
     }
 
     await ensureSeeded();
@@ -203,7 +212,7 @@ export const handlers = [
     const repo = await dbOps.get<Repository>("repos", id);
     if (!repo) {
       return HttpResponse.json(
-        { message: "Repository not found" },
+        { errors: [{ field: "id", message: "Repository not found" }] },
         { status: 404 },
       );
     }

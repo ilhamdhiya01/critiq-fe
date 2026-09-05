@@ -3,6 +3,12 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-export interface ErrorResponse {
+export interface ApiFieldError {
+  field: string;
   message: string;
+}
+
+export interface ErrorResponse {
+  errors?: ApiFieldError[];
+  message?: string;
 }

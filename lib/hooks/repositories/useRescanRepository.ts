@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { AxiosError } from "axios";
 import toast from "react-hot-toast";
 
-import type { ApiResponse, ErrorResponse } from "@/lib/types/api.types";
+import type { ApiResponse } from "@/lib/types/api.types";
 import type { Repository } from "@/lib/types/repository.types";
 import { rescanRepository } from "@/services/repositories.service";
 
@@ -27,8 +26,8 @@ export const useRescanRepository = () => {
       queryClient.invalidateQueries({ queryKey: repositoryKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: repositoryKeys.lists() });
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      toast.error(error.response?.data?.message || error.message);
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 

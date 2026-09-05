@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { AxiosError } from "axios";
 import toast from "react-hot-toast";
 
-import type { ApiResponse, ErrorResponse } from "@/lib/types/api.types";
+import type { ApiResponse } from "@/lib/types/api.types";
 import type { Repository } from "@/lib/types/repository.types";
 import { disconnectRepository } from "@/services/repositories.service";
 
@@ -32,14 +31,14 @@ export const useDisconnectRepository = () => {
       return { previousList };
     },
     onError: (
-      error: AxiosError<ErrorResponse>,
+      error: Error,
       _id,
       context?: { previousList?: ApiResponse<Repository[]> },
     ) => {
       if (context?.previousList) {
         queryClient.setQueryData(repositoryKeys.lists(), context.previousList);
       }
-      toast.error(error.response?.data?.message || error.message);
+      toast.error(error.message);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: repositoryKeys.lists() });
