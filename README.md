@@ -8,7 +8,7 @@ This repository (`critiq-fe`) contains the frontend web application for Critiq.
 
 > Status: MVP v1.2 (Draft) · Multi-tenant SaaS · Internal · Cititex Engineering
 >
-> Note: the Organization/multi-tenancy model described below (§ Organizations & Multi-Tenancy, org-scoped API) is the target product direction from the PRD. It is **not yet implemented** in this codebase — `routes.ts` and `mocks/handlers.ts` are currently still single-tenant. Treat this document as the spec to build toward, not a description of current code.
+> Note: the Organization/multi-tenancy model described below (§ Organizations & Multi-Tenancy, org-scoped API) is the target product direction from the PRD. It is **not yet implemented** in this codebase — `routes.ts` is currently still single-tenant. Treat this document as the spec to build toward, not a description of current code.
 
 ---
 
@@ -98,7 +98,6 @@ Global elements: collapsible sidebar (auto-collapses below `1100px`, org switche
 - **Client state:** Zustand (auth/session only — server state never lives in Zustand)
 - **Forms:** react-hook-form + Zod
 - **Auth:** OAuth (GitHub / GitLab) only — login is signup, no email/password in MVP
-- **API mocking (dev):** MSW, persisted to IndexedDB
 
 ---
 
@@ -209,7 +208,6 @@ critiq-fe/
 ├── schemas/             # Zod schemas
 ├── stores/              # Zustand stores
 ├── const/               # constants
-├── mocks/               # MSW handlers (dev-only API simulation)
 ├── routes.ts            # app paths & API endpoints
 └── proxy.ts             # middleware (Next 16 convention)
 ```
