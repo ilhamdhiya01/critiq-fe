@@ -1,120 +1,155 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React, { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useCallback, useMemo, useRef, useState } from "react";
+
+import { useCreateOrganization } from "@/lib/hooks/integrations/useCreateOrganization";
+import type { DecodedToken } from "@/lib/types/auth.types";
 
 import type { BranchPolicy } from "../BranchPolicyStep";
 import BranchPolicyStep from "../BranchPolicyStep";
-import type { CodeHost } from "../CodeHostStep";
-import CodeHostStep from "../CodeHostStep";
 import OrganizationStep from "../OrganizationStep";
 import RepositoriesStep from "../RepositoriesStep";
 import StepFooter from "../StepFooter";
 import StepHeader from "../StepHeader";
 
-const TOTAL_STEPS = 4;
+const ONBOARDING_STEP = {
+  ORGANIZATION: 1,
+  REPOSITORIES: 2,
+  BRANCH_POLICY: 3,
+} as const;
 
-const parseStep = (raw: string | null): number => {
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < 1 || parsed > TOTAL_STEPS) {
-    return 1;
-  }
-  return parsed;
+type OnboardingStep = (typeof ONBOARDING_STEP)[keyof typeof ONBOARDING_STEP];
+
+const TOTAL_STEPS = ONBOARDING_STEP.BRANCH_POLICY;
+
+const PREVIOUS_STEP: Record<OnboardingStep, OnboardingStep> = {
+  [ONBOARDING_STEP.ORGANIZATION]: ONBOARDING_STEP.ORGANIZATION,
+  [ONBOARDING_STEP.REPOSITORIES]: ONBOARDING_STEP.ORGANIZATION,
+  [ONBOARDING_STEP.BRANCH_POLICY]: ONBOARDING_STEP.REPOSITORIES,
 };
 
-const OnboardingWizard = React.memo(() => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const step = parseStep(searchParams.get("step"));
+const NEXT_STEP: Record<OnboardingStep, OnboardingStep> = {
+  [ONBOARDING_STEP.ORGANIZATION]: ONBOARDING_STEP.REPOSITORIES,
+  [ONBOARDING_STEP.REPOSITORIES]: ONBOARDING_STEP.BRANCH_POLICY,
+  [ONBOARDING_STEP.BRANCH_POLICY]: ONBOARDING_STEP.BRANCH_POLICY,
+};
 
-  const [host, setHost] = useState<CodeHost | null>(null);
-  const [orgName, setOrgName] = useState("");
-  const [selectedRepos, setSelectedRepos] = useState<Record<string, boolean>>(
-    {},
-  );
-  const [branchPolicy, setBranchPolicy] = useState<BranchPolicy | null>(null);
+interface OnboardingWizardProps {
+  decodedToken: DecodedToken | null;
+}
 
-  const goToStep = useCallback(
-    (next: number) => {
-      router.replace(`${pathname}?step=${next}`);
-    },
-    [pathname, router],
-  );
+const OnboardingWizard = React.memo(
+  ({ decodedToken }: OnboardingWizardProps) => {
+    const router = useRouter();
+    const [step, setStep] = useState<OnboardingStep>(
+      ONBOARDING_STEP.ORGANIZATION,
+    );
 
-  const handleBack = useCallback(() => {
-    goToStep(Math.max(1, step - 1));
-  }, [goToStep, step]);
+    const [selectedRepos, setSelectedRepos] = useState<Record<string, boolean>>(
+      {},
+    );
+    const [branchPolicy, setBranchPolicy] = useState<BranchPolicy | null>(null);
 
-  const handleSkip = useCallback(() => {
-    router.replace("/dashboard");
-  }, [router]);
+    const {
+      handleCreateOrganization,
+      organisationId,
+      organisationName,
+      needsSave,
+      setOrganisationName,
+      hydrateOrganisationId,
+    } = useCreateOrganization();
 
-  const handleContinue = useCallback(() => {
-    if (step === TOTAL_STEPS) {
-      router.replace("/dashboard");
-      return;
+    // Reload di tengah wizard membuat Zustand store kosong lagi (tanpa persist).
+    // Kalau backend sudah pernah membuat org untuk user ini (ada di token),
+    // suntikkan id itu sekali di render body supaya continue berikutnya
+    // memakai jalur update, bukan create org duplikat.
+    const hasHydratedOrgId = useRef(false);
+    if (
+      !hasHydratedOrgId.current &&
+      !organisationId &&
+      decodedToken?.activeOrgId
+    ) {
+      hasHydratedOrgId.current = true;
+      hydrateOrganisationId(decodedToken.activeOrgId);
     }
-    goToStep(step + 1);
-  }, [goToStep, router, step]);
 
-  const handleToggleRepo = useCallback((id: string) => {
-    setSelectedRepos((prev) => ({ ...prev, [id]: !prev[id] }));
-  }, []);
+    const handleBack = useCallback(() => {
+      setStep((prev) => PREVIOUS_STEP[prev]);
+    }, []);
 
-  const selectedRepoCount = Object.values(selectedRepos).filter(Boolean).length;
+    const handleSkip = useCallback(() => {
+      router.replace("/dashboard");
+    }, [router]);
 
-  const canContinue =
-    (step === 1 && host !== null) ||
-    (step === 2 && orgName.trim().length > 0) ||
-    (step === 3 && selectedRepoCount > 0) ||
-    (step === 4 && branchPolicy !== null);
+    const handleContinue = useCallback(async () => {
+      if (step === TOTAL_STEPS) {
+        router.replace("/dashboard");
+        return;
+      }
+      if (step === ONBOARDING_STEP.ORGANIZATION && needsSave) {
+        await handleCreateOrganization();
+      }
+      setStep(NEXT_STEP[step]);
+    }, [step, router, needsSave, handleCreateOrganization]);
 
-  const footer = useMemo(
-    () => (
-      <StepFooter
-        canBack={step > 1}
-        canContinue={canContinue}
-        isLastStep={step === TOTAL_STEPS}
-        onBack={handleBack}
-        onSkip={handleSkip}
-        onContinue={handleContinue}
-      />
-    ),
-    [step, canContinue, handleBack, handleSkip, handleContinue],
-  );
+    const handleToggleRepo = useCallback((id: string) => {
+      setSelectedRepos((prev) => ({ ...prev, [id]: !prev[id] }));
+    }, []);
 
-  return (
-    <div className="flex flex-col gap-8">
-      <StepHeader currentStep={step} />
+    const selectedRepoCount =
+      Object.values(selectedRepos).filter(Boolean).length;
 
-      {step === 1 && (
-        <CodeHostStep host={host} onHostChange={setHost} footer={footer} />
-      )}
-      {step === 2 && (
-        <OrganizationStep
-          orgName={orgName}
-          onOrgNameChange={setOrgName}
-          footer={footer}
+    const canContinue =
+      (step === ONBOARDING_STEP.ORGANIZATION &&
+        organisationName.trim().length > 0) ||
+      (step === ONBOARDING_STEP.REPOSITORIES && selectedRepoCount > 0) ||
+      (step === ONBOARDING_STEP.BRANCH_POLICY && branchPolicy !== null);
+
+    const footer = useMemo(
+      () => (
+        <StepFooter
+          canBack={step > ONBOARDING_STEP.ORGANIZATION}
+          canContinue={canContinue}
+          isLastStep={step === TOTAL_STEPS}
+          onBack={handleBack}
+          onSkip={handleSkip}
+          onContinue={handleContinue}
         />
-      )}
-      {step === 3 && (
-        <RepositoriesStep
-          selectedRepos={selectedRepos}
-          onToggleRepo={handleToggleRepo}
-          footer={footer}
-        />
-      )}
-      {step === 4 && (
-        <BranchPolicyStep
-          branchPolicy={branchPolicy}
-          onBranchPolicyChange={setBranchPolicy}
-          footer={footer}
-        />
-      )}
-    </div>
-  );
-});
+      ),
+      [step, canContinue, handleBack, handleSkip, handleContinue],
+    );
+
+    return (
+      <div className="flex flex-col gap-8">
+        <StepHeader currentStep={step} />
+
+        {step === ONBOARDING_STEP.ORGANIZATION && (
+          <OrganizationStep
+            orgName={organisationName}
+            onOrgNameChange={setOrganisationName}
+            footer={footer}
+          />
+        )}
+        {step === ONBOARDING_STEP.REPOSITORIES && (
+          <RepositoriesStep
+            source="gitlab"
+            selectedRepos={selectedRepos}
+            onToggleRepo={handleToggleRepo}
+            footer={footer}
+          />
+        )}
+        {step === ONBOARDING_STEP.BRANCH_POLICY && (
+          <BranchPolicyStep
+            branchPolicy={branchPolicy}
+            onBranchPolicyChange={setBranchPolicy}
+            footer={footer}
+          />
+        )}
+      </div>
+    );
+  },
+);
 
 OnboardingWizard.displayName = "OnboardingWizard";
 

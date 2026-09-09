@@ -6,7 +6,7 @@ Every customer company is one **Organization** — the owner of its connected re
 
 This repository (`critiq-fe`) contains the frontend web application for Critiq.
 
-> Status: MVP v1.2 (Draft) · Multi-tenant SaaS · Internal · Cititex Engineering
+> Status: MVP v1.3 (Draft) · Multi-tenant SaaS · Internal · Cititex Engineering
 >
 > Note: the Organization/multi-tenancy model described below (§ Organizations & Multi-Tenancy, org-scoped API) is the target product direction from the PRD. It is **not yet implemented** in this codebase — `routes.ts` is currently still single-tenant. Treat this document as the spec to build toward, not a description of current code.
 
@@ -35,7 +35,7 @@ Critiq unifies pull requests from **GitHub (org)** and **GitLab (self-hosted)** 
 ## Organizations & Multi-Tenancy
 
 - **One account, many organizations.** A single OAuth identity (GitHub or GitLab) can be a member of multiple organizations, with a different role in each — switched via an org switcher (Slack/Linear/GitHub pattern). Since OAuth is the only login path, user identity is inherently singular; separate accounts per organization can't be enforced.
-- **Self-serve organization creation.** A new user with no existing membership automatically gets a system-created Organization, becomes its Admin, and enters the onboarding wizard. Invite-only mode can be added later as a per-deployment flag without changing the data model.
+- **Self-serve organization creation.** A new user with no existing membership is routed to the onboarding wizard's first step (Organization) with no organization created yet. The organization is only created when the user presses Continue — they become its Admin at that point. Invite-only mode can be added later as a per-deployment flag without changing the data model.
 - **Role lives on membership**, not on the user (`user_id × org_id × role`) — the same person can be Admin in one organization and Viewer in another.
 - **Isolation is absolute** — no endpoint, query, or notification ever crosses organizations. Every mutation is recorded to that organization's own audit log.
 - Organization slug is globally unique (used in `critiq.app/<slug>`); the display name doesn't have to be.
@@ -57,20 +57,20 @@ Roles are per-organization membership, not global — the same user can hold dif
 
 ## Product Areas
 
-| Screen            | Main content                                                                                                                                           |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Login             | Split layout: auth column (logo, Continue with GitHub / GitLab, ToS) + brand panel; brand panel hidden below `900px`                                   |
-| Onboarding Wizard | 4 steps: code host → organization (name + slug) → select repos → default branch policy; post-login flow starts at step 2                               |
-| Org Switcher      | Sidebar control: active org avatar + name + role; dropdown of all orgs the user belongs to + "New organization"                                        |
-| Dashboard         | KPIs, monitored repos table (re-scan/disconnect), active Critical issues, 30-day review stats, recent activity — all scoped to the active organization |
-| Pull Requests     | Unified GitHub PR + GitLab MR list; status filters; gate/critical/mode/policy columns                                                                  |
-| PR Detail         | Header, mode selector / policy banner, AI Summary, flagged issues, diff viewer with inline comments, decision bar (read-only for Viewer), discussion   |
-| Repositories      | Repo cards (rating, gate, critical count) + Connect Repository (Admin only)                                                                            |
-| Repo Detail       | Repo stats, PR list, branch protection settings, scan history                                                                                          |
-| Rules & Profiles  | 6 toggleable Critical rules; Major/Minor/Info tiers locked (coming soon)                                                                               |
-| Activity          | Audit log timeline per organization, filter by decision × mode, grouped by day                                                                         |
-| Insights          | 8-week Critical issue trend, AI vs Manual comparison, acceptance rate                                                                                  |
-| Settings          | Organization card (name, URL, role, members), AI provider, GitHub/GitLab integrations, notifications, Members (invite + change role)                   |
+| Screen            | Main content                                                                                                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Login             | Split layout: auth column (logo, Continue with GitHub / GitLab, ToS) + brand panel; GitLab reveals an Instance URL field + "Authorize on `<host>`" button; brand panel hidden below `900px` |
+| Onboarding Wizard | 3 steps: organization (name + slug, created on Continue) → select repos → default branch policy. Code host is implied by the OAuth provider used at login — no separate step                |
+| Org Switcher      | Sidebar control: active org avatar + name + role; dropdown of all orgs the user belongs to + "New organization"                                                                             |
+| Dashboard         | KPIs, monitored repos table (re-scan/disconnect), active Critical issues, 30-day review stats, recent activity — all scoped to the active organization                                      |
+| Pull Requests     | Unified GitHub PR + GitLab MR list; status filters; gate/critical/mode/policy columns                                                                                                       |
+| PR Detail         | Header, mode selector / policy banner, AI Summary, flagged issues, diff viewer with inline comments, decision bar (read-only for Viewer), discussion                                        |
+| Repositories      | Repo cards (rating, gate, critical count) + Connect Repository (Admin only)                                                                                                                 |
+| Repo Detail       | Repo stats, PR list, branch protection settings, scan history                                                                                                                               |
+| Rules & Profiles  | 6 toggleable Critical rules; Major/Minor/Info tiers locked (coming soon)                                                                                                                    |
+| Activity          | Audit log timeline per organization, filter by decision × mode, grouped by day                                                                                                              |
+| Insights          | 8-week Critical issue trend, AI vs Manual comparison, acceptance rate                                                                                                                       |
+| Settings          | Organization card (name, URL, role, members), AI provider, GitHub/GitLab integrations, notifications, Members (invite + change role)                                                        |
 
 Global elements: collapsible sidebar (auto-collapses below `1100px`, org switcher shrinks to avatar-only), top bar with global search (`⌘K`, scoped to the active organization), notifications, and profile menu.
 
