@@ -22,6 +22,14 @@ export const API_REPO_SCANS = (id: string) =>
 export const API_REPO_RESCAN = (id: string) =>
   `${API_BASE_URL}/repos/${id}/rescan`;
 
+export const API_ORG = `${API_BASE_URL}/orgs`;
+export const API_INTEGRATIONS_GITLAB = (orgId: string) =>
+  `${API_ORG}/${orgId}/integrations/gitlab`;
+export const API_INTEGRATION_CANDIDATES = (
+  orgId: string,
+  source: "github" | "gitlab",
+) => `${API_ORG}/${orgId}/integrations/${source}/candidates`;
+
 // Routes requiring an authenticated session — consumed by proxy.ts
 // ROOT ("/") is matched separately as an exact path, since every path
 // starts with "/" and would otherwise match a prefix check.

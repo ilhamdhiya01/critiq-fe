@@ -4,10 +4,9 @@ import React from "react";
 import Logo from "@/components/shared/logo";
 
 const STEPS = [
-  { step: 1, label: "CODE HOST" },
-  { step: 2, label: "ORGANIZATION" },
-  { step: 3, label: "REPOSITORIES" },
-  { step: 4, label: "BRANCH POLICY" },
+  { step: 1, label: "ORGANIZATION" },
+  { step: 2, label: "REPOSITORIES" },
+  { step: 3, label: "BRANCH POLICY" },
 ] as const;
 
 interface StepHeaderProps {

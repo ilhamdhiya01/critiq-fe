@@ -70,7 +70,7 @@ const LoginForm = React.memo(() => {
           className="py-2.75"
           onClick={() => setIsLoading((prev) => ({ ...prev, Gitlab: true }))}
         >
-          Continue with GitLab
+          Continue with GitLab.com
         </Button>
       </div>
 

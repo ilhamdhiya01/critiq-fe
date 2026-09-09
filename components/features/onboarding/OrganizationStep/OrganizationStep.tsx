@@ -20,7 +20,7 @@ const slugify = (value: string) =>
     .replace(/^-+|-+$/g, "");
 
 const OrganizationStep = React.memo(
-  ({ orgName, onOrgNameChange, footer }: OrganizationStepProps) => {
+  ({ onOrgNameChange, orgName, footer }: OrganizationStepProps) => {
     const slug = slugify(orgName) || "your-org";
 
     return (

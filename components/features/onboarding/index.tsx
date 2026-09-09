@@ -1,5 +1,4 @@
 import { default as BranchPolicyStep } from "./BranchPolicyStep";
-import { default as CodeHostStep } from "./CodeHostStep";
 import { default as OnboardingLayout } from "./OnboardingLayout";
 import { default as OnboardingWizard } from "./OnboardingWizard";
 import { default as OrganizationStep } from "./OrganizationStep";
@@ -14,7 +13,6 @@ export const Onboarding = {
   StepHeader,
   StepFooter,
   StepCard,
-  CodeHostStep,
   OrganizationStep,
   RepositoriesStep,
   BranchPolicyStep,
