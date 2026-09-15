@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 
+import { toast } from "@/lib/toast";
 import { connectRepository } from "@/services/repositories.service";
 
 import { repositoryKeys } from "./queryKeys";

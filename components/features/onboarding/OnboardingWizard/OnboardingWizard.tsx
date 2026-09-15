@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import { useCreateOrganization } from "@/lib/hooks/integrations/useCreateOrganization";
+import { toast } from "@/lib/toast";
 import type { DecodedToken } from "@/lib/types/auth.types";
 
 import type { BranchPolicy } from "../BranchPolicyStep";
@@ -35,6 +36,12 @@ const NEXT_STEP: Record<OnboardingStep, OnboardingStep> = {
   [ONBOARDING_STEP.BRANCH_POLICY]: ONBOARDING_STEP.BRANCH_POLICY,
 };
 
+const STEP_BY_QUERY_VALUE: Record<string, OnboardingStep> = {
+  "1": ONBOARDING_STEP.ORGANIZATION,
+  "2": ONBOARDING_STEP.REPOSITORIES,
+  "3": ONBOARDING_STEP.BRANCH_POLICY,
+};
+
 interface OnboardingWizardProps {
   decodedToken: DecodedToken | null;
 }
@@ -42,8 +49,14 @@ interface OnboardingWizardProps {
 const OnboardingWizard = React.memo(
   ({ decodedToken }: OnboardingWizardProps) => {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const queryOrgId = searchParams.get("orgId");
+    const queryStep = searchParams.get("step");
+
     const [step, setStep] = useState<OnboardingStep>(
-      ONBOARDING_STEP.ORGANIZATION,
+      () =>
+        (queryStep && STEP_BY_QUERY_VALUE[queryStep]) ||
+        ONBOARDING_STEP.ORGANIZATION,
     );
 
     const [selectedRepos, setSelectedRepos] = useState<Record<string, boolean>>(
@@ -56,22 +69,25 @@ const OnboardingWizard = React.memo(
       organisationId,
       organisationName,
       needsSave,
+      isCreating,
       setOrganisationName,
       hydrateOrganisationId,
     } = useCreateOrganization();
 
-    // Reload di tengah wizard membuat Zustand store kosong lagi (tanpa persist).
-    // Kalau backend sudah pernah membuat org untuk user ini (ada di token),
-    // suntikkan id itu sekali di render body supaya continue berikutnya
-    // memakai jalur update, bukan create org duplikat.
+    // Reload di tengah wizard, atau redirect balik dari GitHub App install,
+    // membuat Zustand store kosong lagi (tanpa persist). `orgId` di query
+    // string (dari redirect GitHub) paling fresh, baru fallback ke token
+    // (org yang sudah pernah dibuat sebelumnya) — suntikkan sekali di render
+    // body supaya continue berikutnya memakai jalur update, bukan create
+    // org duplikat.
     const hasHydratedOrgId = useRef(false);
     if (
       !hasHydratedOrgId.current &&
       !organisationId &&
-      decodedToken?.activeOrgId
+      (queryOrgId || decodedToken?.activeOrgId)
     ) {
       hasHydratedOrgId.current = true;
-      hydrateOrganisationId(decodedToken.activeOrgId);
+      hydrateOrganisationId(queryOrgId ?? decodedToken!.activeOrgId);
     }
 
     const handleBack = useCallback(() => {
@@ -88,7 +104,11 @@ const OnboardingWizard = React.memo(
         return;
       }
       if (step === ONBOARDING_STEP.ORGANIZATION && needsSave) {
-        await handleCreateOrganization();
+        try {
+          await handleCreateOrganization();
+        } catch {
+          return;
+        }
       }
       setStep(NEXT_STEP[step]);
     }, [step, router, needsSave, handleCreateOrganization]);
@@ -115,9 +135,10 @@ const OnboardingWizard = React.memo(
           onBack={handleBack}
           onSkip={handleSkip}
           onContinue={handleContinue}
+          isLoading={isCreating}
         />
       ),
-      [step, canContinue, handleBack, handleSkip, handleContinue],
+      [step, canContinue, handleBack, handleSkip, handleContinue, isCreating],
     );
 
     return (
@@ -133,10 +154,13 @@ const OnboardingWizard = React.memo(
         )}
         {step === ONBOARDING_STEP.REPOSITORIES && (
           <RepositoriesStep
-            source="gitlab"
             selectedRepos={selectedRepos}
             onToggleRepo={handleToggleRepo}
             footer={footer}
+            organizationId={
+              organisationId ?? queryOrgId ?? decodedToken?.activeOrgId ?? ""
+            }
+            provider={decodedToken?.provider || "GITLAB"}
           />
         )}
         {step === ONBOARDING_STEP.BRANCH_POLICY && (

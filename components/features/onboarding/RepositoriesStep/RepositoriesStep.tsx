@@ -4,17 +4,20 @@ import classNames from "classnames";
 import React, { useCallback, useState } from "react";
 
 import Checkbox from "@/components/ui/checkbox";
+import { useDisconnectGitlab } from "@/lib/hooks/integrations/useDisconnectGitlab";
 import { useIntegrationCandidates } from "@/lib/hooks/integrations/useIntegrationCandidates";
-import type {
-  IntegrationSource,
-  RepoCandidate,
-} from "@/lib/types/integration.types";
+import { Provider } from "@/lib/types/auth.types";
+import type { RepoCandidate } from "@/lib/types/integration.types";
 
 import StepCard from "../StepCard";
+import GitHubConnectGate from "./GitHubConnectGate";
 import GitLabTokenGate from "./GitLabTokenGate";
 
-// TODO: gantikan dengan orgId nyata setelah Organization step (POST /orgs) tersambung.
-const PENDING_ORG_ID = "pending-org";
+const hostOf = (url: string) =>
+  url
+    .trim()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "") || "gitlab.com";
 
 interface RepoRowProps {
   repo: RepoCandidate;
@@ -36,7 +39,11 @@ const RepoRow = React.memo(({ repo, checked, onToggle }: RepoRowProps) => {
         {repo.path}
       </span>
       <span className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+        <span className="h-1.5 w-1.5 rounded-full bg-info" />
         {repo.lang}
+      </span>
+      <span className="rounded-full border border-border-default px-2 py-0.5 font-mono text-[10px] text-text-secondary capitalize">
+        {repo.visibility}
       </span>
     </div>
   );
@@ -45,37 +52,44 @@ const RepoRow = React.memo(({ repo, checked, onToggle }: RepoRowProps) => {
 RepoRow.displayName = "RepoRow";
 
 interface RepositoriesStepProps {
-  // TODO: isi dari provider login sesungguhnya begitu step 0/1 (auth provider detection) tersambung.
-  source?: IntegrationSource;
   selectedRepos: Record<string, boolean>;
   onToggleRepo: (id: string) => void;
   footer?: React.ReactNode;
+  organizationId: string;
+  provider: Provider;
 }
 
 const RepositoriesStep = React.memo(
   ({
-    source = "gitlab",
     selectedRepos,
     onToggleRepo,
     footer,
+    organizationId,
+    provider,
   }: RepositoriesStepProps) => {
-    const [isGitLabVerified, setIsGitLabVerified] = useState(false);
+    const source = provider === "GITHUB" ? "github" : "gitlab";
 
-    const handleGitLabVerified = useCallback(() => {
-      setIsGitLabVerified(true);
+    const [verifiedInstanceUrl, setVerifiedInstanceUrl] = useState("");
+
+    const handleGitLabVerified = useCallback((instanceUrl: string) => {
+      setVerifiedInstanceUrl(instanceUrl);
     }, []);
 
-    const handleChangeGitLabToken = useCallback(() => {
-      setIsGitLabVerified(false);
-    }, []);
+    const { handleDisconnectGitlab } = useDisconnectGitlab(organizationId);
 
-    const showGate = source === "gitlab" && !isGitLabVerified;
+    const handleChangeGitLabToken = useCallback(async () => {
+      try {
+        await handleDisconnectGitlab();
+      } catch {
+        // error sudah ditampilkan via toast oleh useDisconnectGitlab
+      }
+    }, [handleDisconnectGitlab]);
 
-    const { data: candidates, isLoading } = useIntegrationCandidates(
-      PENDING_ORG_ID,
-      source,
-      !showGate,
-    );
+    const {
+      data: candidates,
+      isNotConnected,
+      isFetching,
+    } = useIntegrationCandidates(organizationId, source, !!organizationId);
 
     const handleToggle = useCallback(
       (id: number) => onToggleRepo(String(id)),
@@ -84,55 +98,80 @@ const RepositoriesStep = React.memo(
 
     const selectedCount = Object.values(selectedRepos).filter(Boolean).length;
 
+    const description =
+      isNotConnected && provider === "GITHUB"
+        ? "Install the GitHub App first — the repository list loads from it."
+        : `A webhook is installed per repo — every PR push triggers a diff scan. ${selectedCount} selected.`;
+
     return (
       <StepCard
         title="Choose repositories to monitor"
-        description={`A webhook is installed per repo — every PR push triggers a diff scan. ${selectedCount} selected.`}
+        description={description}
         footer={footer}
       >
         <div className="flex flex-col gap-3">
-          {source === "gitlab" && isGitLabVerified && (
-            <div className="flex items-center gap-2 rounded-lg border border-border-subtle px-3.5 py-2 text-[12px] text-text-secondary">
-              <span className="font-mono text-[10.5px] tracking-[.06em] text-vendor-gitlab uppercase">
-                GitLab
-              </span>
-              <span>· TOKEN</span>
+          {isNotConnected && provider === "GITHUB" && (
+            <GitHubConnectGate orgId={organizationId} />
+          )}
+
+          {!isNotConnected && provider === "GITLAB" && (
+            <div className="flex items-center gap-3 rounded-lg border border-border-subtle px-3.5 py-3">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-success" />
+              <div className="flex flex-1 flex-col gap-0.5">
+                <span className="font-mono text-[12.5px] text-neutral-100">
+                  {hostOf(verifiedInstanceUrl)}
+                </span>
+                <span className="text-[11px] leading-normal text-text-secondary">
+                  Projects reachable by the access token (Maintainer or above).
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={handleChangeGitLabToken}
-                className="ml-auto text-primary-300 hover:underline"
+                className="text-[12px] text-text-secondary hover:underline"
               >
                 Change
               </button>
+              <span className="rounded-full border border-vendor-gitlab/50 px-2.5 py-0.5 font-mono text-[10px] tracking-[.06em] text-vendor-gitlab uppercase">
+                GitLab · Token
+              </span>
             </div>
           )}
 
-          {showGate && <GitLabTokenGate onVerified={handleGitLabVerified} />}
+          {isNotConnected && provider === "GITLAB" && (
+            <GitLabTokenGate
+              onVerified={handleGitLabVerified}
+              orgId={organizationId}
+            />
+          )}
 
-          {!showGate && isLoading && (
+          {!isNotConnected && isFetching && (
             <div className="rounded-lg border border-border-subtle px-3.5 py-4 text-center text-[12.5px] text-text-secondary">
               Fetching projects…
             </div>
           )}
 
-          {!showGate && !isLoading && candidates?.length === 0 && (
+          {!isNotConnected && !isFetching && candidates?.length === 0 && (
             <div className="rounded-lg border border-border-subtle px-3.5 py-4 text-center text-[12.5px] text-text-secondary">
               No projects reachable by this token.
             </div>
           )}
 
-          {!showGate && !isLoading && candidates && candidates.length > 0 && (
-            <div className="max-h-62.5 overflow-auto rounded-lg border border-border-subtle">
-              {candidates.map((repo) => (
-                <RepoRow
-                  key={repo.id}
-                  repo={repo}
-                  checked={!!selectedRepos[String(repo.id)]}
-                  onToggle={handleToggle}
-                />
-              ))}
-            </div>
-          )}
+          {!isNotConnected &&
+            !isFetching &&
+            candidates &&
+            candidates.length > 0 && (
+              <div className="max-h-62.5 overflow-auto rounded-lg border border-border-subtle">
+                {candidates.map((repo) => (
+                  <RepoRow
+                    key={repo.id}
+                    repo={repo}
+                    checked={!!selectedRepos[String(repo.id)]}
+                    onToggle={handleToggle}
+                  />
+                ))}
+              </div>
+            )}
         </div>
       </StepCard>
     );

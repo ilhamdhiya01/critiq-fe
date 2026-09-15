@@ -3,11 +3,12 @@ import type { ApiResponse } from "@/lib/types/api.types";
 import type {
   GitLabIntegration,
   IntegrationSource,
-  RepoCandidate,
+  RawRepoCandidate,
   VerifyGitLabTokenInput,
 } from "@/lib/types/integration.types";
 import {
   API_INTEGRATION_CANDIDATES,
+  API_INTEGRATIONS_GITHUB,
   API_INTEGRATIONS_GITLAB,
   API_ORG,
 } from "@/routes";
@@ -15,7 +16,7 @@ import {
 export const createOrganization = async (payload: {
   name: string;
   organizationId?: string;
-}): Promise<{ id: string; name: string; slug: string }> => {
+}): Promise<ApiResponse<{ id: string; name: string; slug: string }>> => {
   try {
     const { name, organizationId } = payload;
     let res;
@@ -51,7 +52,38 @@ export const verifyGitLabToken = async (
   input: VerifyGitLabTokenInput,
 ): Promise<ApiResponse<GitLabIntegration>> => {
   try {
-    const res = await axiosInstance.post(API_INTEGRATIONS_GITLAB(orgId), input);
+    const payload = {
+      instance_url: input.instanceUrl,
+      token: input.token,
+    };
+    const res = await axiosInstance.post(
+      API_INTEGRATIONS_GITLAB(orgId),
+      payload,
+    );
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const installIntentGithub = async (
+  orgId: string,
+  payload: { returnTo: "setup" | "settings" },
+): Promise<ApiResponse<{ installUrl: string }>> => {
+  try {
+    const res = await axiosInstance.post(
+      API_INTEGRATIONS_GITHUB(orgId),
+      payload,
+    );
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const disconnectGitlab = async (orgId: string) => {
+  try {
+    const res = await axiosInstance.delete(API_INTEGRATIONS_GITLAB(orgId));
     return res.data;
   } catch (error) {
     throw error;
@@ -61,7 +93,7 @@ export const verifyGitLabToken = async (
 export const getIntegrationCandidates = async (
   orgId: string,
   source: IntegrationSource,
-): Promise<ApiResponse<RepoCandidate[]>> => {
+): Promise<ApiResponse<RawRepoCandidate[]>> => {
   try {
     const res = await axiosInstance.get(
       API_INTEGRATION_CANDIDATES(orgId, source),

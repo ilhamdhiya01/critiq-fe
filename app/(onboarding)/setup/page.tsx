@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Onboarding } from "@/components/features/onboarding";
 import { getUserFromToken } from "@/lib/helpers";
 
-const OnboardingPage = async () => {
+const SetupPage = async () => {
   const decodedToken = await getUserFromToken();
   return (
     <Onboarding.OnboardingLayout>
@@ -14,4 +14,4 @@ const OnboardingPage = async () => {
   );
 };
 
-export default OnboardingPage;
+export default SetupPage;

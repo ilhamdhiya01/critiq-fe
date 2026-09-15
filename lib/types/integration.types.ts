@@ -28,12 +28,30 @@ export type VerifyGitLabTokenErrorCode =
   | "token_invalid"
   | "scope_missing"
   | "no_maintainer_project"
-  | "instance_unreachable";
+  | "instance_unreachable"
+  | "gitlab_not_connected";
 
 export interface RepoCandidate {
   id: number;
   path: string;
-  lang: string;
+  lang: string | null;
+  visibility: "public" | "private";
+  accessLevel?: number;
+}
+
+export interface RawGitLabRepoCandidate {
+  id: number;
+  path: string;
+  lang: string | null;
   visibility: string;
   accessLevel: number;
 }
+
+export interface RawGitHubRepoCandidate {
+  id: number;
+  path: string;
+  lang: string | null;
+  private: boolean;
+}
+
+export type RawRepoCandidate = RawGitLabRepoCandidate | RawGitHubRepoCandidate;
