@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useShallow } from "zustand/shallow";
 
+import { toast } from "@/lib/toast";
 import { createOrganization } from "@/services/integrations.service";
 import { useOnboardingStore } from "@/stores/onboarding/useOnboardingStore";
 
@@ -26,9 +27,14 @@ export const useCreateOrganization = () => {
         name: organisation.name,
         organizationId: organisation.id ?? undefined,
       }),
-    onSuccess: (data) => {
-      setOrganisationSaved({ id: data.id, name: organisation.name });
+    onSuccess: (res) => {
+      const { id, name } = res.data;
+      setOrganisationSaved({ id, name });
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      toast.success(res.message || "Organization successfull created");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 

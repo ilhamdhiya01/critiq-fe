@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 
+import { toast } from "@/lib/toast";
 import type { ApiResponse } from "@/lib/types/api.types";
 import type { Repository } from "@/lib/types/repository.types";
 import { rescanRepository } from "@/services/repositories.service";

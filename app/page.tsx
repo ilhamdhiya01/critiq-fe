@@ -5,7 +5,7 @@ const Home = () => {
     <div className="flex flex-1 flex-col items-center justify-center bg-neutral-50 font-sans">
       <main className="flex w-full max-w-3xl flex-1 flex-col items-center justify-between bg-white px-16 py-32 sm:items-start">
         <Image
-          className="h-5 w-[100px]"
+          className="h-5 w-25"
           src="/next.svg"
           alt="Next.js logo"
           width={100}

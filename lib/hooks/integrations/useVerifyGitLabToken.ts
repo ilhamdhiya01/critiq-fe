@@ -1,14 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
-import type { VerifyGitLabTokenErrorCode } from "@/lib/types/integration.types";
+import type { ErrorResponse } from "@/lib/types/api.types";
 import { verifyGitLabToken } from "@/services/integrations.service";
 
 import { integrationKeys } from "./queryKeys";
-
-interface VerifyGitLabTokenErrorBody {
-  error: VerifyGitLabTokenErrorCode;
-}
 
 export const useVerifyGitLabToken = (orgId: string) => {
   const queryClient = useQueryClient();
@@ -23,13 +19,13 @@ export const useVerifyGitLabToken = (orgId: string) => {
     },
   });
 
-  const errorCode = (
-    mutation.error as AxiosError<VerifyGitLabTokenErrorBody> | null
-  )?.response?.data?.error;
+  const fieldErrors =
+    (mutation.error as AxiosError<ErrorResponse> | null)?.response?.data
+      ?.errors ?? [];
 
   return {
     handleVerifyGitLabToken: mutation.mutateAsync,
     isVerifying: mutation.isPending,
-    verifyErrorCode: errorCode,
+    verifyFieldErrors: fieldErrors,
   };
 };

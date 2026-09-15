@@ -6,6 +6,7 @@ interface StepFooterProps {
   canBack: boolean;
   canContinue: boolean;
   isLastStep: boolean;
+  isLoading: boolean;
   onBack: () => void;
   onSkip: () => void;
   onContinue: () => void;
@@ -16,6 +17,7 @@ const StepFooter = React.memo(
     canBack,
     canContinue,
     isLastStep,
+    isLoading,
     onBack,
     onSkip,
     onContinue,
@@ -49,6 +51,7 @@ const StepFooter = React.memo(
           fullWidth={false}
           className="px-5"
           disabled={!canContinue}
+          isLoading={isLoading}
           onClick={onContinue}
         >
           {isLastStep ? "Finish setup" : "Continue"}
