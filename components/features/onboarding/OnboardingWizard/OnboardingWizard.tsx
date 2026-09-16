@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import { useCreateOrganization } from "@/lib/hooks/integrations/useCreateOrganization";
-import { toast } from "@/lib/toast";
+import { useMembershipWithOrg } from "@/lib/hooks/integrations/useMembershipWithOrg";
 import type { DecodedToken } from "@/lib/types/auth.types";
 
 import type { BranchPolicy } from "../BranchPolicyStep";
@@ -63,6 +63,7 @@ const OnboardingWizard = React.memo(
       {},
     );
     const [branchPolicy, setBranchPolicy] = useState<BranchPolicy | null>(null);
+    useMembershipWithOrg(decodedToken?.activeOrgId as string);
 
     const {
       handleCreateOrganization,

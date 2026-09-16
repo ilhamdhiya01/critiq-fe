@@ -11,11 +11,17 @@ export const ROUTES = {
 // API endpoints (consumed by services/*.service.ts)
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
+// Auth
 export const API_AUTH = `${API_BASE_URL}/auth`;
 export const API_AUTH_ME = `${API_AUTH}/me`;
 export const API_OAUTH_LOGIN = (provider: "github" | "gitlab") =>
   `${API_AUTH}/${provider}`;
 
+// Organizations
+export const API_ORG = `${API_BASE_URL}/orgs`;
+export const API_ME_ORG = `${API_BASE_URL}/me/orgs`;
+
+// Repositories
 export const API_REPOS = `${API_BASE_URL}/repos`;
 export const API_REPO_DETAIL = (id: string) => `${API_BASE_URL}/repos/${id}`;
 export const API_REPO_SCANS = (id: string) =>
@@ -23,7 +29,7 @@ export const API_REPO_SCANS = (id: string) =>
 export const API_REPO_RESCAN = (id: string) =>
   `${API_BASE_URL}/repos/${id}/rescan`;
 
-export const API_ORG = `${API_BASE_URL}/orgs`;
+// Integrations (GitHub/GitLab)
 export const API_INTEGRATIONS = (orgId: string) =>
   `${API_ORG}/${orgId}/integrations`;
 export const API_INTEGRATIONS_GITLAB = (orgId: string) =>
@@ -33,7 +39,7 @@ export const API_INTEGRATIONS_GITHUB = (orgId: string) =>
 export const API_INTEGRATION_CANDIDATES = (
   orgId: string,
   source: "github" | "gitlab",
-) => `${API_ORG}/${orgId}/integrations/${source}/candidates`;
+) => `${API_INTEGRATIONS(orgId)}/${source}/candidates`;
 
 // Routes requiring an authenticated session — consumed by proxy.ts
 // ROOT ("/") is matched separately as an exact path, since every path

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 
 import Button from "@/components/ui/button";
 import { useInstallGitHubApps } from "@/lib/hooks/integrations/useInstallGitHubApps";
@@ -11,10 +11,12 @@ interface GitHubConnectGateProps {
 
 const GitHubConnectGate = React.memo(({ orgId }: GitHubConnectGateProps) => {
   const { handleInstallIntentGitHub, isLoading } = useInstallGitHubApps(orgId);
+  const [isRedirect, setIsRedirect] = useState(false);
 
   const handleInstallClick = useCallback(async () => {
     try {
       await handleInstallIntentGitHub();
+      setIsRedirect(true);
       // redirect ke GitHub terjadi di onSuccess milik useInstallGitHubApps
     } catch {
       // error sudah ditampilkan via toast oleh useInstallGitHubApps
@@ -42,9 +44,9 @@ const GitHubConnectGate = React.memo(({ orgId }: GitHubConnectGateProps) => {
           size="md"
           fullWidth={false}
           onClick={handleInstallClick}
-          isLoading={isLoading}
+          isLoading={isLoading || isRedirect}
         >
-          Install Critiq on GitHub
+          {isRedirect ? "Redirect to GitHub..." : "Install Critiq on GitHub"}
         </Button>
       </div>
     </div>

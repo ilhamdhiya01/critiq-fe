@@ -6,8 +6,12 @@ interface OnboardingLayoutProps {
 
 const OnboardingLayout = React.memo(({ children }: OnboardingLayoutProps) => {
   return (
-    <div className="flex min-h-screen bg-background">
-      <div className="m-auto w-full max-w-xl">{children}</div>
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-background">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center px-4 py-8">
+          <div className="w-full max-w-xl">{children}</div>
+        </div>
+      </div>
     </div>
   );
 });
