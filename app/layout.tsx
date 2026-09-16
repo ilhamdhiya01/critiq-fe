@@ -23,7 +23,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
       <body className="flex min-h-full flex-col">
         <QueryProvider>
           {children}
-          <Toaster position="top-right" gutter={8} />
+          <Toaster position="top-right" />
         </QueryProvider>
       </body>
     </html>
