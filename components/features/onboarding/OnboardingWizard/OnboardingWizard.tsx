@@ -62,7 +62,13 @@ const OnboardingWizard = React.memo(
     const [selectedRepos, setSelectedRepos] = useState<Record<string, boolean>>(
       {},
     );
-    const [branchPolicy, setBranchPolicy] = useState<BranchPolicy | null>(null);
+    const [selectedBranches, setSelectedBranches] = useState<
+      Record<string, Record<string, boolean>>
+    >({});
+    const [branchContinueBlocked, setBranchContinueBlocked] = useState(false);
+    const [branchPolicy, setBranchPolicy] = useState<BranchPolicy | null>(
+      "allow_ai",
+    );
     useMembershipWithOrg(decodedToken?.activeOrgId as string);
 
     const {
@@ -101,9 +107,22 @@ const OnboardingWizard = React.memo(
 
     const handleContinue = useCallback(async () => {
       if (step === TOTAL_STEPS) {
-        router.replace("/dashboard");
+        const projects = Object.entries(selectedRepos)
+          .filter(([, isSelected]) => isSelected)
+          .map(([id]) => ({
+            id,
+            monitoredBranches: Object.entries(selectedBranches[id] ?? {})
+              .filter(([, picked]) => picked)
+              .map(([branch]) => branch),
+          }));
+        console.log({
+          source: decodedToken?.provider.toLocaleLowerCase(),
+          projects,
+          defaultPolicy: branchPolicy,
+        });
         return;
       }
+
       if (step === ONBOARDING_STEP.ORGANIZATION && needsSave) {
         try {
           await handleCreateOrganization();
@@ -111,11 +130,56 @@ const OnboardingWizard = React.memo(
           return;
         }
       }
+
       setStep(NEXT_STEP[step]);
-    }, [step, router, needsSave, handleCreateOrganization]);
+    }, [
+      step,
+      needsSave,
+      handleCreateOrganization,
+      selectedRepos,
+      selectedBranches,
+      branchPolicy,
+    ]);
 
     const handleToggleRepo = useCallback((id: string) => {
-      setSelectedRepos((prev) => ({ ...prev, [id]: !prev[id] }));
+      setSelectedRepos((prev) => {
+        const next = { ...prev, [id]: !prev[id] };
+        if (!next[id]) {
+          setSelectedBranches((prevBranches) => {
+            if (!(id in prevBranches)) return prevBranches;
+            const rest = { ...prevBranches };
+            delete rest[id];
+            return rest;
+          });
+        }
+        return next;
+      });
+    }, []);
+
+    const handleToggleBranch = useCallback((repoId: string, branch: string) => {
+      setSelectedBranches((prev) => ({
+        ...prev,
+        [repoId]: { ...prev[repoId], [branch]: !prev[repoId]?.[branch] },
+      }));
+    }, []);
+
+    const handleBranchesReady = useCallback(
+      (repoId: string, defaultBranch: string) => {
+        setSelectedBranches((prev) =>
+          prev[repoId]
+            ? prev
+            : { ...prev, [repoId]: { [defaultBranch]: true } },
+        );
+      },
+      [],
+    );
+
+    const handleContinueBlockedChange = useCallback((blocked: boolean) => {
+      setBranchContinueBlocked(blocked);
+    }, []);
+
+    const handleSelectBranchPolicy = useCallback((value: BranchPolicy) => {
+      setBranchPolicy(value);
     }, []);
 
     const selectedRepoCount =
@@ -124,7 +188,9 @@ const OnboardingWizard = React.memo(
     const canContinue =
       (step === ONBOARDING_STEP.ORGANIZATION &&
         organisationName.trim().length > 0) ||
-      (step === ONBOARDING_STEP.REPOSITORIES && selectedRepoCount > 0) ||
+      (step === ONBOARDING_STEP.REPOSITORIES &&
+        selectedRepoCount > 0 &&
+        !branchContinueBlocked) ||
       (step === ONBOARDING_STEP.BRANCH_POLICY && branchPolicy !== null);
 
     const footer = useMemo(
@@ -157,6 +223,10 @@ const OnboardingWizard = React.memo(
           <RepositoriesStep
             selectedRepos={selectedRepos}
             onToggleRepo={handleToggleRepo}
+            selectedBranches={selectedBranches}
+            onToggleBranch={handleToggleBranch}
+            onBranchesReady={handleBranchesReady}
+            onContinueBlockedChange={handleContinueBlockedChange}
             footer={footer}
             organizationId={
               organisationId ?? queryOrgId ?? decodedToken?.activeOrgId ?? ""
@@ -167,7 +237,7 @@ const OnboardingWizard = React.memo(
         {step === ONBOARDING_STEP.BRANCH_POLICY && (
           <BranchPolicyStep
             branchPolicy={branchPolicy}
-            onBranchPolicyChange={setBranchPolicy}
+            onBranchPolicyChange={handleSelectBranchPolicy}
             footer={footer}
           />
         )}

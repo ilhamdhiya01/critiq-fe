@@ -39,10 +39,10 @@ const OrganizationStep = React.memo(
           <span className="text-text-muted">URL</span>
           <span className="text-primary-400">critiq.app/{slug}</span>
         </div>
-        <div className="flex gap-2.5 rounded-[7px] border border-primary-800 bg-primary-950 px-3.5 py-3">
-          <span className="text-[12px] leading-[1.55] text-neutral-300">
+        <div className="flex gap-2.5 rounded-[7px] border border-indigo-500/35 bg-indigo-500/7 px-3.5 py-3">
+          <span className="text-[12px] leading-[1.55] text-indigo-200/70">
             You are the{" "}
-            <span className="font-semibold text-neutral-50">Admin</span> of this
+            <span className="font-semibold text-indigo-200">Admin</span> of this
             organization. Repositories, members and policies stay inside it —
             invite teammates later from Settings → Members.
           </span>

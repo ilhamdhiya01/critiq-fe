@@ -55,3 +55,10 @@ export interface RawGitHubRepoCandidate {
 }
 
 export type RawRepoCandidate = RawGitLabRepoCandidate | RawGitHubRepoCandidate;
+
+export interface RepoBranches {
+  defaultBranch: string;
+  branches: string[];
+  total: number;
+  truncated: boolean;
+}

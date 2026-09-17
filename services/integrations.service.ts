@@ -4,10 +4,12 @@ import type {
   GitLabIntegration,
   IntegrationSource,
   RawRepoCandidate,
+  RepoBranches,
   VerifyGitLabTokenInput,
 } from "@/lib/types/integration.types";
 import {
   API_INTEGRATION_CANDIDATES,
+  API_INTEGRATION_REPO_BRANCHES,
   API_INTEGRATIONS_GITHUB,
   API_INTEGRATIONS_GITLAB,
   API_ORG,
@@ -97,6 +99,21 @@ export const getIntegrationCandidates = async (
   try {
     const res = await axiosInstance.get(
       API_INTEGRATION_CANDIDATES(orgId, source),
+    );
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getIntegrationRepoBranches = async (
+  orgId: string,
+  source: IntegrationSource,
+  providerRepoId: number,
+): Promise<ApiResponse<RepoBranches>> => {
+  try {
+    const res = await axiosInstance.get(
+      API_INTEGRATION_REPO_BRANCHES(orgId, source, providerRepoId),
     );
     return res.data;
   } catch (error) {

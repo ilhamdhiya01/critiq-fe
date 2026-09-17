@@ -40,6 +40,11 @@ export const API_INTEGRATION_CANDIDATES = (
   orgId: string,
   source: "github" | "gitlab",
 ) => `${API_INTEGRATIONS(orgId)}/${source}/candidates`;
+export const API_INTEGRATION_REPO_BRANCHES = (
+  orgId: string,
+  source: "github" | "gitlab",
+  providerRepoId: string | number,
+) => `${API_INTEGRATIONS(orgId)}/${source}/repos/${providerRepoId}/branches`;
 
 // Routes requiring an authenticated session — consumed by proxy.ts
 // ROOT ("/") is matched separately as an exact path, since every path

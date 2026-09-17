@@ -5,7 +5,7 @@ const card = tv({
   base: "flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors disabled:pointer-events-none disabled:opacity-50",
   variants: {
     selected: {
-      true: "border-primary-500 bg-primary-950",
+      true: "border-indigo-500/50 bg-indigo-500/8",
       false:
         "border-border-default bg-raised hover:border-border-default hover:bg-raised-alt",
     },
@@ -19,7 +19,7 @@ const dot = tv({
   base: "mt-0.5 flex h-4 w-4 flex-none items-center justify-center rounded-full border",
   variants: {
     selected: {
-      true: "border-primary-500",
+      true: "border-indigo-400",
       false: "border-border-default",
     },
   },
@@ -33,28 +33,32 @@ interface RadioCardProps extends Omit<
   "onSelect"
 > {
   selected: boolean;
-  onSelect: () => void;
+  onSelect: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-const RadioCard = forwardRef<HTMLButtonElement, RadioCardProps>(
-  ({ selected, onSelect, className, children, disabled, ...props }, ref) => {
-    return (
-      <button
-        ref={ref}
-        type="button"
-        aria-pressed={selected}
-        disabled={disabled}
-        onClick={onSelect}
-        className={card({ selected, className })}
-        {...props}
-      >
-        <span className={dot({ selected })}>
-          {selected && <span className="h-2 w-2 rounded-full bg-primary-500" />}
-        </span>
-        <span className="min-w-0 flex-1">{children}</span>
-      </button>
-    );
-  },
+const RadioCard = React.memo(
+  forwardRef<HTMLButtonElement, RadioCardProps>(
+    ({ selected, onSelect, className, children, disabled, ...props }, ref) => {
+      return (
+        <button
+          ref={ref}
+          type="button"
+          aria-pressed={selected}
+          disabled={disabled}
+          onClick={onSelect}
+          className={card({ selected, className })}
+          {...props}
+        >
+          <span className={dot({ selected })}>
+            {selected && (
+              <span className="h-2 w-2 rounded-full bg-primary-500" />
+            )}
+          </span>
+          <span className="min-w-0 flex-1">{children}</span>
+        </button>
+      );
+    },
+  ),
 );
 
 RadioCard.displayName = "RadioCard";
