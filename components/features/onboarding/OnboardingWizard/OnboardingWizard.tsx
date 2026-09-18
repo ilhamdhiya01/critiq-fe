@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
+import { useConnectRepositories } from "@/lib/hooks/integrations/useConnectRepositories";
 import { useCreateOrganization } from "@/lib/hooks/integrations/useCreateOrganization";
 import { useMembershipWithOrg } from "@/lib/hooks/integrations/useMembershipWithOrg";
 import type { DecodedToken } from "@/lib/types/auth.types";
@@ -66,9 +67,7 @@ const OnboardingWizard = React.memo(
       Record<string, Record<string, boolean>>
     >({});
     const [branchContinueBlocked, setBranchContinueBlocked] = useState(false);
-    const [branchPolicy, setBranchPolicy] = useState<BranchPolicy | null>(
-      "allow_ai",
-    );
+    const [branchPolicy, setBranchPolicy] = useState<BranchPolicy>("allow_ai");
     useMembershipWithOrg(decodedToken?.activeOrgId as string);
 
     const {
@@ -80,6 +79,10 @@ const OnboardingWizard = React.memo(
       setOrganisationName,
       hydrateOrganisationId,
     } = useCreateOrganization();
+    const { handleConnectRepositories, isConnectingRepos } =
+      useConnectRepositories(
+        organisationId ?? queryOrgId ?? decodedToken?.activeOrgId ?? "",
+      );
 
     // Reload di tengah wizard, atau redirect balik dari GitHub App install,
     // membuat Zustand store kosong lagi (tanpa persist). `orgId` di query
@@ -105,21 +108,37 @@ const OnboardingWizard = React.memo(
       router.replace("/dashboard");
     }, [router]);
 
+    const processConnectRepositories = useCallback(async () => {
+      if (!decodedToken?.provider) return;
+      const source: "github" | "gitlab" =
+        decodedToken.provider === "GITHUB" ? "github" : "gitlab";
+
+      const projects = Object.entries(selectedRepos)
+        .filter(([, isSelected]) => isSelected)
+        .map(([id]) => ({
+          id,
+          monitoredBranches: Object.entries(selectedBranches[id] ?? {})
+            .filter(([, picked]) => picked)
+            .map(([branch]) => branch),
+        }));
+
+      const payload = {
+        source,
+        projects,
+        defaultPolicy: branchPolicy,
+      };
+      await handleConnectRepositories(payload);
+    }, [
+      branchPolicy,
+      decodedToken?.provider,
+      handleConnectRepositories,
+      selectedBranches,
+      selectedRepos,
+    ]);
+
     const handleContinue = useCallback(async () => {
       if (step === TOTAL_STEPS) {
-        const projects = Object.entries(selectedRepos)
-          .filter(([, isSelected]) => isSelected)
-          .map(([id]) => ({
-            id,
-            monitoredBranches: Object.entries(selectedBranches[id] ?? {})
-              .filter(([, picked]) => picked)
-              .map(([branch]) => branch),
-          }));
-        console.log({
-          source: decodedToken?.provider.toLocaleLowerCase(),
-          projects,
-          defaultPolicy: branchPolicy,
-        });
+        await processConnectRepositories();
         return;
       }
 
@@ -132,14 +151,7 @@ const OnboardingWizard = React.memo(
       }
 
       setStep(NEXT_STEP[step]);
-    }, [
-      step,
-      needsSave,
-      handleCreateOrganization,
-      selectedRepos,
-      selectedBranches,
-      branchPolicy,
-    ]);
+    }, [step, needsSave, processConnectRepositories, handleCreateOrganization]);
 
     const handleToggleRepo = useCallback((id: string) => {
       setSelectedRepos((prev) => {
@@ -202,10 +214,18 @@ const OnboardingWizard = React.memo(
           onBack={handleBack}
           onSkip={handleSkip}
           onContinue={handleContinue}
-          isLoading={isCreating}
+          isLoading={isCreating || isConnectingRepos}
         />
       ),
-      [step, canContinue, handleBack, handleSkip, handleContinue, isCreating],
+      [
+        step,
+        canContinue,
+        handleBack,
+        handleSkip,
+        handleContinue,
+        isCreating,
+        isConnectingRepos,
+      ],
     );
 
     return (

@@ -22,7 +22,8 @@ export const API_ORG = `${API_BASE_URL}/orgs`;
 export const API_ME_ORG = `${API_BASE_URL}/me/orgs`;
 
 // Repositories
-export const API_REPOS = `${API_BASE_URL}/repos`;
+export const API_REPOS = `${API_ORG}/repos`;
+export const API_CONNECT_REPOS = (ordId: string) => `${API_ORG}/${ordId}/repos`;
 export const API_REPO_DETAIL = (id: string) => `${API_BASE_URL}/repos/${id}`;
 export const API_REPO_SCANS = (id: string) =>
   `${API_BASE_URL}/repos/${id}/scans`;

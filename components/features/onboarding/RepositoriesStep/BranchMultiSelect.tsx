@@ -210,7 +210,7 @@ const BranchMultiSelect = React.memo(
                         data-branch={branch}
                         className={classNames(
                           "flex cursor-pointer items-center gap-2.5 px-3 py-2 hover:bg-raised-alt",
-                          { "bg-primary-950": selected[branch] },
+                          { "bg-success/10": selected[branch] },
                         )}
                       >
                         <Checkbox checked={!!selected[branch]} readOnly />

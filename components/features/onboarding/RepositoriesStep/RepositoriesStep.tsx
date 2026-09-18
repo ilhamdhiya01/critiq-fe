@@ -116,7 +116,7 @@ const RepoRow = React.memo(
           </div>
         )}
 
-        {checked && isBranchesError && (
+        {checked && isBranchesError && !isBranchesFetching && (
           <div className="flex items-center gap-1.5 px-3.5 pb-2.5 text-[11px] text-danger">
             <Icon icon="TbAlertTriangle" size={13} />
             Failed to load branches —{" "}
@@ -130,7 +130,7 @@ const RepoRow = React.memo(
           </div>
         )}
 
-        {checked && branchData && !isBranchesFetching && (
+        {checked && branchData && !isBranchesFetching && !isBranchesError && (
           <div className="px-3.5 pb-2.5">
             <BranchMultiSelect
               branches={branchData.branches}
