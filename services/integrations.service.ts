@@ -8,6 +8,11 @@ import type {
   VerifyGitLabTokenInput,
 } from "@/lib/types/integration.types";
 import {
+  ConnectRepositoryInput,
+  ConnectRepositoryResult,
+} from "@/lib/types/repository.types";
+import {
+  API_CONNECT_REPOS,
   API_INTEGRATION_CANDIDATES,
   API_INTEGRATION_REPO_BRANCHES,
   API_INTEGRATIONS_GITHUB,
@@ -115,6 +120,18 @@ export const getIntegrationRepoBranches = async (
     const res = await axiosInstance.get(
       API_INTEGRATION_REPO_BRANCHES(orgId, source, providerRepoId),
     );
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const connectRepositories = async (
+  orgId: string,
+  payload: ConnectRepositoryInput,
+): Promise<ApiResponse<ConnectRepositoryResult>> => {
+  try {
+    const res = await axiosInstance.post(API_CONNECT_REPOS(orgId), payload);
     return res.data;
   } catch (error) {
     throw error;
