@@ -132,13 +132,15 @@ pnpm format     # prettier
 
 ### Environment Variables
 
-| Variable                             | Description                                                     |
-| ------------------------------------ | --------------------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`                | Base URL of the Critiq API (e.g. `https://api.critiq.internal`) |
-| `NEXT_PUBLIC_GITHUB_OAUTH_CLIENT_ID` | GitHub OAuth app client ID, used for `Continue with GitHub`     |
-| `NEXT_PUBLIC_GITLAB_OAUTH_CLIENT_ID` | GitLab OAuth app client ID, used for `Continue with GitLab`     |
+| Variable              | Description                                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL` | Base URL of the Critiq API. `/api/v1` in production; `http://localhost:3001/api/v1` locally |
 
-> Backend service is a separate repo — coordinate with the API team for actual values. In development, most endpoints are simulated with MSW.
+This is the only environment variable the frontend reads. OAuth client IDs live on the backend — the frontend just navigates to `/auth/:provider` and lets the backend handle the handshake.
+
+> `NEXT_PUBLIC_*` values are inlined at build time, not read at runtime, so changing this requires a rebuild. See `.env.example`.
+>
+> There is no mock layer: the backend must be running and reachable in development as well as production.
 
 ---
 
