@@ -13,8 +13,15 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # Gate on lint/test/build before publishing — same pattern as the BE repo.
+  # Requires ci.yml to declare `on: workflow_call:` alongside its push/PR
+  # triggers; see note below.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   publish:
     name: Build and push to GHCR
+    needs: ci
     runs-on: ubuntu-latest
 
     permissions:
@@ -33,6 +40,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # development -> :development (what the dev VPS pulls, see `deploy`).
+      # main -> :main + :latest. Every push also gets a :sha-<short> tag.
       - name: Derive tags
         id: meta
         uses: docker/metadata-action@v5
@@ -43,6 +52,10 @@ jobs:
             type=sha,format=short
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
+      # NEXT_PUBLIC_* is inlined at `next build`, so the API base must be a
+      # build-arg here — the VPS .env cannot change it at runtime. FE and BE
+      # share one domain behind Nginx, so a relative path is correct for
+      # both dev and prod.
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -55,3 +68,29 @@ jobs:
             NEXT_PUBLIC_API_URL=/api/v1
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # SSHes into the VPS and recreates the FE container from the tag matching
+  # this branch. docker-compose.yml on the VPS already pins
+  # `critiq-fe:development` with `pull_policy: always`; the `pull` here makes
+  # the fetch explicit and fails the job loudly if GHCR auth is broken.
+  # Secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY.
+  deploy:
+    name: Deploy to VPS
+    needs: publish
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+    steps:
+      - name: Pull and restart on VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -e
+            cd ~/critiq/critiq-fe
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker compose ps
+            docker image prune -f
