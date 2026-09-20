@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getUserFromToken } from "./lib/helpers";
-import { authRoutes, privateRoutes, ROUTES } from "./routes";
+import { authRoutes, publicRoutes, ROUTES } from "./routes";
 
 export const proxy = async (request: NextRequest) => {
   const { nextUrl, url } = request;
@@ -10,9 +10,9 @@ export const proxy = async (request: NextRequest) => {
   const userData = await getUserFromToken();
   const isLoggedIn = !!userData;
 
-  const isPrivateRoute =
-    path === ROUTES.ROOT ||
-    privateRoutes.some((route) => path.startsWith(route));
+  // Org screens sit under a dynamic `/<slug>` segment and cannot be listed,
+  // so anything not explicitly public requires a session.
+  const isPrivateRoute = !publicRoutes.some((route) => path === route);
 
   const isAuthRoute = authRoutes.some((route) => {
     const pattern = route.replace(/\[.*?\]/g, "[^/]+");

@@ -6,7 +6,7 @@ import { ConnectRepositoryInput } from "@/lib/types/repository.types";
 import { ROUTES } from "@/routes";
 import { connectRepositories } from "@/services/integrations.service";
 
-export const useConnectRepositories = (orgId: string) => {
+export const useConnectRepositories = (orgId: string, orgSlug: string) => {
   const router = useRouter();
   const mutation = useMutation({
     mutationFn: (payload: ConnectRepositoryInput) =>
@@ -34,7 +34,7 @@ export const useConnectRepositories = (orgId: string) => {
         toast.success("All repositories connected");
       }
 
-      router.replace(ROUTES.ROOT);
+      router.replace(ROUTES.dashboard(orgSlug));
     },
     onError: (error: Error) => {
       toast.error(error.message);

@@ -1,11 +1,21 @@
-// Application paths (client-side navigation)
+// Application paths (client-side navigation).
+//
+// Every screen inside an organization is scoped by its slug (`/<slug>/...`),
+// so the URL always names which organization is being viewed. Slug-scoped
+// paths are builders; the handful of org-independent screens stay constants.
 export const ROUTES = {
   ROOT: "/",
   LOGIN: "/login",
   REGISTER: "/register",
-  DASHBOARD: "/dashboard",
-  REPOSITORIES: "/repositories",
   SETUP: "/setup",
+
+  dashboard: (slug: string) => `/${slug}`,
+  pullRequests: (slug: string) => `/${slug}/pull-requests`,
+  repositories: (slug: string) => `/${slug}/repositories`,
+  rules: (slug: string) => `/${slug}/rules`,
+  activity: (slug: string) => `/${slug}/activity`,
+  insights: (slug: string) => `/${slug}/insights`,
+  settings: (slug: string) => `/${slug}/settings`,
 } as const;
 
 // API endpoints (consumed by services/*.service.ts)
@@ -47,12 +57,10 @@ export const API_INTEGRATION_REPO_BRANCHES = (
   providerRepoId: string | number,
 ) => `${API_INTEGRATIONS(orgId)}/${source}/repos/${providerRepoId}/branches`;
 
-// Routes requiring an authenticated session — consumed by proxy.ts
-// ROOT ("/") is matched separately as an exact path, since every path
-// starts with "/" and would otherwise match a prefix check.
-export const privateRoutes = [
-  ROUTES.DASHBOARD,
-  ROUTES.REPOSITORIES,
-  ROUTES.SETUP,
-] as const;
 export const authRoutes = [ROUTES.LOGIN, ROUTES.REGISTER] as const;
+
+// Consumed by proxy.ts. Org screens live under a dynamic `/<slug>` segment,
+// so they cannot be enumerated — the guard is inverted instead: everything
+// is private unless it appears here. A new public page must be added to this
+// list, which fails safe (a forgotten page is guarded, not exposed).
+export const publicRoutes = [...authRoutes] as const;
