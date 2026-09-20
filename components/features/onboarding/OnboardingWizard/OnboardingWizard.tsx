@@ -68,7 +68,10 @@ const OnboardingWizard = React.memo(
     >({});
     const [branchContinueBlocked, setBranchContinueBlocked] = useState(false);
     const [branchPolicy, setBranchPolicy] = useState<BranchPolicy>("allow_ai");
-    useMembershipWithOrg(decodedToken?.activeOrgId as string);
+
+    const { orgSlug } = useMembershipWithOrg(
+      decodedToken?.activeOrgId as string,
+    );
 
     const {
       handleCreateOrganization,
@@ -82,6 +85,7 @@ const OnboardingWizard = React.memo(
     const { handleConnectRepositories, isConnectingRepos } =
       useConnectRepositories(
         organisationId ?? queryOrgId ?? decodedToken?.activeOrgId ?? "",
+        orgSlug,
       );
 
     // Reload di tengah wizard, atau redirect balik dari GitHub App install,
@@ -105,8 +109,8 @@ const OnboardingWizard = React.memo(
     }, []);
 
     const handleSkip = useCallback(() => {
-      router.replace("/dashboard");
-    }, [router]);
+      router.replace(`/${orgSlug}`);
+    }, [orgSlug, router]);
 
     const processConnectRepositories = useCallback(async () => {
       if (!decodedToken?.provider) return;

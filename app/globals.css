@@ -35,9 +35,19 @@
   --border-subtle: #232323;
   --border-row: #191919;
 
-  /* Text tokens */
+  /* Interactive surfaces — translucent so they read correctly on any
+     elevation (sidebar #1a1a1a and topbar #111111 both host these). */
+  --surface-active: rgba(255, 255, 255, 0.07);
+  --surface-hover: rgba(255, 255, 255, 0.04);
+
+  /* Text tokens — ordered brightest to dimmest */
+  --text-bright: #f0f0f0;
+  --text-strong: #e8e8e8;
+  --text-nav: #9a9a9a;
   --text-secondary: #8a8a8a;
+  --text-faint: #7a7a7a;
   --text-muted: #6e6e6e;
+  --text-placeholder: #5a5a5a;
 
   /* Semantic tokens — dark mode only, this app has no light mode */
   --background: #0a0a0a;
@@ -87,8 +97,16 @@
   --color-border-subtle: var(--border-subtle);
   --color-border-row: var(--border-row);
 
+  --color-surface-active: var(--surface-active);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-text-bright: var(--text-bright);
+  --color-text-strong: var(--text-strong);
+  --color-text-nav: var(--text-nav);
   --color-text-secondary: var(--text-secondary);
+  --color-text-faint: var(--text-faint);
   --color-text-muted: var(--text-muted);
+  --color-text-placeholder: var(--text-placeholder);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);

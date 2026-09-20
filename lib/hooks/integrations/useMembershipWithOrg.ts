@@ -35,5 +35,9 @@ export const useMembershipWithOrg = (activeOrgId: string) => {
     }
   }, [activeOrganization, setOrganisationName, setOrganisationSaved]);
 
-  return { ...rest, organizations: response?.data };
+  return {
+    ...rest,
+    organizations: response?.data,
+    orgSlug: activeOrganization?.organization.slug || "",
+  };
 };
