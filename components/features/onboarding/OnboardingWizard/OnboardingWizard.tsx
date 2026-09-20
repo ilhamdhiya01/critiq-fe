@@ -97,7 +97,7 @@ const OnboardingWizard = React.memo(
       (queryOrgId || decodedToken?.activeOrgId)
     ) {
       hasHydratedOrgId.current = true;
-      hydrateOrganisationId(queryOrgId ?? decodedToken!.activeOrgId);
+      hydrateOrganisationId(queryOrgId || decodedToken!.activeOrgId!);
     }
 
     const handleBack = useCallback(() => {
