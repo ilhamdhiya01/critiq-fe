@@ -19,6 +19,12 @@ export const proxy = async (request: NextRequest) => {
     return new RegExp(`^${pattern}$`).test(path);
   });
 
+  if (isLoggedIn && userData.onboardingCompleted) {
+    if (path === ROUTES.SETUP) {
+      return NextResponse.redirect(new URL(ROUTES.ROOT, url));
+    }
+  }
+
   if (
     isLoggedIn &&
     isPrivateRoute &&
