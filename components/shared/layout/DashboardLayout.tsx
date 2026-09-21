@@ -18,7 +18,9 @@ const DashboardLayout = React.memo(
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <Navbar title={title} />
-          <main className="min-h-0 flex-1 overflow-y-auto p-6">{children}</main>
+          <main className="container mx-auto min-h-0 flex-1 overflow-y-auto p-6">
+            {children}
+          </main>
         </div>
       </div>
     );
