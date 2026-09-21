@@ -6,15 +6,19 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import classNames from "classnames";
+import { useParams } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 
 import StateStatus from "@/components/shared/state-status";
-import Icon from "@/components/ui/icon/Icon";
-import { DUMMY_PULL_REQUESTS } from "@/const/pull-requests.constant";
+import Icon, { type IconName } from "@/components/ui/icon/Icon";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
+import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import { usePullRequestList } from "@/lib/hooks/pull-requests/usePullRequestList";
 import type {
+  EffectivePolicy,
   PullRequest,
   PullRequestFilter,
+  PullRequestState,
 } from "@/lib/types/pull-request.types";
 
 import FilterChip from "../FilterChip";
@@ -25,47 +29,57 @@ const columnHelper = createColumnHelper<typeof features, PullRequest>();
 const FILTER_OPTIONS: { value: PullRequestFilter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "open", label: "Open" },
-  { value: "approved", label: "Approved" },
-  { value: "needs_attention", label: "Needs attention" },
+  { value: "merged", label: "Merged" },
+  { value: "closed", label: "Closed" },
 ];
 
-const STATUS_MAP = {
-  open: { label: "Open", dot: "bg-text-muted", text: "text-text-secondary" },
-  approved: { label: "Approved", dot: "bg-success", text: "text-success" },
-  changes_requested: {
-    label: "Changes requested",
-    dot: "bg-danger",
-    text: "text-danger",
-  },
-} as const;
+const STATUS_MAP: Record<
+  PullRequestState,
+  { label: string; dot: string; text: string }
+> = {
+  OPEN: { label: "Open", dot: "bg-text-muted", text: "text-text-secondary" },
+  MERGED: { label: "Merged", dot: "bg-success", text: "text-success" },
+  CLOSED: { label: "Closed", dot: "bg-danger", text: "text-danger" },
+};
+
+const PROVIDER_ICON: Record<PullRequest["provider"], IconName> = {
+  GITHUB: "FaGithub",
+  GITLAB: "FaGitlab",
+};
+
+const POLICY_LABEL: Record<EffectivePolicy, string> = {
+  MANUAL_ONLY: "Manual",
+  ALLOW_AI: "AI-Assisted",
+  REQUIRE_BOTH: "AI + Manual",
+};
 
 const matchesFilter = (pr: PullRequest, filter: PullRequestFilter): boolean => {
   if (filter === "all") return true;
-  if (filter === "needs_attention") return pr.status === "changes_requested";
-  return pr.status === filter;
+  return pr.state.toLowerCase() === filter;
 };
 
 const PullRequestList = React.memo(() => {
+  const params = useParams<{ slug?: string }>();
+  const slug = params?.slug ?? "";
+  const { orgId } = useOrgBySlug(slug);
+
   const [activeFilter, setActiveFilter] = useState<PullRequestFilter>("all");
+  const { data, isLoading, isError } = usePullRequestList(orgId);
+  const pullRequests = useMemo(() => data ?? [], [data]);
 
   const filteredData = useMemo(
-    () => DUMMY_PULL_REQUESTS.filter((pr) => matchesFilter(pr, activeFilter)),
-    [activeFilter],
+    () => pullRequests.filter((pr) => matchesFilter(pr, activeFilter)),
+    [pullRequests, activeFilter],
   );
 
   const counts = useMemo(
     () => ({
-      all: DUMMY_PULL_REQUESTS.length,
-      open: DUMMY_PULL_REQUESTS.filter((pr) => matchesFilter(pr, "open"))
-        .length,
-      approved: DUMMY_PULL_REQUESTS.filter((pr) =>
-        matchesFilter(pr, "approved"),
-      ).length,
-      needs_attention: DUMMY_PULL_REQUESTS.filter((pr) =>
-        matchesFilter(pr, "needs_attention"),
-      ).length,
+      all: pullRequests.length,
+      open: pullRequests.filter((pr) => matchesFilter(pr, "open")).length,
+      merged: pullRequests.filter((pr) => matchesFilter(pr, "merged")).length,
+      closed: pullRequests.filter((pr) => matchesFilter(pr, "closed")).length,
     }),
-    [],
+    [pullRequests],
   );
 
   const handleSelectFilter = useCallback(
@@ -84,57 +98,44 @@ const PullRequestList = React.memo(() => {
             const pr = info.row.original;
             return (
               <div className="flex min-w-0 flex-col gap-1">
-                <span className="truncate font-mono text-[12.5px] text-neutral-100">
-                  {pr.title}
-                </span>
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="truncate font-mono text-[12.5px] text-neutral-100">
+                    {pr.title}
+                  </span>
+                  <span
+                    className={classNames(
+                      "shrink-0 font-mono text-[10.5px]",
+                      pr.effectivePolicy === "MANUAL_ONLY"
+                        ? "text-text-secondary"
+                        : "text-primary-400",
+                    )}
+                  >
+                    {POLICY_LABEL[pr.effectivePolicy]}
+                  </span>
+                </div>
                 <span className="flex min-w-0 items-center gap-1.5 truncate text-[11px] text-text-secondary">
                   <Icon
-                    icon={pr.source === "github" ? "FaGithub" : "FaGitlab"}
+                    icon={PROVIDER_ICON[pr.provider]}
                     size={11}
                     className="shrink-0"
                   />
-                  <span className="font-mono">{pr.number}</span>
+                  <span className="font-mono">#{pr.externalId}</span>
                   <span>·</span>
                   <span className="truncate font-mono">
-                    {pr.repository} → {pr.targetBranch}
+                    {pr.repositoryPath}
                   </span>
                   <span>·</span>
-                  <span className="truncate">{pr.author}</span>
+                  <span className="truncate font-mono">
+                    {pr.sourceBranch} → {pr.targetBranch}
+                  </span>
+                  <span>·</span>
+                  <span className="truncate">{pr.authorUsername ?? "—"}</span>
                 </span>
               </div>
             );
           },
         }),
-        columnHelper.accessor("criticalCount", {
-          header: "Critical",
-          cell: (info) => {
-            const count = info.getValue();
-            return count > 0 ? (
-              <span className="font-mono text-[12px] text-danger">
-                {count} critical
-              </span>
-            ) : (
-              <span className="font-mono text-[12px] text-text-muted">—</span>
-            );
-          },
-        }),
-        columnHelper.accessor("reviewMode", {
-          header: "Review",
-          cell: (info) => {
-            const mode = info.getValue();
-            return (
-              <span
-                className={classNames("font-mono text-[12px]", {
-                  "text-primary-400": mode === "ai_assisted",
-                  "text-text-secondary": mode === "manual",
-                })}
-              >
-                {mode === "ai_assisted" ? "AI-Assisted" : "Manual"}
-              </span>
-            );
-          },
-        }),
-        columnHelper.accessor("status", {
+        columnHelper.accessor("state", {
           header: "Status",
           cell: (info) => {
             const { label, dot, text } = STATUS_MAP[info.getValue()];
@@ -160,6 +161,28 @@ const PullRequestList = React.memo(() => {
 
   const table = useTable({ features, columns, data: filteredData });
 
+  if (isError) {
+    return (
+      <StateStatus
+        title="Gagal memuat pull request"
+        description="Terjadi kesalahan saat mengambil data. Coba muat ulang halaman."
+      />
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-3">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-14 animate-pulse rounded-lg border border-border-default bg-surface"
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
@@ -177,24 +200,33 @@ const PullRequestList = React.memo(() => {
 
       {filteredData.length === 0 ? (
         <StateStatus
-          title="No pull requests match this filter."
+          title={
+            pullRequests.length === 0
+              ? "Belum ada pull request untuk organisasi ini"
+              : "Tidak ada pull request yang cocok dengan filter ini"
+          }
+          description={
+            pullRequests.length === 0
+              ? "Pull request akan muncul di sini setelah webhook menerima aktivitas baru."
+              : undefined
+          }
           action={
-            <button
-              type="button"
-              onClick={handleResetFilter}
-              className="text-[12.5px] text-primary-400 hover:underline"
-            >
-              Show all
-            </button>
+            pullRequests.length > 0 && (
+              <button
+                type="button"
+                onClick={handleResetFilter}
+                className="text-[12.5px] text-primary-400 hover:underline"
+              >
+                Tampilkan semua
+              </button>
+            )
           }
         />
       ) : (
         <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
           <table className="w-full table-fixed border-collapse">
             <colgroup>
-              <col className="w-96" />
-              <col className="w-30" />
-              <col className="w-30" />
+              <col className="w-auto" />
               <col className="w-30" />
               <col className="w-30" />
             </colgroup>

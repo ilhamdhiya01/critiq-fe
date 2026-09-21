@@ -57,6 +57,11 @@ export const API_INTEGRATION_REPO_BRANCHES = (
   providerRepoId: string | number,
 ) => `${API_INTEGRATIONS(orgId)}/${source}/repos/${providerRepoId}/branches`;
 
+// Pull requests (org-wide, read-only, populated by webhook — no polling from BE)
+export const API_PULLS = (orgId: string) => `${API_ORG}/${orgId}/pulls`;
+export const API_PULL_DETAIL = (orgId: string, repoId: string, id: string) =>
+  `${API_ORG}/${orgId}/repos/${repoId}/pulls/${id}`;
+
 export const authRoutes = [ROUTES.LOGIN, ROUTES.REGISTER] as const;
 
 // Consumed by proxy.ts. Org screens live under a dynamic `/<slug>` segment,
