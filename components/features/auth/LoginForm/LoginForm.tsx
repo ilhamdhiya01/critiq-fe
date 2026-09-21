@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 
 import Logo from "@/components/shared/logo";
 import Button from "@/components/ui/button";
+import { API_OAUTH_LOGIN } from "@/routes";
 
 const GitHubIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="#F0F0F0">
@@ -23,7 +24,12 @@ const GitLabIcon = () => (
   </svg>
 );
 
-const LoginForm = () => {
+const LoginForm = React.memo(() => {
+  const [isLoading, setIsLoading] = useState({
+    Github: false,
+    Gitlab: false,
+  });
+
   return (
     <>
       <Logo size={30} withWordmark />
@@ -44,11 +50,27 @@ const LoginForm = () => {
       </div>
 
       <div className="mt-6 flex flex-col gap-3">
-        <Button variant="provider" icon={<GitHubIcon />} className="py-2.75">
+        <Button
+          link={API_OAUTH_LOGIN("github")}
+          isLoading={isLoading.Github}
+          disabled={isLoading.Gitlab}
+          variant="provider"
+          icon={<GitHubIcon />}
+          className="py-2.75"
+          onClick={() => setIsLoading((prev) => ({ ...prev, Github: true }))}
+        >
           Continue with GitHub
         </Button>
-        <Button variant="provider" icon={<GitLabIcon />} className="py-2.75">
-          Continue with GitLab
+        <Button
+          link={API_OAUTH_LOGIN("gitlab")}
+          isLoading={isLoading.Gitlab}
+          disabled={isLoading.Github}
+          variant="provider"
+          icon={<GitLabIcon />}
+          className="py-2.75"
+          onClick={() => setIsLoading((prev) => ({ ...prev, Gitlab: true }))}
+        >
+          Continue with GitLab.com
         </Button>
       </div>
 
@@ -57,10 +79,11 @@ const LoginForm = () => {
         <a href="#" className="text-primary-300 hover:underline">
           Terms of Service
         </a>
-        .
       </p>
     </>
   );
-};
+});
+
+LoginForm.displayName = "LoginForm";
 
 export default LoginForm;

@@ -1,0 +1,49 @@
+# deps — reinstalled in the deps stage
+node_modules
+.pnp
+.pnp.*
+.yarn
+
+# build output — a stale .next/ copied in can shadow the fresh build
+.next
+out
+build
+*.tsbuildinfo
+next-env.d.ts
+
+# env — NEXT_PUBLIC_API_URL arrives via build-arg. The local .env holds a
+# localhost URL and would be read by next build, overriding the build arg.
+.env
+.env.*
+
+# vcs / tooling
+.git
+.gitignore
+.github
+.husky
+.vscode
+.claude
+.prettierrc.json
+.prettierignore
+eslint.config.mjs
+commitlint.config.js
+
+# tests — not needed to build
+coverage
+vitest.config.mts
+vitest.setup.ts
+
+# docs
+*.md
+!README.md
+
+# docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# os cruft
+.DS_Store
+*.pem
+npm-debug.log*
+.pnpm-debug.log*
