@@ -11,6 +11,8 @@ export const ROUTES = {
 
   dashboard: (slug: string) => `/${slug}`,
   pullRequests: (slug: string) => `/${slug}/pull-requests`,
+  pullRequestDetail: (slug: string, id: string, repositoryId: string) =>
+    `/${slug}/pull-requests/${id}?repoId=${repositoryId}`,
   repositories: (slug: string) => `/${slug}/repositories`,
   rules: (slug: string) => `/${slug}/rules`,
   activity: (slug: string) => `/${slug}/activity`,
@@ -61,6 +63,11 @@ export const API_INTEGRATION_REPO_BRANCHES = (
 export const API_PULLS = (orgId: string) => `${API_ORG}/${orgId}/pulls`;
 export const API_PULL_DETAIL = (orgId: string, repoId: string, id: string) =>
   `${API_ORG}/${orgId}/repos/${repoId}/pulls/${id}`;
+export const API_PULL_DETAIL_DIFF = (
+  orgId: string,
+  repoId: string,
+  id: string,
+) => `${API_PULL_DETAIL(orgId, repoId, id)}/diff`;
 
 export const authRoutes = [ROUTES.LOGIN, ROUTES.REGISTER] as const;
 
