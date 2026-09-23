@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --font-jetbrains-mono: "JetBrains Mono", monospace;
+
   /* Primary scale — brand indigo, anchored at #6366F1 (600) and #A5B4FC (300) */
   --primary-50: oklch(90.7% 0.039 277);
   --primary-100: oklch(87.9% 0.052 277);
