@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --font-jetbrains-mono: "JetBrains Mono", monospace;
+
   /* Primary scale — brand indigo, anchored at #6366F1 (600) and #A5B4FC (300) */
   --primary-50: oklch(90.7% 0.039 277);
   --primary-100: oklch(87.9% 0.052 277);
@@ -63,6 +65,20 @@
 
   /* Vendor tokens */
   --vendor-gitlab: #fc6d26;
+
+  /* Diff viewer */
+  --sunken: #0e0e0e;
+  --diff-context-text: #d4d4d4;
+  --diff-gutter: #4a4a4a;
+  --diff-added-bg: rgba(34, 197, 94, 0.07);
+  --diff-added-text: #b9e4c4;
+  --diff-added-gutter: #4a7a5a;
+  --diff-removed-bg: rgba(239, 68, 68, 0.07);
+  --diff-removed-text: #d4a0a0;
+  --diff-removed-gutter: #7a4a4a;
+  --diff-flagged-bg: rgba(239, 68, 68, 0.1);
+  --diff-flagged-critical-hover: rgba(239, 68, 68, 0.16);
+  --diff-flagged-warning-hover: rgba(245, 158, 11, 0.14);
 }
 
 @theme inline {
@@ -121,6 +137,19 @@
 
   --color-vendor-gitlab: var(--vendor-gitlab);
 
+  --color-sunken: var(--sunken);
+  --color-diff-context-text: var(--diff-context-text);
+  --color-diff-gutter: var(--diff-gutter);
+  --color-diff-added-bg: var(--diff-added-bg);
+  --color-diff-added-text: var(--diff-added-text);
+  --color-diff-added-gutter: var(--diff-added-gutter);
+  --color-diff-removed-bg: var(--diff-removed-bg);
+  --color-diff-removed-text: var(--diff-removed-text);
+  --color-diff-removed-gutter: var(--diff-removed-gutter);
+  --color-diff-flagged-bg: var(--diff-flagged-bg);
+  --color-diff-flagged-critical-hover: var(--diff-flagged-critical-hover);
+  --color-diff-flagged-warning-hover: var(--diff-flagged-warning-hover);
+
   --font-mono: var(--font-jetbrains-mono);
 }
 
@@ -129,4 +158,32 @@ body {
   color: var(--foreground);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -600px 0;
+  }
+  100% {
+    background-position: 600px 0;
+  }
+}
+
+.animate-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--border-subtle) 0%,
+    var(--border-default) 50%,
+    var(--border-subtle) 100%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer {
+    animation: none;
+    background-image: none;
+    background-color: var(--border-subtle);
+  }
 }

@@ -1,10 +1,15 @@
 import { PullRequests } from "@/components/features/pull-requests";
 import DashboardLayout from "@/components/shared/layout";
+import { getUserFromToken } from "@/lib/helpers";
 
-const PullRequestsPage = () => {
+const PullRequestsPage = async () => {
+  const userData = await getUserFromToken();
+
   return (
     <DashboardLayout title="Pull Requests">
-      <PullRequests.PullRequestList />
+      <PullRequests.PullRequestList
+        orgId={userData?.activeOrgId ?? undefined}
+      />
     </DashboardLayout>
   );
 };
