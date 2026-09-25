@@ -19,7 +19,54 @@ export interface PullRequest {
   updatedAt: string;
 }
 
-// PullRequestDetail (headSha) sengaja belum dibuat — endpoint
-// GET /orgs/:orgId/repos/:repoId/pulls/:id (API_PULL_DETAIL di routes.ts)
-// sudah tersedia di BE tapi service/hook/type-nya ditunda ke task halaman
-// detail PR terpisah.
+export interface PullRequestFile {
+  path: string;
+  previousPath: string | null;
+  status: "added" | "removed" | "modified" | "renamed";
+  additions: number | null;
+  deletions: number | null;
+  patch: string | null;
+  truncated: boolean;
+}
+
+export interface PullRequestDetail extends PullRequest {
+  headSha: string | null;
+}
+
+export interface PullRequestDiff {
+  files: PullRequestFile[];
+  truncated: boolean;
+}
+
+export type DiffLineType = "context" | "added" | "removed" | "hunk";
+export type DiffFlagSeverity = "critical" | "warning";
+
+export interface DiffLineFlag {
+  severity: DiffFlagSeverity;
+  label: string;
+}
+
+export interface DiffLine {
+  type: DiffLineType;
+  oldLineNumber: number | null;
+  newLineNumber: number | null;
+  content: string;
+}
+
+export interface ParsedPullRequestFile extends PullRequestFile {
+  lines: DiffLine[];
+  addedCount: number;
+  removedCount: number;
+}
+
+export interface ParsedPullRequestDiff {
+  files: ParsedPullRequestFile[];
+  truncated: boolean;
+}
+
+export interface PullRequestComment {
+  id: string;
+  author: string;
+  body: string;
+  createdAt: string;
+}
