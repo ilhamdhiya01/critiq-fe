@@ -1,12 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState } from "react";
 
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
+import { useUser } from "@/lib/hooks/auth/useUser";
 import type { PullRequestComment } from "@/lib/types/pull-request.types";
 
-import CommentItem from "../../CommentItem";
+import CommentItem from "../CommentItem";
 
 interface DiffCommentThreadProps {
   path: string;
@@ -18,6 +20,7 @@ interface DiffCommentThreadProps {
 const DiffCommentThread = React.memo(
   ({ path, lineNumber, comments, onSubmit }: DiffCommentThreadProps) => {
     const [draft, setDraft] = useState("");
+    const { data: user } = useUser();
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -33,6 +36,15 @@ const DiffCommentThread = React.memo(
           <CommentItem key={comment.id} comment={comment} size="sm" />
         ))}
         <form onSubmit={handleSubmit} className="flex items-center gap-2.5">
+          {user && user.avatarUrl && (
+            <Image
+              alt="avatar"
+              src={user.avatarUrl}
+              width={25}
+              height={25}
+              className="rounded-full"
+            />
+          )}
           <Input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}

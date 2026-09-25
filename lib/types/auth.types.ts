@@ -8,3 +8,10 @@ export interface DecodedToken {
   provider: Provider;
   onboardingCompleted: boolean;
 }
+
+export interface UserSession extends Omit<DecodedToken, "sub"> {
+  id: string;
+  email: string;
+  name: string;
+  avatarUrl: string;
+}
