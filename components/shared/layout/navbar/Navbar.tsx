@@ -1,6 +1,11 @@
+"use client";
+
+import Image from "next/image";
 import React from "react";
 
 import Icon from "@/components/ui/icon/Icon";
+import { getInitials } from "@/lib/helpers/avatar.helper";
+import { useUser } from "@/lib/hooks/auth/useUser";
 
 interface NavbarProps {
   title: string;
@@ -9,6 +14,7 @@ interface NavbarProps {
 // Search, notifications and the profile menu are presentational for now —
 // they render at the mockup's fidelity but carry no behaviour yet.
 const Navbar = React.memo(({ title }: NavbarProps) => {
+  const { data: user } = useUser();
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b border-border-default bg-surface px-5.5">
       <h1 className="font-mono text-[13px] font-semibold text-text-bright">
@@ -37,15 +43,26 @@ const Navbar = React.memo(({ title }: NavbarProps) => {
       </span>
 
       <div className="flex items-center gap-2.5 border-l border-border-default pl-3.5">
-        <span className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-full bg-info/25 text-[11px] font-bold text-info-light">
-          AW
-        </span>
+        {user && user.avatarUrl && (
+          <Image
+            alt="avatar"
+            src={user.avatarUrl}
+            width={30}
+            height={30}
+            className="rounded-full"
+          />
+        )}
+        {user && !user.avatarUrl && (
+          <span className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-full bg-info/25 text-[11px] font-bold text-info-light">
+            {getInitials(user?.name ?? "")}
+          </span>
+        )}
         <span className="flex flex-col gap-px">
           <span className="text-[12.5px] leading-tight font-semibold text-text-strong">
-            Alex Winter
+            {user?.name}
           </span>
           <span className="font-mono text-[10.5px] text-text-faint">
-            TECH LEAD · ADMIN
+            TECH LEAD · {user?.provider}
           </span>
         </span>
         <Icon

@@ -68,7 +68,7 @@ const PullRequestDetail = React.memo(
       );
     }
 
-    if (isLoading || !data) {
+    if (isLoading || isLoadingDiff || !diff || !data) {
       return <PullRequestDetailSkeleton />;
     }
 
@@ -156,8 +156,6 @@ const PullRequestDetail = React.memo(
             title="Gagal memuat diff"
             description="Terjadi kesalahan saat mengambil perubahan file. Coba muat ulang halaman."
           />
-        ) : isLoadingDiff || !diff ? (
-          <PullRequestDiffSkeleton />
         ) : (
           <PullRequestDiff files={diff.files} truncated={diff.truncated} />
         )}

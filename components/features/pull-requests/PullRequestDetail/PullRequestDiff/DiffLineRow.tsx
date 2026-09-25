@@ -93,45 +93,27 @@ const DiffLineRow = React.memo(
         <span className={code()}>{line.content}</span>
         <span className={gutter()}>
           {flag ? (
-            <>
-              <span title={flag.label} className="relative flex size-2">
-                <span
-                  className={classNames(
-                    "absolute inline-flex h-full w-full animate-ping rounded-full opacity-75",
-                    {
-                      "bg-danger": flag.severity === "critical",
-                      "bg-warning": flag.severity === "warning",
-                    },
-                  )}
-                />
-                <span
-                  className={classNames(
-                    "relative inline-flex size-2 rounded-full",
-                    {
-                      "bg-danger": flag.severity === "critical",
-                      "bg-warning": flag.severity === "warning",
-                    },
-                  )}
-                />
-              </span>
-              {/* <span
-                title={flag.label}
-                className={
-                  flag.severity === "critical"
-                    ? "h-2 w-2 rounded-full bg-danger"
-                    : "h-2 w-2 rounded-full bg-warning"
-                }
-              /> */}
-            </>
+            <span title={flag.label} className="relative flex size-2">
+              <span
+                className={classNames(
+                  "absolute inline-flex h-full w-full animate-ping rounded-full opacity-75",
+                  {
+                    "bg-danger": flag.severity === "critical",
+                    "bg-warning": flag.severity === "warning",
+                  },
+                )}
+              />
+              <span
+                className={classNames(
+                  "relative inline-flex size-2 rounded-full",
+                  {
+                    "bg-danger": flag.severity === "critical",
+                    "bg-warning": flag.severity === "warning",
+                  },
+                )}
+              />
+            </span>
           ) : (
-            // <span
-            //   title={flag.label}
-            //   className={
-            //     flag.severity === "critical"
-            //       ? "h-2 w-2 rounded-full bg-danger"
-            //       : "h-2 w-2 rounded-full bg-warning"
-            //   }
-            // />
             <Icon
               icon={isActive ? "TbMessage" : "TbPlus"}
               size={12}

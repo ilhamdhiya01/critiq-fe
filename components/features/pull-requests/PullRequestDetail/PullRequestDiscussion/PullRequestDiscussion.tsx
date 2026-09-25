@@ -7,7 +7,7 @@ import Icon from "@/components/ui/icon/Icon";
 import Textarea from "@/components/ui/textarea";
 import type { PullRequestComment } from "@/lib/types/pull-request.types";
 
-import CommentItem from "../../CommentItem";
+import CommentItem from "../CommentItem";
 
 const PullRequestDiscussion = React.memo(() => {
   const [comments, setComments] = useState<PullRequestComment[]>([]);

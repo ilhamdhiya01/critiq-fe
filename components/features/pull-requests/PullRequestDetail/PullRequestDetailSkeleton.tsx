@@ -1,5 +1,7 @@
 import React from "react";
 
+import PullRequestDiffSkeleton from "./PullRequestDiff/PullRequestDiffSkeleton";
+
 const PullRequestDetailSkeleton = React.memo(() => {
   return (
     <div className="flex flex-col gap-4">
@@ -18,6 +20,8 @@ const PullRequestDetailSkeleton = React.memo(() => {
           <div className="animate-shimmer h-5.5 w-20 rounded-full" />
         </div>
       </div>
+
+      <PullRequestDiffSkeleton />
     </div>
   );
 });
