@@ -24,7 +24,8 @@ import PullRequestDetailSkeleton from "./PullRequestDetailSkeleton";
 import PullRequestDiff from "./PullRequestDiff";
 import PullRequestDiscussion from "./PullRequestDiscussion";
 
-const GITHUB_SECRET = "jksndkjnkj3jkbrb3ikjfsdnkjsandkjnkj";
+const GITHUB_SECRET =
+  "dsfsdfsdfjsjdfjsdfjsdfjsdfjsdfjsdfjsdfjsdfjsdfjsdfjsdfjsdfjsdfjsdfjsdfj";
 
 interface PullRequestDetailProps {
   orgId?: string;
