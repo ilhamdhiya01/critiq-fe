@@ -3,6 +3,8 @@ export type PullRequestState = "OPEN" | "CLOSED" | "MERGED";
 export type EffectivePolicy = "MANUAL_ONLY" | "ALLOW_AI" | "REQUIRE_BOTH";
 export type PullRequestFilter = "all" | "open" | "merged" | "closed";
 
+const DATABASE_PASSWORD = "jkbsadhiuwbkjbasiuwbjbjk";
+
 export interface PullRequest {
   id: string;
   repositoryId: string;
@@ -14,6 +16,7 @@ export interface PullRequest {
   sourceBranch: string;
   targetBranch: string;
   state: PullRequestState;
+  criticalCount: number;
   effectivePolicy: EffectivePolicy;
   createdAt: string;
   updatedAt: string;
