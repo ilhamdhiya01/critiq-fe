@@ -131,6 +131,24 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
             );
           },
         }),
+        columnHelper.accessor("criticalCount", {
+          header: "Critical",
+          cell: (info) => {
+            const criticalCount = info.getValue();
+            return (
+              <span className="flex items-center gap-1.5 font-mono text-[12px]">
+                {criticalCount > 0 ? (
+                  <span className="flex items-center gap-1 font-semibold text-danger">
+                    <span>{criticalCount}</span>
+                    Critical
+                  </span>
+                ) : (
+                  "-"
+                )}
+              </span>
+            );
+          },
+        }),
         columnHelper.accessor("state", {
           header: "Status",
           cell: (info) => {
@@ -190,6 +208,7 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
         <table className="w-full table-fixed border-collapse">
           <colgroup>
             <col className="w-auto" />
+            <col className="w-30" />
             <col className="w-30" />
             <col className="w-30" />
           </colgroup>
