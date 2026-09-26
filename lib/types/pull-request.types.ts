@@ -2,6 +2,40 @@ export type PullRequestProvider = "GITHUB" | "GITLAB";
 export type PullRequestState = "OPEN" | "CLOSED" | "MERGED";
 export type EffectivePolicy = "MANUAL_ONLY" | "ALLOW_AI" | "REQUIRE_BOTH";
 export type PullRequestFilter = "all" | "open" | "merged" | "closed";
+export type ScanStatus =
+  "QUEUED" | "RUNNING" | "DONE" | "FAILED" | "SUPERSEDED";
+export type ScanTrigger = "WEBHOOK" | "MANUAL" | "RESCAN";
+export type FindingSource = "STATIC" | "AI";
+export type FindingSeverity = "CRITICAL" | "MAJOR" | "MINOR" | "INFO";
+
+interface Finding {
+  id: string;
+  source: FindingSource;
+  ruleId: string;
+  severity: FindingSeverity;
+  title: string;
+  message: string;
+  filePath: string;
+  lineStart: number;
+  lineEnd: number;
+  snippet: string;
+}
+
+export interface LatestScan {
+  id: string;
+  status: ScanStatus;
+  trigger: ScanTrigger;
+  attempt: number;
+  headSha: string;
+  findingsCount: number;
+  criticalCount: number;
+  findingsTruncated: boolean;
+  filesChanged: number;
+  diffBytes: number;
+  rulesetVersion: string;
+  errorMessage: string | null;
+  findings: Finding[];
+}
 
 export interface PullRequest {
   id: string;
@@ -14,9 +48,11 @@ export interface PullRequest {
   sourceBranch: string;
   targetBranch: string;
   state: PullRequestState;
+  criticalCount: number;
   effectivePolicy: EffectivePolicy;
   createdAt: string;
   updatedAt: string;
+  latestScan: LatestScan | null;
 }
 
 export interface PullRequestFile {

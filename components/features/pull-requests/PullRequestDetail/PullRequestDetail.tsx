@@ -22,7 +22,6 @@ import { ROUTES } from "@/routes";
 
 import PullRequestDetailSkeleton from "./PullRequestDetailSkeleton";
 import PullRequestDiff from "./PullRequestDiff";
-import PullRequestDiffSkeleton from "./PullRequestDiff/PullRequestDiffSkeleton";
 import PullRequestDiscussion from "./PullRequestDiscussion";
 
 interface PullRequestDetailProps {
@@ -41,6 +40,8 @@ const PullRequestDetail = React.memo(
       repoId,
       id,
     );
+
+    console.log(data);
     const {
       data: diff,
       isLoading: isLoadingDiff,
