@@ -105,14 +105,10 @@ export const FINDING_SEVERITY_STYLE: Record<
   },
 };
 
-// Rule ids are namespaced by category — `secret.aws_access_key`,
-// `code.sql_string_concat`, `config.cors_wildcard_credentials`. Those three
-// prefixes cover the whole static ruleset, so the icon keys off the segment
-// before the first dot; AI findings may use other prefixes and fall back.
 const FINDING_CATEGORY_ICON: Record<string, IconName> = {
-  secret: "TbShieldLock",
-  code: "TbAlertCircle",
   config: "TbAdjustmentsHorizontal",
+  code: "TbAlertCircle",
+  secret: "TbShieldLock",
 };
 
 export const getFindingIcon = (ruleId: string): IconName =>
