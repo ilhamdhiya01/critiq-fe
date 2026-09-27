@@ -2,6 +2,13 @@ import type { DiffLine } from "@/lib/types/pull-request.types";
 
 const HUNK_HEADER = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/;
 
+// DOM id shared by the diff row and anything linking to it (the Flagged
+// Issues card). File paths contain slashes and dots, which are legal in an
+// id but awkward in a CSS selector — this is only ever looked up with
+// getElementById, so no escaping is needed.
+export const getDiffLineElementId = (filePath: string, line: number) =>
+  `diff-line:${filePath}:${line}`;
+
 export const parseUnifiedPatch = (patch: string): DiffLine[] => {
   const lines: DiffLine[] = [];
   let oldLine = 0;

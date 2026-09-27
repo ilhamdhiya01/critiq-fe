@@ -1,6 +1,7 @@
 "use client";
 
 import classNames from "classnames";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useMemo } from "react";
@@ -16,10 +17,12 @@ import {
 } from "@/const/pull-request.constant";
 import { getAvatarColor, getInitials } from "@/lib/helpers/avatar.helper";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
+import { useUser } from "@/lib/hooks/auth/useUser";
 import { usePullRequestDetail } from "@/lib/hooks/pull-requests/usePullRequestDetail";
 import { usePullRequestDetailDiff } from "@/lib/hooks/pull-requests/usePullRequestDetailDiff";
 import { ROUTES } from "@/routes";
 
+import FlaggedIssues from "./FlaggedIssues";
 import PullRequestDetailSkeleton from "./PullRequestDetailSkeleton";
 import PullRequestDiff from "./PullRequestDiff";
 import PullRequestDiscussion from "./PullRequestDiscussion";
@@ -34,6 +37,7 @@ const PullRequestDetail = React.memo(
   ({ id, repoId, orgId }: PullRequestDetailProps) => {
     const params = useParams<{ slug: string }>();
     const slug = params.slug;
+    const { data: user } = useUser();
 
     const { data, isLoading, isError } = usePullRequestDetail(
       orgId ?? "",
@@ -41,12 +45,22 @@ const PullRequestDetail = React.memo(
       id,
     );
 
-    console.log(data);
     const {
       data: diff,
       isLoading: isLoadingDiff,
       isError: isErrorDiff,
     } = usePullRequestDetailDiff(orgId ?? "", repoId, id);
+
+    // MVP scope is Critical-only (see the PRD): other severities exist in the
+    // type but are not surfaced yet. Memoised because this array is a prop to
+    // memoised children — a fresh array each render would defeat them.
+    const criticalFindings = useMemo(
+      () =>
+        (data?.latestScan?.findings ?? []).filter(
+          (finding) => finding.severity === "CRITICAL",
+        ),
+      [data?.latestScan?.findings],
+    );
 
     const authorInitials = useMemo(
       () => (data?.authorUsername ? getInitials(data.authorUsername) : "?"),
@@ -106,14 +120,15 @@ const PullRequestDetail = React.memo(
 
           <div className="flex flex-wrap items-center gap-3.5">
             <span className="flex items-center gap-1.5">
-              <span
-                className={classNames(
-                  "flex h-5.5 w-5.5 items-center justify-center rounded-full text-[9px] font-bold text-neutral-50",
-                  authorAvatarColor,
-                )}
-              >
-                {authorInitials}
-              </span>
+              {user && user.avatarUrl && (
+                <Image
+                  alt="avatar"
+                  src={user.avatarUrl}
+                  width={22}
+                  height={22}
+                  className="rounded-full"
+                />
+              )}
               <span className="text-xs text-text-secondary">
                 {data.authorUsername ?? "—"}
               </span>
@@ -152,13 +167,23 @@ const PullRequestDetail = React.memo(
           </div>
         </div>
 
+        <FlaggedIssues
+          findings={criticalFindings}
+          files={diff.files}
+          truncated={data.latestScan?.findingsTruncated ?? false}
+        />
+
         {isErrorDiff ? (
           <StateStatus
             title="Gagal memuat diff"
             description="Terjadi kesalahan saat mengambil perubahan file. Coba muat ulang halaman."
           />
         ) : (
-          <PullRequestDiff files={diff.files} truncated={diff.truncated} />
+          <PullRequestDiff
+            files={diff.files}
+            truncated={diff.truncated}
+            findings={criticalFindings}
+          />
         )}
 
         <PullRequestDiscussion />
