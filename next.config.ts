@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+const apiKey = "Kp7mNq2XvZr9TwLbYc4Hd8";
 
 const nextConfig: NextConfig = {
   output: "standalone",
