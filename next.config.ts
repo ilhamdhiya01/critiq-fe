@@ -9,8 +9,6 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       // GitHub
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
-      // GitLab — uploaded avatars on gitlab.com, and Gravatar for the
-      // identicon fallback it serves when a user has not set one.
       { protocol: "https", hostname: "gitlab.com" },
       { protocol: "https", hostname: "secure.gravatar.com" },
       { protocol: "https", hostname: "www.gravatar.com" },
