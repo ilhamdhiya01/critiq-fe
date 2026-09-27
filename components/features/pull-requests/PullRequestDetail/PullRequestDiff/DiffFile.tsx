@@ -1,12 +1,16 @@
 "use client";
 
 import classNames from "classnames";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
+import { getDiffLineElementId } from "@/lib/helpers/diff.helper";
 import type {
+  DiffLineFlag,
+  Finding,
   ParsedPullRequestFile,
   PullRequestComment,
 } from "@/lib/types/pull-request.types";
+import { useDiffJumpStore } from "@/stores/useDiffJumpStore";
 
 import DiffCommentThread from "./DiffCommentThread";
 import DiffLineRow from "./DiffLineRow";
@@ -14,13 +18,43 @@ import DiffLineRow from "./DiffLineRow";
 interface DiffFileProps {
   file: ParsedPullRequestFile;
   isFirst: boolean;
+  findings?: Finding[];
 }
 
-const DiffFile = React.memo(({ file, isFirst }: DiffFileProps) => {
+// Findings use the API's uppercase severity; the diff gutter has its own
+// two-level scale. Anything below MAJOR is not surfaced on a line.
+const FLAG_SEVERITY: Record<string, DiffLineFlag["severity"] | undefined> = {
+  CRITICAL: "critical",
+  MAJOR: "warning",
+};
+
+const DiffFile = React.memo(({ file, isFirst, findings }: DiffFileProps) => {
   const [activeLineIndex, setActiveLineIndex] = useState<number | null>(null);
   const [threads, setThreads] = useState<Record<number, PullRequestComment[]>>(
     {},
   );
+
+  // Narrow selector: only this file's rows re-render when a jump lands here,
+  // and it resolves to null for every other file.
+  const highlightedLine = useDiffJumpStore((state) =>
+    state.target?.filePath === file.path ? state.target.line : null,
+  );
+
+  // Findings address lines in the post-change file, so they join on
+  // newLineNumber — removed lines have none and are never flagged.
+  const flagByLine = useMemo(() => {
+    const map = new Map<number, DiffLineFlag>();
+    for (const finding of findings ?? []) {
+      if (finding.filePath !== file.path) continue;
+      const severity = FLAG_SEVERITY[finding.severity];
+      if (!severity) continue;
+      for (let line = finding.lineStart; line <= finding.lineEnd; line++) {
+        // First finding on a line wins; criticals are listed before majors.
+        if (!map.has(line)) map.set(line, { severity, label: finding.title });
+      }
+    }
+    return map;
+  }, [findings, file.path]);
 
   const hasPatch = file.patch !== null && file.lines.length > 0;
   const displayPath =
@@ -75,6 +109,20 @@ const DiffFile = React.memo(({ file, isFirst }: DiffFileProps) => {
                 index={index}
                 isActive={activeLineIndex === index}
                 onSelect={handleSelectLine}
+                flag={
+                  line.newLineNumber !== null
+                    ? flagByLine.get(line.newLineNumber)
+                    : undefined
+                }
+                elementId={
+                  line.newLineNumber !== null
+                    ? getDiffLineElementId(file.path, line.newLineNumber)
+                    : undefined
+                }
+                isHighlighted={
+                  line.newLineNumber !== null &&
+                  highlightedLine === line.newLineNumber
+                }
               />
               {activeLineIndex === index && (
                 <DiffCommentThread
