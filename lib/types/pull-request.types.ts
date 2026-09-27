@@ -8,7 +8,7 @@ export type ScanTrigger = "WEBHOOK" | "MANUAL" | "RESCAN";
 export type FindingSource = "STATIC" | "AI";
 export type FindingSeverity = "CRITICAL" | "MAJOR" | "MINOR" | "INFO";
 
-interface Finding {
+export interface Finding {
   id: string;
   source: FindingSource;
   ruleId: string;
@@ -18,7 +18,9 @@ interface Finding {
   filePath: string;
   lineStart: number;
   lineEnd: number;
-  snippet: string;
+  // Nullable on the backend (FindingDto) — a rule can flag a line without
+  // capturing the surrounding source.
+  snippet: string | null;
 }
 
 export interface LatestScan {

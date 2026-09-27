@@ -1,6 +1,7 @@
 import type { IconName } from "@/components/ui/icon/Icon";
 import type {
   EffectivePolicy,
+  FindingSeverity,
   PullRequest,
   PullRequestState,
 } from "@/lib/types/pull-request.types";
@@ -77,3 +78,42 @@ export const PULL_REQUEST_POLICY_STYLE: Record<
     border: "border-warning/40",
   },
 };
+
+export const FINDING_SEVERITY_STYLE: Record<
+  FindingSeverity,
+  { text: string; bg: string; border: string }
+> = {
+  CRITICAL: {
+    text: "text-danger-light",
+    bg: "bg-danger/10",
+    border: "border-danger/40",
+  },
+  MAJOR: {
+    text: "text-warning-light",
+    bg: "bg-warning/10",
+    border: "border-warning/40",
+  },
+  MINOR: {
+    text: "text-info-light",
+    bg: "bg-info/10",
+    border: "border-info/40",
+  },
+  INFO: {
+    text: "text-text-secondary",
+    bg: "bg-raised",
+    border: "border-border-default",
+  },
+};
+
+// Rule ids are namespaced by category — `secret.aws_access_key`,
+// `code.sql_string_concat`, `config.cors_wildcard_credentials`. Those three
+// prefixes cover the whole static ruleset, so the icon keys off the segment
+// before the first dot; AI findings may use other prefixes and fall back.
+const FINDING_CATEGORY_ICON: Record<string, IconName> = {
+  secret: "TbShieldLock",
+  code: "TbAlertCircle",
+  config: "TbAdjustmentsHorizontal",
+};
+
+export const getFindingIcon = (ruleId: string): IconName =>
+  FINDING_CATEGORY_ICON[ruleId.split(".")[0]] ?? "TbAlertTriangle";
