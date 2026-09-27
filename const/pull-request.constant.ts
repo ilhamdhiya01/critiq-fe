@@ -1,6 +1,7 @@
 import type { IconName } from "@/components/ui/icon/Icon";
 import type {
   EffectivePolicy,
+  FindingSeverity,
   PullRequest,
   PullRequestState,
 } from "@/lib/types/pull-request.types";
@@ -77,3 +78,38 @@ export const PULL_REQUEST_POLICY_STYLE: Record<
     border: "border-warning/40",
   },
 };
+
+export const FINDING_SEVERITY_STYLE: Record<
+  FindingSeverity,
+  { text: string; bg: string; border: string }
+> = {
+  CRITICAL: {
+    text: "text-danger-light",
+    bg: "bg-danger/10",
+    border: "border-danger/40",
+  },
+  MAJOR: {
+    text: "text-warning-light",
+    bg: "bg-warning/10",
+    border: "border-warning/40",
+  },
+  MINOR: {
+    text: "text-info-light",
+    bg: "bg-info/10",
+    border: "border-info/40",
+  },
+  INFO: {
+    text: "text-text-secondary",
+    bg: "bg-raised",
+    border: "border-border-default",
+  },
+};
+
+const FINDING_CATEGORY_ICON: Record<string, IconName> = {
+  config: "TbAdjustmentsHorizontal",
+  code: "TbAlertCircle",
+  secret: "TbShieldLock",
+};
+
+export const getFindingIcon = (ruleId: string): IconName =>
+  FINDING_CATEGORY_ICON[ruleId.split(".")[0]] ?? "TbAlertTriangle";

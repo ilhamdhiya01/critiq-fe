@@ -69,10 +69,22 @@ interface DiffLineRowProps {
   isActive: boolean;
   onSelect: (index: number) => void;
   flag?: DiffLineFlag;
+  /** Set on lines a finding can link to, so the card can scroll here. */
+  elementId?: string;
+  /** Briefly true right after being jumped to, to draw the eye. */
+  isHighlighted?: boolean;
 }
 
 const DiffLineRow = React.memo(
-  ({ line, index, isActive, onSelect, flag }: DiffLineRowProps) => {
+  ({
+    line,
+    index,
+    isActive,
+    onSelect,
+    flag,
+    elementId,
+    isHighlighted = false,
+  }: DiffLineRowProps) => {
     if (line.type === "hunk") {
       return (
         <div className="bg-raised px-5 text-text-muted">{line.content}</div>
@@ -86,7 +98,15 @@ const DiffLineRow = React.memo(
     });
 
     return (
-      <div className={row()} onClick={() => onSelect(index)}>
+      <div
+        id={elementId}
+        className={classNames(row(), {
+          // Ring rather than background: the flagged-line tint already owns
+          // the background, and a ring reads on top of every row variant.
+          "ring-1 ring-primary-400 ring-inset": isHighlighted,
+        })}
+        onClick={() => onSelect(index)}
+      >
         <span className={lineNumber()}>{line.oldLineNumber ?? ""}</span>
         <span className={lineNumber()}>{line.newLineNumber ?? ""}</span>
         <span className={marker()}>{MARKER[line.type]}</span>
