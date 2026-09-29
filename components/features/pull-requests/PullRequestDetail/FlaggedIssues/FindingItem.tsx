@@ -19,9 +19,6 @@ const HIGHLIGHT_DURATION_MS = 2000;
 
 interface FindingItemProps {
   finding: Finding;
-  /** False when the finding's line is not rendered in the diff — a truncated
-   *  file, or a line the patch does not include. The path then renders as
-   *  plain text instead of a link that would do nothing. */
   canJump: boolean;
 }
 
