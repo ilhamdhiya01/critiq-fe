@@ -1,28 +1,20 @@
 "use client";
 
-import classNames from "classnames";
-import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useMemo } from "react";
 
 import StateStatus from "@/components/shared/state-status";
 import Icon from "@/components/ui/icon/Icon";
-import {
-  PULL_REQUEST_POLICY_LABEL,
-  PULL_REQUEST_POLICY_STYLE,
-  PULL_REQUEST_PROVIDER_LABEL,
-  PULL_REQUEST_STATUS_BADGE_STYLE,
-  PULL_REQUEST_STATUS_MAP,
-} from "@/const/pull-request.constant";
-import { getAvatarColor, getInitials } from "@/lib/helpers/avatar.helper";
-import { formatRelativeTime } from "@/lib/helpers/date.helper";
-import { useUser } from "@/lib/hooks/auth/useUser";
 import { usePullRequestDetail } from "@/lib/hooks/pull-requests/usePullRequestDetail";
 import { usePullRequestDetailDiff } from "@/lib/hooks/pull-requests/usePullRequestDetailDiff";
 import { ROUTES } from "@/routes";
 
+import AiSummaryCard from "./AiSummaryCard";
+import BranchPolicyBanner from "./BranchPolicyBanner";
 import FlaggedIssues from "./FlaggedIssues";
+import ManualReviewConfirmation from "./ManualReviewConfirmation";
+import PullRequestDetailHeader from "./PullRequestDetailHeader";
 import PullRequestDetailSkeleton from "./PullRequestDetailSkeleton";
 import PullRequestDiff from "./PullRequestDiff";
 import PullRequestDiscussion from "./PullRequestDiscussion";
@@ -37,7 +29,6 @@ const PullRequestDetail = React.memo(
   ({ id, repoId, orgId }: PullRequestDetailProps) => {
     const params = useParams<{ slug: string }>();
     const slug = params.slug;
-    const { data: user } = useUser();
 
     const { data, isLoading, isError } = usePullRequestDetail(
       orgId ?? "",
@@ -51,10 +42,10 @@ const PullRequestDetail = React.memo(
       isError: isErrorDiff,
     } = usePullRequestDetailDiff(orgId ?? "", repoId, id);
 
-    // MVP scope is Critical-only (see the PRD): other severities exist in the
-    // type but are not surfaced yet. Memoised because this array is a prop to
-    // memoised children — a fresh array each render would defeat them.
-    const criticalFindings = useMemo(
+    // MVP scope for the diff-viewer gutter is Critical-only (see the PRD):
+    // other severities exist in the type but are not surfaced there. The
+    // Flagged Issues card itself now groups all severities internally.
+    const criticalFindingsForDiff = useMemo(
       () =>
         (data?.latestScan?.findings ?? []).filter(
           (finding) => finding.severity === "CRITICAL",
@@ -62,16 +53,27 @@ const PullRequestDetail = React.memo(
       [data?.latestScan?.findings],
     );
 
-    const authorInitials = useMemo(
-      () => (data?.authorUsername ? getInitials(data.authorUsername) : "?"),
-      [data?.authorUsername],
-    );
-    const authorAvatarColor = useMemo(
+    const criticalCount = data?.latestScan?.criticalCount ?? 0;
+
+    const suggestionCount = useMemo(
       () =>
-        data?.authorUsername
-          ? getAvatarColor(data.authorUsername)
-          : "bg-raised",
-      [data?.authorUsername],
+        (data?.latestScan?.findings ?? []).filter(
+          (finding) =>
+            finding.severity === "MAJOR" || finding.severity === "MINOR",
+        ).length,
+      [data?.latestScan?.findings],
+    );
+
+    const { additions, deletions } = useMemo(
+      () =>
+        (diff?.files ?? []).reduce(
+          (acc, file) => ({
+            additions: acc.additions + file.addedCount,
+            deletions: acc.deletions + file.removedCount,
+          }),
+          { additions: 0, deletions: 0 },
+        ),
+      [diff?.files],
     );
 
     if (isError) {
@@ -87,9 +89,7 @@ const PullRequestDetail = React.memo(
       return <PullRequestDetailSkeleton />;
     }
 
-    const status = PULL_REQUEST_STATUS_MAP[data.state];
-    const statusStyle = PULL_REQUEST_STATUS_BADGE_STYLE[data.state];
-    const policyStyle = PULL_REQUEST_POLICY_STYLE[data.effectivePolicy];
+    const requiresBoth = data.effectivePolicy === "REQUIRE_BOTH";
 
     return (
       <div className="flex flex-col gap-4">
@@ -101,74 +101,24 @@ const PullRequestDetail = React.memo(
           Kembali ke Pull Requests
         </Link>
 
-        <div className="flex flex-col gap-3 rounded-lg border border-border-subtle bg-surface p-5">
-          <div className="flex items-start justify-between gap-4">
-            <span className="font-mono text-[17px] font-semibold text-neutral-50">
-              {`${data.provider === "GITHUB" ? "#" : "!"}${data.externalId} ${data.title}`}
-            </span>
-            <span
-              className={classNames(
-                "shrink-0 rounded-full border px-2.5 py-1 font-mono text-[11px] font-semibold",
-                statusStyle.text,
-                statusStyle.bg,
-                statusStyle.border,
-              )}
-            >
-              {status.label}
-            </span>
-          </div>
+        <PullRequestDetailHeader detail={data} />
 
-          <div className="flex flex-wrap items-center gap-3.5">
-            <span className="flex items-center gap-1.5">
-              {user && user.avatarUrl && (
-                <Image
-                  alt="avatar"
-                  src={user.avatarUrl}
-                  width={22}
-                  height={22}
-                  className="rounded-full"
-                />
-              )}
-              <span className="text-xs text-text-secondary">
-                {data.authorUsername ?? "—"}
-              </span>
-            </span>
+        {requiresBoth && (
+          <BranchPolicyBanner targetBranch={data.targetBranch} />
+        )}
 
-            <span className="flex items-center gap-1.5 text-xs text-text-secondary">
-              <Icon
-                icon={data.provider === "GITHUB" ? "FaGithub" : "FaGitlab"}
-                size={13}
-              />
-              {PULL_REQUEST_PROVIDER_LABEL[data.provider]}
-            </span>
+        <AiSummaryCard
+          criticalCount={criticalCount}
+          suggestionCount={suggestionCount}
+          filesChanged={data.latestScan?.filesChanged ?? diff.files.length}
+          additions={additions}
+          deletions={deletions}
+        />
 
-            <span className="rounded-md border border-border-default bg-raised px-2 py-1 font-mono text-[11px] text-text-secondary">
-              {data.repositoryPath}
-            </span>
-
-            <span className="rounded-md border border-border-default bg-raised px-2 py-1 font-mono text-[11px] text-text-secondary">
-              {data.sourceBranch} → {data.targetBranch}
-            </span>
-
-            <span
-              className={classNames(
-                "rounded-full border px-2.5 py-1 font-mono text-[10.5px] font-medium",
-                policyStyle.text,
-                policyStyle.bg,
-                policyStyle.border,
-              )}
-            >
-              {PULL_REQUEST_POLICY_LABEL[data.effectivePolicy]}
-            </span>
-
-            <span className="ml-auto text-[11.5px] text-text-muted">
-              dibuka {formatRelativeTime(data.createdAt)}
-            </span>
-          </div>
-        </div>
+        {requiresBoth && <ManualReviewConfirmation />}
 
         <FlaggedIssues
-          findings={criticalFindings}
+          findings={data.latestScan?.findings ?? []}
           files={diff.files}
           truncated={data.latestScan?.findingsTruncated ?? false}
         />
@@ -182,7 +132,7 @@ const PullRequestDetail = React.memo(
           <PullRequestDiff
             files={diff.files}
             truncated={diff.truncated}
-            findings={criticalFindings}
+            findings={criticalFindingsForDiff}
           />
         )}
 
