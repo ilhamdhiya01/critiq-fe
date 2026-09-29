@@ -2,6 +2,7 @@ import type { IconName } from "@/components/ui/icon/Icon";
 import type {
   EffectivePolicy,
   FindingSeverity,
+  FindingSource,
   PullRequest,
   PullRequestState,
 } from "@/lib/types/pull-request.types";
@@ -102,6 +103,27 @@ export const FINDING_SEVERITY_STYLE: Record<
     text: "text-text-secondary",
     bg: "bg-raised",
     border: "border-border-default",
+  },
+};
+
+export const FINDING_SOURCE_LABEL: Record<FindingSource, string> = {
+  STATIC: "RULE",
+  AI: "AI",
+};
+
+export const FINDING_SOURCE_STYLE: Record<
+  FindingSource,
+  { text: string; bg: string; border: string }
+> = {
+  STATIC: {
+    text: "text-danger-light",
+    bg: "bg-danger/10",
+    border: "border-danger/40",
+  },
+  AI: {
+    text: "text-primary-300",
+    bg: "bg-primary-500/12",
+    border: "border-primary-500/45",
   },
 };
 
