@@ -1,13 +1,31 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
+import Icon from "@/components/ui/icon/Icon";
 import type {
   Finding,
   ParsedPullRequestFile,
 } from "@/lib/types/pull-request.types";
 
 import FindingItem from "./FindingItem";
+
+const COLLAPSED_LIMIT = 5;
+
+// Dummy — backend belum expose finding yang di-skip (butuh field skipReason
+// yang belum ada di tipe Finding). Angka dan teks meniru mockup v5 persis.
+const DUMMY_SKIPPED = [
+  {
+    title: "Database connection string with embedded password",
+    location: "src/auth/config.spec.ts:11",
+    reason: "test file",
+  },
+  {
+    title: "AWS access key committed",
+    location: "src/auth/session.ts:12",
+    reason: "inside a comment",
+  },
+];
 
 interface FlaggedIssuesProps {
   findings: Finding[];
@@ -17,6 +35,23 @@ interface FlaggedIssuesProps {
 
 const FlaggedIssues = React.memo(
   ({ findings, files, truncated = false }: FlaggedIssuesProps) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(true);
+    const [isSkippedOpen, setIsSkippedOpen] = useState(false);
+
+    const criticalFindings = useMemo(
+      () => findings.filter((finding) => finding.severity === "CRITICAL"),
+      [findings],
+    );
+    const suggestionFindings = useMemo(
+      () =>
+        findings.filter(
+          (finding) =>
+            finding.severity === "MAJOR" || finding.severity === "MINOR",
+        ),
+      [findings],
+    );
+
     // A finding is only linkable if its exact line is rendered in the diff —
     // a truncated file, or a line the patch never touched, has no row to
     // scroll to. Built once per diff rather than queried on every click.
@@ -32,23 +67,45 @@ const FlaggedIssues = React.memo(
       return byFile;
     }, [files]);
 
+    const hasMore = criticalFindings.length > COLLAPSED_LIMIT;
+    const visibleFindings = isExpanded
+      ? criticalFindings
+      : criticalFindings.slice(0, COLLAPSED_LIMIT);
+
+    const handleToggleExpanded = useCallback(
+      () => setIsExpanded((current) => !current),
+      [],
+    );
+    const handleToggleSuggestions = useCallback(
+      () => setIsSuggestionsOpen((current) => !current),
+      [],
+    );
+    const handleToggleSkipped = useCallback(
+      () => setIsSkippedOpen((current) => !current),
+      [],
+    );
+
     // A pull request with nothing flagged shows no card at all — an empty
     // "Flagged Issues (0)" would read as a problem rather than a clean scan.
-    if (findings.length === 0) return null;
+    // if (criticalFindings.length === 0) return null;
+
+    const skippedLabel = `${DUMMY_SKIPPED.length} skipped (${DUMMY_SKIPPED.map((item) => item.reason).join(", ")})`;
 
     return (
       <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
         <div className="flex items-center justify-between gap-4 border-b border-border-subtle px-5 py-3.5">
           <span className="font-mono text-[13px] font-semibold text-text-strong">
             Flagged Issues{" "}
-            <span className="text-danger-light">({findings.length})</span>
+            <span className="text-danger-light">
+              ({criticalFindings.length})
+            </span>
           </span>
           <span className="font-mono text-[11px] text-text-muted">
-            SEVERITY SCOPE: CRITICAL ONLY
+            CRITICAL · SORTED BY FILE
           </span>
         </div>
 
-        {findings.map((finding) => (
+        {visibleFindings.map((finding) => (
           <FindingItem
             key={finding.id}
             finding={finding}
@@ -58,6 +115,88 @@ const FlaggedIssues = React.memo(
             }
           />
         ))}
+
+        {hasMore && (
+          <button
+            type="button"
+            onClick={handleToggleExpanded}
+            className="flex w-full cursor-pointer items-center justify-center gap-1.5 border-t border-border-subtle px-5 py-2.5 font-mono text-[11.5px] text-text-nav hover:bg-surface-hover hover:text-text-strong"
+          >
+            {isExpanded
+              ? "Tampilkan lebih sedikit"
+              : `Tampilkan ${criticalFindings.length - COLLAPSED_LIMIT} lainnya`}
+            <Icon
+              icon={isExpanded ? "TbChevronUp" : "TbChevronDown"}
+              size={13}
+            />
+          </button>
+        )}
+
+        {suggestionFindings.length > 0 && (
+          <>
+            <div className="flex items-center justify-between border-t border-border-subtle bg-raised px-5 py-2">
+              <span className="font-mono text-[10.5px] text-text-muted">
+                SUGGESTIONS · NOT COUNTED ABOVE
+              </span>
+              <button
+                type="button"
+                onClick={handleToggleSuggestions}
+                className="cursor-pointer font-mono text-[11px] text-text-nav underline decoration-dotted underline-offset-2 hover:text-text-strong"
+              >
+                {isSuggestionsOpen
+                  ? "hide"
+                  : `show ${suggestionFindings.length}`}
+              </button>
+            </div>
+            {isSuggestionsOpen &&
+              suggestionFindings.map((finding) => (
+                <FindingItem
+                  key={finding.id}
+                  finding={finding}
+                  canJump={
+                    renderedLines
+                      .get(finding.filePath)
+                      ?.has(finding.lineStart) ?? false
+                  }
+                />
+              ))}
+          </>
+        )}
+
+        <div className="flex items-center justify-between border-t border-border-subtle bg-raised px-5 py-2">
+          <span className="font-mono text-[10.5px] text-text-muted">
+            {skippedLabel}
+          </span>
+          <button
+            type="button"
+            onClick={handleToggleSkipped}
+            className="cursor-pointer font-mono text-[11px] text-text-nav underline decoration-dotted underline-offset-2 hover:text-text-strong"
+          >
+            {isSkippedOpen ? "hide" : "show"}
+          </button>
+        </div>
+        {isSkippedOpen &&
+          DUMMY_SKIPPED.map((item) => (
+            <div
+              key={item.location}
+              className="flex items-start gap-3.5 border-b border-border-row px-5 py-3.5 opacity-65 last:border-b-0"
+            >
+              <span className="inline-flex shrink-0 items-center rounded-full border border-border-default bg-raised px-2.5 py-0.5 font-mono text-[10.5px] font-semibold tracking-[0.03em] whitespace-nowrap text-text-muted">
+                SKIPPED
+              </span>
+              <div className="flex min-w-0 flex-col gap-1">
+                <span className="text-xs font-semibold text-neutral-300">
+                  {item.title} <span className="text-text-faint">·</span>{" "}
+                  <span className="font-mono font-normal text-text-faint">
+                    {item.location}
+                  </span>{" "}
+                  <span className="font-mono font-normal text-text-muted">
+                    · {item.reason}
+                  </span>
+                </span>
+              </div>
+            </div>
+          ))}
 
         {truncated && (
           <div className="border-t border-border-subtle px-5 py-3 font-mono text-[11px] text-text-faint">

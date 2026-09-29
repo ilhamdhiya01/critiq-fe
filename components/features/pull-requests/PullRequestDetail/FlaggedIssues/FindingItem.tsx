@@ -6,6 +6,8 @@ import React, { useCallback, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon/Icon";
 import {
   FINDING_SEVERITY_STYLE,
+  FINDING_SOURCE_LABEL,
+  FINDING_SOURCE_STYLE,
   getFindingIcon,
 } from "@/const/pull-request.constant";
 import { getDiffLineElementId } from "@/lib/helpers/diff.helper";
@@ -25,6 +27,7 @@ interface FindingItemProps {
 
 const FindingItem = React.memo(({ finding, canJump }: FindingItemProps) => {
   const severityStyle = FINDING_SEVERITY_STYLE[finding.severity];
+  const sourceStyle = FINDING_SOURCE_STYLE[finding.source];
   const setTarget = useDiffJumpStore((state) => state.setTarget);
   const clearTarget = useDiffJumpStore((state) => state.clearTarget);
   const timerRef = useRef<number | null>(null);
@@ -63,14 +66,26 @@ const FindingItem = React.memo(({ finding, canJump }: FindingItemProps) => {
         {finding.severity}
       </span>
 
-      <Icon
+      <span
+        title={finding.source === "AI" ? "Model review" : "Static rule"}
+        className={classNames(
+          "inline-flex shrink-0 items-center rounded-full border px-1.5 py-0.5 font-mono text-[9.5px] font-semibold whitespace-nowrap",
+          sourceStyle.text,
+          sourceStyle.bg,
+          sourceStyle.border,
+        )}
+      >
+        {FINDING_SOURCE_LABEL[finding.source]}
+      </span>
+
+      {/* <Icon
         icon={getFindingIcon(finding.ruleId)}
         size={16}
         className={classNames(
           "mt-px shrink-0 stroke-[1.6]",
           severityStyle.text,
         )}
-      />
+      /> */}
 
       <div className="flex min-w-0 flex-col gap-1">
         <span className="text-xs font-semibold text-neutral-300">
