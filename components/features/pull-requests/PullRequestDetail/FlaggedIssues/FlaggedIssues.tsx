@@ -105,7 +105,7 @@ const FlaggedIssues = React.memo(
           </span>
         </div>
 
-        {(visibleFindings || []).map((finding) => (
+        {visibleFindings.map((finding) => (
           <FindingItem
             key={finding.id}
             finding={finding}
