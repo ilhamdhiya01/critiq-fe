@@ -68,6 +68,11 @@ export const API_PULL_DETAIL_DIFF = (
   repoId: string,
   id: string,
 ) => `${API_PULL_DETAIL(orgId, repoId, id)}/diff`;
+export const API_PULL_DETAIL_SUMMARY = (
+  orgId: string,
+  repoId: string,
+  id: string,
+) => `${API_PULL_DETAIL(orgId, repoId, id)}/summary`;
 
 export const authRoutes = [ROUTES.LOGIN, ROUTES.REGISTER] as const;
 

@@ -115,10 +115,15 @@ export const getIntegrationRepoBranches = async (
   orgId: string,
   source: IntegrationSource,
   providerRepoId: number,
+  options?: { search?: string; signal?: AbortSignal },
 ): Promise<ApiResponse<RepoBranches>> => {
   try {
     const res = await axiosInstance.get(
       API_INTEGRATION_REPO_BRANCHES(orgId, source, providerRepoId),
+      {
+        params: options?.search ? { search: options.search } : undefined,
+        signal: options?.signal,
+      },
     );
     return res.data;
   } catch (error) {
