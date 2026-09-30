@@ -41,16 +41,18 @@ const DiffFile = React.memo(({ file, isFirst, findings }: DiffFileProps) => {
   );
 
   // Findings address lines in the post-change file, so they join on
-  // newLineNumber — removed lines have none and are never flagged.
+  // newLineNumber — removed lines have none and are never flagged. lineEnd
+  // only bounds the related code for context; the marker itself belongs on
+  // lineStart, the actual line the finding points at.
   const flagByLine = useMemo(() => {
     const map = new Map<number, DiffLineFlag>();
     for (const finding of findings ?? []) {
       if (finding.filePath !== file.path) continue;
       const severity = FLAG_SEVERITY[finding.severity];
       if (!severity) continue;
-      for (let line = finding.lineStart; line <= finding.lineEnd; line++) {
-        // First finding on a line wins; criticals are listed before majors.
-        if (!map.has(line)) map.set(line, { severity, label: finding.title });
+      // First finding on a line wins; criticals are listed before majors.
+      if (!map.has(finding.lineStart)) {
+        map.set(finding.lineStart, { severity, label: finding.title });
       }
     }
     return map;

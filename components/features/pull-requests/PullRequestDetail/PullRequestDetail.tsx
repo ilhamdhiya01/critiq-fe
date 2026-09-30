@@ -8,6 +8,7 @@ import StateStatus from "@/components/shared/state-status";
 import Icon from "@/components/ui/icon/Icon";
 import { usePullRequestDetail } from "@/lib/hooks/pull-requests/usePullRequestDetail";
 import { usePullRequestDetailDiff } from "@/lib/hooks/pull-requests/usePullRequestDetailDiff";
+import { usePullRequestSummary } from "@/lib/hooks/pull-requests/usePullRequestSummary";
 import { ROUTES } from "@/routes";
 
 import AiSummaryCard from "./AiSummaryCard";
@@ -42,13 +43,15 @@ const PullRequestDetail = React.memo(
       isError: isErrorDiff,
     } = usePullRequestDetailDiff(orgId ?? "", repoId, id);
 
-    // MVP scope for the diff-viewer gutter is Critical-only (see the PRD):
-    // other severities exist in the type but are not surfaced there. The
-    // Flagged Issues card itself now groups all severities internally.
-    const criticalFindingsForDiff = useMemo(
+    const { data: summary } = usePullRequestSummary(orgId ?? "", repoId, id);
+
+    // The diff-viewer gutter flags Critical (red) and Major (orange) lines —
+    // Minor/Info findings exist in the type but have no gutter marker.
+    const flaggableFindingsForDiff = useMemo(
       () =>
         (data?.latestScan?.findings ?? []).filter(
-          (finding) => finding.severity === "CRITICAL",
+          (finding) =>
+            finding.severity === "CRITICAL" || finding.severity === "MAJOR",
         ),
       [data?.latestScan?.findings],
     );
@@ -108,6 +111,7 @@ const PullRequestDetail = React.memo(
         )}
 
         <AiSummaryCard
+          summary={summary}
           criticalCount={criticalCount}
           suggestionCount={suggestionCount}
           filesChanged={data.latestScan?.filesChanged ?? diff.files.length}
@@ -132,7 +136,7 @@ const PullRequestDetail = React.memo(
           <PullRequestDiff
             files={diff.files}
             truncated={diff.truncated}
-            findings={criticalFindingsForDiff}
+            findings={flaggableFindingsForDiff}
           />
         )}
 

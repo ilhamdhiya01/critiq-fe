@@ -6,6 +6,7 @@ export const integrationKeys = {
     orgId: string,
     source: "github" | "gitlab",
     providerRepoId: number,
+    search: string,
   ) =>
     [
       ...integrationKeys.all,
@@ -13,6 +14,7 @@ export const integrationKeys = {
       orgId,
       source,
       providerRepoId,
+      search,
     ] as const,
 };
 

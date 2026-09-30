@@ -27,11 +27,16 @@ interface BranchMultiSelectProps {
   truncated: boolean;
   selected: Record<string, boolean>;
   onToggle: (branch: string) => void;
-  disabled?: boolean;
+  query: string;
+  onQueryChange: (value: string) => void;
+  /** True while a refetch (e.g. from typing) is in flight. The trigger
+   *  button stays interactive — only row clicks inside the open panel are
+   *  ignored, so a `disabled` toggle never touches the element the panel's
+   *  position is measured from and never risks closing it mid-refetch. */
+  isRefreshing?: boolean;
 }
 
 const PANEL_HEIGHT_ESTIMATE = 290;
-const MAX_RENDERED_BRANCHES = 60;
 
 const BranchMultiSelect = React.memo(
   ({
@@ -41,13 +46,14 @@ const BranchMultiSelect = React.memo(
     truncated,
     selected,
     onToggle,
-    disabled,
+    query,
+    onQueryChange,
+    isRefreshing,
   }: BranchMultiSelectProps) => {
     const triggerRef = useRef<HTMLButtonElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [panelRect, setPanelRect] = useState<PanelRect | null>(null);
-    const [query, setQuery] = useState("");
 
     const computeRect = useCallback(() => {
       const trigger = triggerRef.current;
@@ -65,15 +71,14 @@ const BranchMultiSelect = React.memo(
     }, []);
 
     const handleTriggerClick = useCallback(() => {
-      if (disabled) return;
       if (isOpen) {
         setIsOpen(false);
         return;
       }
       computeRect();
-      setQuery("");
+      onQueryChange("");
       setIsOpen(true);
-    }, [computeRect, disabled, isOpen]);
+    }, [computeRect, isOpen, onQueryChange]);
 
     useEffect(() => {
       if (!isOpen) return;
@@ -108,18 +113,14 @@ const BranchMultiSelect = React.memo(
       return () => document.removeEventListener("keydown", handleKeyDown);
     }, [isOpen]);
 
+    // Server sudah memfilter berdasarkan `query` dan menjaga urutannya (jangan
+    // sort ulang di sini) — hanya default branch yang dikeluarkan karena ia
+    // dirender terpisah di baris "DEFAULT · ALWAYS ON" di atas.
     const otherBranches = useMemo(
       () => branches.filter((branch) => branch !== defaultBranch),
       [branches, defaultBranch],
     );
 
-    const filtered = useMemo(() => {
-      const q = query.trim().toLowerCase();
-      if (!q) return otherBranches;
-      return otherBranches.filter((branch) => branch.toLowerCase().includes(q));
-    }, [otherBranches, query]);
-
-    const visible = filtered.slice(0, MAX_RENDERED_BRANCHES);
     // `selected` sudah menyertakan default branch (diisi oleh parent saat
     // data pertama kali datang), jadi pickedCount ini sudah termasuk default
     // — jangan ditambah lagi saat dipakai untuk label "x of total".
@@ -128,12 +129,13 @@ const BranchMultiSelect = React.memo(
 
     const handleBranchRowClick = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
+        if (isRefreshing) return;
         const branch = (e.target as HTMLElement).closest<HTMLElement>(
           "[data-branch]",
         )?.dataset.branch;
         if (branch) onToggle(branch);
       },
-      [onToggle],
+      [onToggle, isRefreshing],
     );
 
     const summaryLabel = `${defaultBranch}${extra > 0 ? ` · +${extra}` : ""}`;
@@ -146,9 +148,8 @@ const BranchMultiSelect = React.memo(
         <button
           ref={triggerRef}
           type="button"
-          disabled={disabled}
           onClick={handleTriggerClick}
-          className="flex flex-1 items-center gap-2 rounded-md border border-border-default bg-raised px-2.5 py-1.5 text-left disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex flex-1 items-center gap-2 rounded-md border border-border-default bg-raised px-2.5 py-1.5 text-left"
         >
           <span className="flex-1 truncate font-mono text-[11.5px] text-success-light">
             {summaryLabel}
@@ -181,7 +182,7 @@ const BranchMultiSelect = React.memo(
                 <input
                   autoFocus
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => onQueryChange(e.target.value)}
                   placeholder="Search branches…"
                   className="flex-1 bg-transparent font-mono text-[12px] text-neutral-100 outline-none placeholder:text-text-muted"
                 />
@@ -196,20 +197,23 @@ const BranchMultiSelect = React.memo(
                     DEFAULT · ALWAYS ON
                   </span>
                 </div>
-                {visible.length === 0 ? (
+                {otherBranches.length === 0 ? (
                   <p className="px-3 py-3.5 text-center text-[11.5px] text-text-muted">
-                    {otherBranches.length === 0
-                      ? "No other branches on this repository."
-                      : "No branch matches."}
+                    {query.trim()
+                      ? "No branch matches."
+                      : "No other branches on this repository."}
                   </p>
                 ) : (
                   <div onClick={handleBranchRowClick}>
-                    {visible.map((branch) => (
+                    {otherBranches.map((branch) => (
                       <div
                         key={branch}
                         data-branch={branch}
                         className={classNames(
-                          "flex cursor-pointer items-center gap-2.5 px-3 py-2 hover:bg-raised-alt",
+                          "flex items-center gap-2.5 px-3 py-2",
+                          isRefreshing
+                            ? "cursor-not-allowed opacity-60"
+                            : "cursor-pointer hover:bg-raised-alt",
                           { "bg-success/10": selected[branch] },
                         )}
                       >
@@ -222,10 +226,10 @@ const BranchMultiSelect = React.memo(
                   </div>
                 )}
               </div>
-              {(total > MAX_RENDERED_BRANCHES || truncated) && (
+              {truncated && (
                 <div className="border-t border-border-subtle px-3 py-2 text-[10.5px] text-text-muted">
-                  Showing {Math.min(visible.length + 1, MAX_RENDERED_BRANCHES)}{" "}
-                  of {total} branches — refine your search.
+                  Ketik untuk mencari — daftar dipersempit karena repo ini punya
+                  banyak branch.
                 </div>
               )}
             </div>,
