@@ -108,3 +108,31 @@ export interface PullRequestComment {
   body: string;
   createdAt: string;
 }
+
+export type AiSummaryStatus =
+  | "queued"
+  | "running"
+  | "done"
+  | "cached"
+  | "failed"
+  | "skipped_manual_mode"
+  | "consent_required"
+  | "not_configured"
+  | "skipped_too_large"
+  | "budget_exceeded";
+
+export type AiSummaryRiskLevel = "low" | "medium" | "high";
+
+export interface PullRequestSummary {
+  scanId: string;
+  aiStatus: AiSummaryStatus;
+  summaryMd: string | null;
+  riskLevel: AiSummaryRiskLevel | null;
+  provider: string | null;
+  model: string | null;
+  generatedAt: string | null;
+  cached: boolean;
+  filesOmitted: string[];
+  tokens: { in: number; out: number } | null;
+  error: string | null;
+}

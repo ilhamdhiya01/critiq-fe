@@ -8,4 +8,7 @@ export const pullRequestKeys = {
   diffs: () => [...pullRequestKeys.all, "diff"] as const,
   diff: (orgId: string, repoId: string, id: string) =>
     [...pullRequestKeys.diffs(), orgId, repoId, id] as const,
+  summaries: () => [...pullRequestKeys.all, "summary"] as const,
+  summary: (orgId: string, repoId: string, id: string) =>
+    [...pullRequestKeys.summaries(), orgId, repoId, id] as const,
 };

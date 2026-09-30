@@ -8,6 +8,7 @@ import Icon from "@/components/ui/icon/Icon";
 import { useDisconnectGitlab } from "@/lib/hooks/integrations/useDisconnectGitlab";
 import { useIntegrationCandidates } from "@/lib/hooks/integrations/useIntegrationCandidates";
 import { useIntegrationRepoBranches } from "@/lib/hooks/integrations/useIntegrationRepoBranches";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 import { Provider } from "@/lib/types/auth.types";
 import type { RepoCandidate } from "@/lib/types/integration.types";
 
@@ -52,13 +53,21 @@ const RepoRow = React.memo(
     onBranchStatusChange,
   }: RepoRowProps) => {
     const repoId = String(repo.id);
+    const [query, setQuery] = useState("");
+    const debouncedQuery = useDebounce(query, 300);
 
     const {
       data: branchData,
       isFetching: isBranchesFetching,
       isError: isBranchesError,
       refetch: refetchBranches,
-    } = useIntegrationRepoBranches(organizationId, source, repo.id, checked);
+    } = useIntegrationRepoBranches(
+      organizationId,
+      source,
+      repo.id,
+      checked,
+      debouncedQuery,
+    );
 
     useEffect(() => {
       onBranchStatusChange(repoId, {
@@ -66,6 +75,11 @@ const RepoRow = React.memo(
         isError: isBranchesError,
       });
     }, [repoId, isBranchesFetching, isBranchesError, onBranchStatusChange]);
+
+    // Buka-tutup repo yang sama tidak boleh membawa kata kunci lama.
+    useEffect(() => {
+      if (!checked) setQuery("");
+    }, [checked]);
 
     useEffect(() => {
       if (branchData && selectedBranches === undefined) {
@@ -110,7 +124,7 @@ const RepoRow = React.memo(
           </span>
         </div>
 
-        {checked && isBranchesFetching && (
+        {checked && !branchData && isBranchesFetching && (
           <div className="px-3.5 pb-2.5 font-mono text-[11px] text-text-muted">
             Loading branches…
           </div>
@@ -130,7 +144,7 @@ const RepoRow = React.memo(
           </div>
         )}
 
-        {checked && branchData && !isBranchesFetching && !isBranchesError && (
+        {checked && branchData && !isBranchesError && (
           <div className="px-3.5 pb-2.5">
             <BranchMultiSelect
               branches={branchData.branches}
@@ -139,6 +153,9 @@ const RepoRow = React.memo(
               truncated={branchData.truncated}
               selected={selectedBranches ?? {}}
               onToggle={handleToggleBranch}
+              query={query}
+              onQueryChange={setQuery}
+              isRefreshing={isBranchesFetching}
             />
           </div>
         )}

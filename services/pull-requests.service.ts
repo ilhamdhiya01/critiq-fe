@@ -4,8 +4,14 @@ import type {
   PullRequest,
   PullRequestDetail,
   PullRequestDiff,
+  PullRequestSummary,
 } from "@/lib/types/pull-request.types";
-import { API_PULL_DETAIL, API_PULL_DETAIL_DIFF, API_PULLS } from "@/routes";
+import {
+  API_PULL_DETAIL,
+  API_PULL_DETAIL_DIFF,
+  API_PULL_DETAIL_SUMMARY,
+  API_PULLS,
+} from "@/routes";
 
 export const getPullRequests = async (
   orgId: string,
@@ -38,6 +44,21 @@ export const getPullRequestDetailDiff = async (
   try {
     const res = await axiosInstance.get(
       API_PULL_DETAIL_DIFF(orgId, repoId, id),
+    );
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getPullRequestSummary = async (
+  orgId: string,
+  repoId: string,
+  id: string,
+): Promise<ApiResponse<PullRequestSummary>> => {
+  try {
+    const res = await axiosInstance.get(
+      API_PULL_DETAIL_SUMMARY(orgId, repoId, id),
     );
     return res.data;
   } catch (error) {

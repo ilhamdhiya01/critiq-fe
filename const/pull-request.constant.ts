@@ -1,5 +1,6 @@
 import type { IconName } from "@/components/ui/icon/Icon";
 import type {
+  AiSummaryRiskLevel,
   EffectivePolicy,
   FindingSeverity,
   FindingSource,
@@ -124,6 +125,33 @@ export const FINDING_SOURCE_STYLE: Record<
     text: "text-primary-300",
     bg: "bg-primary-500/12",
     border: "border-primary-500/45",
+  },
+};
+
+export const AI_SUMMARY_RISK_LABEL: Record<AiSummaryRiskLevel, string> = {
+  low: "LOW",
+  medium: "MEDIUM",
+  high: "HIGH",
+};
+
+export const AI_SUMMARY_RISK_STYLE: Record<
+  AiSummaryRiskLevel,
+  { text: string; bg: string; border: string }
+> = {
+  low: {
+    text: "text-success",
+    bg: "bg-success/10",
+    border: "border-success/40",
+  },
+  medium: {
+    text: "text-warning-light",
+    bg: "bg-warning/10",
+    border: "border-warning/40",
+  },
+  high: {
+    text: "text-danger-light",
+    bg: "bg-danger/10",
+    border: "border-danger/40",
   },
 };
 
