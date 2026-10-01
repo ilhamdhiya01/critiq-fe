@@ -73,6 +73,14 @@ export const API_PULL_DETAIL_SUMMARY = (
   repoId: string,
   id: string,
 ) => `${API_PULL_DETAIL(orgId, repoId, id)}/summary`;
+export const API_PULL_SUMMARY_REGENERATE = (
+  orgId: string,
+  repoId: string,
+  id: string,
+) => `${API_ORG}/${orgId}/repos/${repoId}/pulls/${id}/summary/regenerate`;
+
+export const API_PULL_RESCAN = (orgId: string, repoId: string) =>
+  `${API_ORG}/${orgId}/repos/${repoId}/rescan`;
 
 export const authRoutes = [ROUTES.LOGIN, ROUTES.REGISTER] as const;
 

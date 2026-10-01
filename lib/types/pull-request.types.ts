@@ -123,6 +123,11 @@ export type AiSummaryStatus =
 
 export type AiSummaryRiskLevel = "low" | "medium" | "high";
 
+export interface PullRequestSummaryErrorDetail {
+  code: string;
+  hint: string;
+}
+
 export interface PullRequestSummary {
   scanId: string;
   aiStatus: AiSummaryStatus;
@@ -134,5 +139,7 @@ export interface PullRequestSummary {
   cached: boolean;
   filesOmitted: string[];
   tokens: { in: number; out: number } | null;
-  error: string | null;
+  // Backend has been seen sending this as either a plain string or a
+  // structured { code, hint } object — never render it directly.
+  error: string | PullRequestSummaryErrorDetail | null;
 }

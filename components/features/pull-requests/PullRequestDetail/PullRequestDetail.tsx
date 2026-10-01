@@ -111,6 +111,9 @@ const PullRequestDetail = React.memo(
         )}
 
         <AiSummaryCard
+          orgId={orgId ?? ""}
+          repoId={repoId}
+          id={id}
           summary={summary}
           criticalCount={criticalCount}
           suggestionCount={suggestionCount}
