@@ -1,5 +1,7 @@
+"use client";
+
 import classNames from "classnames";
-import React from "react";
+import React, { useCallback } from "react";
 import Markdown from "react-markdown";
 
 import Icon from "@/components/ui/icon/Icon";
@@ -8,10 +10,23 @@ import {
   AI_SUMMARY_RISK_STYLE,
 } from "@/const/pull-request.constant";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
+import { useRegeneratePullRequestSummary } from "@/lib/hooks/pull-requests/useRescanPullRequest";
 import type {
   AiSummaryStatus,
   PullRequestSummary,
 } from "@/lib/types/pull-request.types";
+
+// Backend has sent `error` both as a plain string and as a structured
+// { code, hint } object — normalise to a renderable string either way so a
+// shape change never crashes the card with "Objects are not valid as a
+// React child".
+const getErrorMessage = (
+  error: PullRequestSummary["error"] | undefined,
+): string | null => {
+  if (!error) return null;
+  if (typeof error === "string") return error;
+  return error.hint || error.code || "Analisis AI gagal dijalankan.";
+};
 
 const BLOCKED_MESSAGE: Record<
   Exclude<AiSummaryStatus, "queued" | "running" | "done" | "cached" | "failed">,
@@ -27,6 +42,9 @@ const BLOCKED_MESSAGE: Record<
 };
 
 interface AiSummaryCardProps {
+  orgId: string;
+  repoId: string;
+  id: string;
   summary: PullRequestSummary | undefined;
   criticalCount: number;
   suggestionCount: number;
@@ -37,6 +55,9 @@ interface AiSummaryCardProps {
 
 const AiSummaryCard = React.memo(
   ({
+    orgId,
+    repoId,
+    id,
     summary,
     criticalCount,
     suggestionCount,
@@ -44,12 +65,21 @@ const AiSummaryCard = React.memo(
     additions,
     deletions,
   }: AiSummaryCardProps) => {
+    console.log(summary);
     const status = summary?.aiStatus;
     const isInProgress = status === "queued" || status === "running";
     const isDone = status === "done" || status === "cached";
     const riskStyle = summary?.riskLevel
       ? AI_SUMMARY_RISK_STYLE[summary.riskLevel]
       : null;
+
+    const { handleRegenerate, isRegenerating } =
+      useRegeneratePullRequestSummary(orgId, repoId, id);
+    const isRegenerateDisabled = isRegenerating || isInProgress;
+
+    const onRegenerateClick = useCallback(() => {
+      handleRegenerate();
+    }, [handleRegenerate]);
 
     return (
       <div className="flex flex-col gap-3 rounded-lg border border-primary-500/45 bg-surface-tinted px-5 py-4">
@@ -78,19 +108,50 @@ const AiSummaryCard = React.memo(
             )}
           </span>
 
-          {summary?.generatedAt && (
-            <span className="font-mono text-[10.5px] text-text-muted">
-              {summary.cached ? "cache · " : ""}
-              {formatRelativeTime(summary.generatedAt)}
-            </span>
-          )}
+          <span className="flex items-center gap-2.5">
+            {summary?.generatedAt && (
+              <span className="font-mono text-[10.5px] text-text-muted">
+                {summary.cached ? "cache · " : ""}
+                {formatRelativeTime(summary.generatedAt)}
+              </span>
+            )}
+
+            <button
+              type="button"
+              onClick={onRegenerateClick}
+              disabled={isRegenerateDisabled}
+              className={classNames(
+                "flex items-center gap-1.5 rounded-md border border-primary-500/45 px-3 py-1.5 font-mono text-[11.5px] text-primary-300",
+                isRegenerateDisabled
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer hover:bg-primary-500/10",
+              )}
+            >
+              <Icon
+                icon="TbRefresh"
+                size={12}
+                className={isRegenerateDisabled ? "animate-spin" : undefined}
+              />
+              Regenerate
+            </button>
+          </span>
         </div>
 
         {isInProgress && (
-          <div className="flex flex-col gap-1.5">
-            <div className="animate-shimmer h-3 w-full rounded" />
-            <div className="animate-shimmer h-3 w-5/6 rounded" />
-            <div className="animate-shimmer h-3 w-2/3 rounded" />
+          <div className="flex flex-col gap-2.5">
+            <span className="flex items-center gap-2 font-mono text-[12px] text-primary-200">
+              <Icon icon="TbLoader2" size={13} className="animate-spin" />
+              Menganalisis {filesChanged} file
+              {summary?.model ? ` · ${summary.model}` : ""}
+            </span>
+            <div className="flex flex-col gap-1.5">
+              <div className="animate-shimmer h-3 w-full rounded" />
+              <div className="animate-shimmer h-3 w-5/6 rounded" />
+              <div className="animate-shimmer h-3 w-2/3 rounded" />
+            </div>
+            <span className="text-[11.5px] text-text-faint">
+              Temuan dari rule statis di bawah sudah final.
+            </span>
           </div>
         )}
 
@@ -102,7 +163,7 @@ const AiSummaryCard = React.memo(
 
         {status === "failed" && (
           <p className="text-[12.5px] text-danger-light">
-            {summary?.error ?? "Analisis AI gagal dijalankan."}
+            {getErrorMessage(summary?.error) ?? "Analisis AI gagal dijalankan."}
           </p>
         )}
 

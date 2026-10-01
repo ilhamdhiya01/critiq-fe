@@ -10,6 +10,8 @@ import {
   API_PULL_DETAIL,
   API_PULL_DETAIL_DIFF,
   API_PULL_DETAIL_SUMMARY,
+  API_PULL_RESCAN,
+  API_PULL_SUMMARY_REGENERATE,
   API_PULLS,
 } from "@/routes";
 
@@ -59,6 +61,21 @@ export const getPullRequestSummary = async (
   try {
     const res = await axiosInstance.get(
       API_PULL_DETAIL_SUMMARY(orgId, repoId, id),
+    );
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const regeneratePullRequestSummary = async (
+  orgId: string,
+  repoId: string,
+  id: string,
+): Promise<ApiResponse<null>> => {
+  try {
+    const res = await axiosInstance.post(
+      API_PULL_SUMMARY_REGENERATE(orgId, repoId, id),
     );
     return res.data;
   } catch (error) {
