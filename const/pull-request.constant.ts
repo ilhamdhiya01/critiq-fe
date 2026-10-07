@@ -54,6 +54,14 @@ export const PULL_REQUEST_PROVIDER_LABEL: Record<
   GITLAB: "GitLab · Merge Request",
 };
 
+export const PULL_REQUEST_NUMBER_PREFIX: Record<
+  PullRequest["provider"],
+  string
+> = {
+  GITHUB: "#",
+  GITLAB: "!",
+};
+
 export const PULL_REQUEST_POLICY_LABEL: Record<EffectivePolicy, string> = {
   MANUAL_ONLY: "Manual",
   ALLOW_AI: "AI-Assisted",

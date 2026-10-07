@@ -27,6 +27,29 @@ const DUMMY_SKIPPED = [
   },
 ];
 
+interface ShowMoreToggleProps {
+  isExpanded: boolean;
+  hiddenCount: number;
+  onToggle: () => void;
+}
+
+const ShowMoreToggle = React.memo(
+  ({ isExpanded, hiddenCount, onToggle }: ShowMoreToggleProps) => (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="flex w-full cursor-pointer items-center justify-center gap-1.5 border-t border-border-subtle px-5 py-2.5 font-mono text-[11.5px] text-text-nav hover:bg-surface-hover hover:text-text-strong"
+    >
+      {isExpanded
+        ? "Tampilkan lebih sedikit"
+        : `Tampilkan ${hiddenCount} lainnya`}
+      <Icon icon={isExpanded ? "TbChevronUp" : "TbChevronDown"} size={13} />
+    </button>
+  ),
+);
+
+ShowMoreToggle.displayName = "ShowMoreToggle";
+
 interface FlaggedIssuesProps {
   findings: Finding[];
   files: ParsedPullRequestFile[];
@@ -37,6 +60,7 @@ const FlaggedIssues = React.memo(
   ({ findings, files, truncated = false }: FlaggedIssuesProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(true);
+    const [isSuggestionsExpanded, setIsSuggestionsExpanded] = useState(false);
     const [isSkippedOpen, setIsSkippedOpen] = useState(false);
 
     const criticalFindings = useMemo(
@@ -72,12 +96,21 @@ const FlaggedIssues = React.memo(
       ? criticalFindings
       : criticalFindings.slice(0, COLLAPSED_LIMIT);
 
+    const hasMoreSuggestions = suggestionFindings.length > COLLAPSED_LIMIT;
+    const visibleSuggestions = isSuggestionsExpanded
+      ? suggestionFindings
+      : suggestionFindings.slice(0, COLLAPSED_LIMIT);
+
     const handleToggleExpanded = useCallback(
       () => setIsExpanded((current) => !current),
       [],
     );
     const handleToggleSuggestions = useCallback(
       () => setIsSuggestionsOpen((current) => !current),
+      [],
+    );
+    const handleToggleSuggestionsExpanded = useCallback(
+      () => setIsSuggestionsExpanded((current) => !current),
       [],
     );
     const handleToggleSkipped = useCallback(
@@ -117,19 +150,11 @@ const FlaggedIssues = React.memo(
         ))}
 
         {hasMore && (
-          <button
-            type="button"
-            onClick={handleToggleExpanded}
-            className="flex w-full cursor-pointer items-center justify-center gap-1.5 border-t border-border-subtle px-5 py-2.5 font-mono text-[11.5px] text-text-nav hover:bg-surface-hover hover:text-text-strong"
-          >
-            {isExpanded
-              ? "Tampilkan lebih sedikit"
-              : `Tampilkan ${criticalFindings.length - COLLAPSED_LIMIT} lainnya`}
-            <Icon
-              icon={isExpanded ? "TbChevronUp" : "TbChevronDown"}
-              size={13}
-            />
-          </button>
+          <ShowMoreToggle
+            isExpanded={isExpanded}
+            hiddenCount={criticalFindings.length - COLLAPSED_LIMIT}
+            onToggle={handleToggleExpanded}
+          />
         )}
 
         {suggestionFindings.length > 0 && (
@@ -148,22 +173,32 @@ const FlaggedIssues = React.memo(
                   : `show ${suggestionFindings.length}`}
               </button>
             </div>
-            {isSuggestionsOpen &&
-              suggestionFindings.map((finding) => (
-                <FindingItem
-                  key={finding.id}
-                  finding={finding}
-                  canJump={
-                    renderedLines
-                      .get(finding.filePath)
-                      ?.has(finding.lineStart) ?? false
-                  }
-                />
-              ))}
+            {isSuggestionsOpen && (
+              <>
+                {visibleSuggestions.map((finding) => (
+                  <FindingItem
+                    key={finding.id}
+                    finding={finding}
+                    canJump={
+                      renderedLines
+                        .get(finding.filePath)
+                        ?.has(finding.lineStart) ?? false
+                    }
+                  />
+                ))}
+                {hasMoreSuggestions && (
+                  <ShowMoreToggle
+                    isExpanded={isSuggestionsExpanded}
+                    hiddenCount={suggestionFindings.length - COLLAPSED_LIMIT}
+                    onToggle={handleToggleSuggestionsExpanded}
+                  />
+                )}
+              </>
+            )}
           </>
         )}
 
-        <div className="flex items-center justify-between border-t border-border-subtle bg-raised px-5 py-2">
+        {/* <div className="flex items-center justify-between border-t border-border-subtle bg-raised px-5 py-2">
           <span className="font-mono text-[10.5px] text-text-muted">
             {skippedLabel}
           </span>
@@ -174,8 +209,8 @@ const FlaggedIssues = React.memo(
           >
             {isSkippedOpen ? "hide" : "show"}
           </button>
-        </div>
-        {isSkippedOpen &&
+        </div> */}
+        {/* {isSkippedOpen &&
           DUMMY_SKIPPED.map((item) => (
             <div
               key={item.location}
@@ -196,7 +231,7 @@ const FlaggedIssues = React.memo(
                 </span>
               </div>
             </div>
-          ))}
+          ))} */}
 
         {truncated && (
           <div className="border-t border-border-subtle px-5 py-3 font-mono text-[11px] text-text-faint">

@@ -12,6 +12,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import StateStatus from "@/components/shared/state-status";
 import Icon from "@/components/ui/icon/Icon";
 import {
+  PULL_REQUEST_NUMBER_PREFIX,
   PULL_REQUEST_POLICY_LABEL,
   PULL_REQUEST_PROVIDER_ICON,
   PULL_REQUEST_STATUS_MAP,
@@ -115,7 +116,10 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
                     size={11}
                     className="shrink-0"
                   />
-                  <span className="font-mono">#{pr.externalId}</span>
+                  <span className="font-mono">
+                    {PULL_REQUEST_NUMBER_PREFIX[pr.provider]}
+                    {pr.externalId}
+                  </span>
                   <span>·</span>
                   <span className="truncate font-mono">
                     {pr.repositoryPath}

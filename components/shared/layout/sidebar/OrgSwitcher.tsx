@@ -3,6 +3,7 @@
 import classNames from "classnames";
 import React, { useCallback, useRef, useState } from "react";
 
+import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
 import { useDismissable } from "@/lib/hooks/useDismissable";
 
@@ -31,7 +32,7 @@ const initialsOf = (name: string) =>
 const OrgSwitcher = React.memo(
   ({ organisations, activeOrgId, isCollapsed }: OrgSwitcherProps) => {
     const [isOpen, setIsOpen] = useState(false);
-    const triggerRef = useRef<HTMLButtonElement>(null);
+    const triggerRef = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
 
     const close = useCallback(() => setIsOpen(false), []);
@@ -44,15 +45,17 @@ const OrgSwitcher = React.memo(
 
     return (
       <div className="relative">
-        <button
+        <Button
           ref={triggerRef}
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={() => setIsOpen((open) => !open)}
           aria-expanded={isOpen}
           aria-haspopup="menu"
           title={isCollapsed ? activeOrg.name : undefined}
           className={classNames(
-            "flex w-full items-center gap-2.5 rounded-md border border-border-default bg-raised p-2 transition-colors hover:border-[#3a3a3a] hover:bg-raised-alt",
+            "gap-2.5 bg-raised p-2 font-normal hover:border-[#3a3a3a]",
             { "justify-center": isCollapsed },
           )}
         >
@@ -76,7 +79,7 @@ const OrgSwitcher = React.memo(
               />
             </>
           )}
-        </button>
+        </Button>
 
         {isOpen && (
           <div

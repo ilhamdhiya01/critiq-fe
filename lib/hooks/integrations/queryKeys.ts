@@ -1,5 +1,6 @@
 export const integrationKeys = {
   all: ["integrations"] as const,
+  list: (orgId: string) => [...integrationKeys.all, "list", orgId] as const,
   candidates: (orgId: string, source: "github" | "gitlab") =>
     [...integrationKeys.all, "candidates", orgId, source] as const,
   branches: (
