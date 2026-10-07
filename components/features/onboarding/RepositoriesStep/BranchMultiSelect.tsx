@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 
+import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import Icon from "@/components/ui/icon/Icon";
 
@@ -50,7 +51,7 @@ const BranchMultiSelect = React.memo(
     onQueryChange,
     isRefreshing,
   }: BranchMultiSelectProps) => {
-    const triggerRef = useRef<HTMLButtonElement>(null);
+    const triggerRef = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [panelRect, setPanelRect] = useState<PanelRect | null>(null);
@@ -145,11 +146,14 @@ const BranchMultiSelect = React.memo(
         <span className="shrink-0 font-mono text-[10.5px] tracking-[.07em] text-text-muted uppercase">
           Monitor
         </span>
-        <button
+        <Button
           ref={triggerRef}
           type="button"
+          variant="secondary"
+          size="sm"
+          fullWidth={false}
           onClick={handleTriggerClick}
-          className="flex flex-1 items-center gap-2 rounded-md border border-border-default bg-raised px-2.5 py-1.5 text-left"
+          className="flex-1 justify-between gap-2 bg-raised px-2.5 py-1.5 text-left font-normal"
         >
           <span className="flex-1 truncate font-mono text-[11.5px] text-success-light">
             {summaryLabel}
@@ -162,7 +166,7 @@ const BranchMultiSelect = React.memo(
             size={12}
             className="shrink-0 text-text-secondary"
           />
-        </button>
+        </Button>
         {isOpen &&
           panelRect &&
           createPortal(

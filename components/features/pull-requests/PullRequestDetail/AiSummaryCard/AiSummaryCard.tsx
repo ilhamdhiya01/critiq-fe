@@ -4,6 +4,7 @@ import classNames from "classnames";
 import React, { useCallback } from "react";
 import Markdown from "react-markdown";
 
+import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
 import {
   AI_SUMMARY_RISK_LABEL,
@@ -116,24 +117,24 @@ const AiSummaryCard = React.memo(
               </span>
             )}
 
-            <button
+            <Button
               type="button"
+              variant="ghost-primary"
+              size="sm"
+              fullWidth={false}
               onClick={onRegenerateClick}
               disabled={isRegenerateDisabled}
-              className={classNames(
-                "flex items-center gap-1.5 rounded-md border border-primary-500/45 px-3 py-1.5 font-mono text-[11.5px] text-primary-300",
-                isRegenerateDisabled
-                  ? "cursor-not-allowed opacity-50"
-                  : "cursor-pointer hover:bg-primary-500/10",
-              )}
+              icon={
+                <Icon
+                  icon="TbRefresh"
+                  size={12}
+                  className={isRegenerateDisabled ? "animate-spin" : undefined}
+                />
+              }
+              className="gap-1.5 font-mono"
             >
-              <Icon
-                icon="TbRefresh"
-                size={12}
-                className={isRegenerateDisabled ? "animate-spin" : undefined}
-              />
               Regenerate
-            </button>
+            </Button>
           </span>
         </div>
 

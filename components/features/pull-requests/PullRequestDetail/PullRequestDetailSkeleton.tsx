@@ -1,5 +1,7 @@
 import React from "react";
 
+import AiSummaryCardSkeleton from "./AiSummaryCard/AiSummaryCardSkeleton";
+import FlaggedIssuesSkeleton from "./FlaggedIssues/FlaggedIssuesSkeleton";
 import PullRequestDiffSkeleton from "./PullRequestDiff/PullRequestDiffSkeleton";
 
 const PullRequestDetailSkeleton = React.memo(() => {
@@ -20,6 +22,10 @@ const PullRequestDetailSkeleton = React.memo(() => {
           <div className="animate-shimmer h-5.5 w-20 rounded-full" />
         </div>
       </div>
+
+      <AiSummaryCardSkeleton />
+
+      <FlaggedIssuesSkeleton />
 
       <PullRequestDiffSkeleton />
     </div>
