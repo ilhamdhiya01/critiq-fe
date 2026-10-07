@@ -3,9 +3,12 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/toast";
 import { installIntentGithub } from "@/services/integrations.service";
 
-export const useInstallGitHubApps = (orgId: string) => {
+export const useInstallGitHubApps = (
+  orgId: string,
+  returnTo: "setup" | "settings" = "setup",
+) => {
   const mutation = useMutation({
-    mutationFn: () => installIntentGithub(orgId, { returnTo: "setup" }),
+    mutationFn: () => installIntentGithub(orgId, { returnTo }),
     onSuccess: (response) => {
       window.location.assign(response.data.installUrl);
     },

@@ -47,6 +47,8 @@ export const API_INTEGRATIONS = (orgId: string) =>
   `${API_ORG}/${orgId}/integrations`;
 export const API_INTEGRATIONS_GITLAB = (orgId: string) =>
   `${API_INTEGRATIONS(orgId)}/gitlab`;
+export const API_INTEGRATIONS_GITLAB_HEALTH = (orgId: string) =>
+  `${API_INTEGRATIONS_GITLAB(orgId)}/health`;
 export const API_INTEGRATIONS_GITHUB = (orgId: string) =>
   `${API_INTEGRATIONS(orgId)}/github/install-intent`;
 export const API_INTEGRATION_CANDIDATES = (
@@ -73,6 +75,26 @@ export const API_PULL_DETAIL_SUMMARY = (
   repoId: string,
   id: string,
 ) => `${API_PULL_DETAIL(orgId, repoId, id)}/summary`;
+export const API_PULL_SUMMARY_REGENERATE = (
+  orgId: string,
+  repoId: string,
+  id: string,
+) => `${API_ORG}/${orgId}/repos/${repoId}/pulls/${id}/summary/regenerate`;
+
+export const API_PULL_RESCAN = (orgId: string, repoId: string) =>
+  `${API_ORG}/${orgId}/repos/${repoId}/rescan`;
+
+// External
+export const GITHUB_INSTALLATIONS_URL =
+  "https://github.com/settings/installations";
+
+// Settings
+export const API_SETTINGS_AI = (orgId: string) =>
+  `${API_ORG}/${orgId}/settings/ai`;
+export const API_SETTINGS_AI_TEST = (orgId: string) =>
+  `${API_SETTINGS_AI(orgId)}/test`;
+export const API_SETTINGS_AI_MODELS = (orgId: string) =>
+  `${API_SETTINGS_AI(orgId)}/models`;
 
 export const authRoutes = [ROUTES.LOGIN, ROUTES.REGISTER] as const;
 

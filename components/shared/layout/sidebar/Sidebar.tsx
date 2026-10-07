@@ -4,6 +4,7 @@ import classNames from "classnames";
 import React from "react";
 
 import Logo from "@/components/shared/logo";
+import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
 import { useSidebarStore } from "@/stores/useSidebarStore";
 
@@ -59,13 +60,15 @@ const Sidebar = React.memo(() => {
 
       <div className="flex-1" />
 
-      <button
+      <Button
         type="button"
+        variant="icon"
+        size="sm"
         onClick={toggleCollapsed}
         aria-expanded={!isCollapsed}
         title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         className={classNames(
-          "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs text-text-faint transition-colors hover:bg-surface-hover hover:text-text-strong",
+          "justify-start gap-2.5 px-2.5 py-2 text-xs font-normal text-text-faint",
           { "justify-center px-0": isCollapsed },
         )}
       >
@@ -77,7 +80,7 @@ const Sidebar = React.memo(() => {
           })}
         />
         {!isCollapsed && <span>Collapse</span>}
-      </button>
+      </Button>
     </aside>
   );
 });
