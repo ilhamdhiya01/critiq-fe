@@ -1,22 +1,36 @@
+// Lowercase source used as a URL segment (/integrations/github/...).
 export type IntegrationSource = "github" | "gitlab";
 
-export type TokenKind = "group" | "personal";
+export type IntegrationProvider = "GITHUB" | "GITLAB";
 
-export type IntegrationState =
-  "active" | "expiring_soon" | "token_expired" | "invalid";
+export type IntegrationCredentialKind =
+  "GROUP_TOKEN" | "OAUTH" | "INSTALLATION";
 
-export interface GitLabGroup {
-  id: number;
-  fullPath: string;
+export type IntegrationStatus =
+  "ACTIVE" | "EXPIRING_SOON" | "TOKEN_EXPIRED" | "INVALID" | "PENDING_APPROVAL";
+
+export type GitLabTokenKind = "GROUP" | "PERSONAL";
+
+export interface Integration {
+  source: IntegrationProvider;
+  credentialKind: IntegrationCredentialKind;
+  state: IntegrationStatus;
+  // GitLab only (null for GitHub)
+  instanceUrl: string | null;
+  tokenKind: GitLabTokenKind | null;
+  tokenUsername: string | null;
+  tokenLast4: string | null;
+  expiresAt: string | null;
+  groups: unknown;
+  // GitHub only (null for GitLab)
+  installationId: string | null;
+  installationLogin: string | null;
+  appSlug: string | null;
 }
 
-export interface GitLabIntegration {
-  state: IntegrationState;
-  tokenKind: TokenKind;
-  tokenUsername: string;
-  tokenLast4: string;
-  expiresAt: string;
-  groups: GitLabGroup[];
+export interface IntegrationsBySource {
+  github: Integration | null;
+  gitlab: Integration | null;
 }
 
 export interface VerifyGitLabTokenInput {

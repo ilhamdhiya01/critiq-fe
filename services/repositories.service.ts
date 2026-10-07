@@ -2,15 +2,28 @@ import axiosInstance from "@/lib/axios";
 import type { ApiResponse } from "@/lib/types/api.types";
 import type {
   ConnectRepositoryInput,
+  OrgRepository,
   Repository,
   ScanHistoryEntry,
 } from "@/lib/types/repository.types";
 import {
+  API_CONNECT_REPOS,
   API_REPO_DETAIL,
   API_REPO_RESCAN,
   API_REPO_SCANS,
   API_REPOS,
 } from "@/routes";
+
+export const getOrgRepositories = async (
+  orgId: string,
+): Promise<ApiResponse<OrgRepository[]>> => {
+  try {
+    const res = await axiosInstance.get(API_CONNECT_REPOS(orgId));
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const getRepositories = async (): Promise<ApiResponse<Repository[]>> => {
   try {

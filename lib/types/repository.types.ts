@@ -1,5 +1,17 @@
 import { BranchPolicy } from "@/components/features/onboarding/BranchPolicyStep";
 
+import type { IntegrationProvider } from "./integration.types";
+
+export interface OrgRepository {
+  id: string;
+  provider: IntegrationProvider;
+  path: string;
+  defaultBranch: string;
+  monitoredBranchCount: number;
+}
+
+export type RepoCountByProvider = Record<IntegrationProvider, number>;
+
 export type QualityGate = "PASSED" | "FAILED";
 export type QualityRating = "A" | "B" | "C";
 export type ScanStatus = "idle" | "scanning";
