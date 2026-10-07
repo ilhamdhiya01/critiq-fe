@@ -5,12 +5,23 @@ import { tv } from "tailwind-variants";
 import Icon, { IconProps } from "../icon/Icon";
 
 const button = tv({
-  base: "inline-flex items-center justify-center gap-2.5 rounded-[7px] font-semibold transition-colors",
+  base: "inline-flex items-center justify-center gap-2.5 rounded-[7px] border border-transparent leading-none font-semibold transition-colors",
   variants: {
     variant: {
       primary: "bg-neutral-100 text-neutral-950 hover:bg-white",
       provider:
-        "border border-border-default bg-raised text-[#F0F0F0] hover:border-[#3A3A3A] hover:bg-[#1D1D1D]",
+        "border-border-default bg-raised text-[#F0F0F0] hover:border-[#3A3A3A] hover:bg-[#1D1D1D]",
+      secondary:
+        "border-border-default bg-raised-alt text-text-bright hover:bg-raised",
+      ghost:
+        "border-border-default bg-transparent text-text-secondary hover:bg-raised hover:text-text-bright",
+      "ghost-primary":
+        "border-primary-500/45 bg-transparent text-primary-300 hover:bg-primary-500/10",
+      success:
+        "border-success bg-success text-neutral-950 hover:bg-success-light disabled:border-border-subtle disabled:bg-raised-alt disabled:text-text-muted",
+      danger:
+        "border-danger/50 bg-transparent text-danger-light hover:bg-danger/10 disabled:border-border-subtle disabled:text-text-muted",
+      icon: "rounded-md border-none bg-transparent text-text-faint hover:bg-surface-hover hover:text-text-bright",
     },
     size: {
       sm: "px-3 py-1.5 text-xs",
@@ -27,6 +38,11 @@ const button = tv({
       true: "pointer-events-none opacity-50",
     },
   },
+  compoundVariants: [
+    { variant: "icon", size: "sm", class: "p-1" },
+    { variant: "icon", size: "md", class: "p-1.5" },
+    { variant: "icon", size: "lg", class: "p-2" },
+  ],
   defaultVariants: {
     variant: "primary",
     size: "lg",
@@ -35,7 +51,15 @@ const button = tv({
 });
 
 interface ButtonBaseProps {
-  variant?: "primary" | "provider";
+  variant?:
+    | "primary"
+    | "provider"
+    | "secondary"
+    | "ghost"
+    | "ghost-primary"
+    | "success"
+    | "danger"
+    | "icon";
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
   icon?: IconProps["icon"] | React.ReactNode;

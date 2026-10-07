@@ -12,6 +12,7 @@ import { usePullRequestSummary } from "@/lib/hooks/pull-requests/usePullRequestS
 import { ROUTES } from "@/routes";
 
 import AiSummaryCard from "./AiSummaryCard";
+import AiSummaryCardSkeleton from "./AiSummaryCard/AiSummaryCardSkeleton";
 import BranchPolicyBanner from "./BranchPolicyBanner";
 import FlaggedIssues from "./FlaggedIssues";
 import ManualReviewConfirmation from "./ManualReviewConfirmation";
@@ -43,7 +44,8 @@ const PullRequestDetail = React.memo(
       isError: isErrorDiff,
     } = usePullRequestDetailDiff(orgId ?? "", repoId, id);
 
-    const { data: summary } = usePullRequestSummary(orgId ?? "", repoId, id);
+    const { data: summary, isLoading: isLoadingSummary } =
+      usePullRequestSummary(orgId ?? "", repoId, id);
 
     // The diff-viewer gutter flags Critical (red) and Major (orange) lines —
     // Minor/Info findings exist in the type but have no gutter marker.
@@ -110,17 +112,21 @@ const PullRequestDetail = React.memo(
           <BranchPolicyBanner targetBranch={data.targetBranch} />
         )}
 
-        <AiSummaryCard
-          orgId={orgId ?? ""}
-          repoId={repoId}
-          id={id}
-          summary={summary}
-          criticalCount={criticalCount}
-          suggestionCount={suggestionCount}
-          filesChanged={data.latestScan?.filesChanged ?? diff.files.length}
-          additions={additions}
-          deletions={deletions}
-        />
+        {isLoadingSummary ? (
+          <AiSummaryCardSkeleton />
+        ) : (
+          <AiSummaryCard
+            orgId={orgId ?? ""}
+            repoId={repoId}
+            id={id}
+            summary={summary}
+            criticalCount={criticalCount}
+            suggestionCount={suggestionCount}
+            filesChanged={data.latestScan?.filesChanged ?? diff.files.length}
+            additions={additions}
+            deletions={deletions}
+          />
+        )}
 
         {requiresBoth && <ManualReviewConfirmation />}
 
