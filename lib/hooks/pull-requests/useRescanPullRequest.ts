@@ -18,6 +18,11 @@ export const useRegeneratePullRequestSummary = (
       queryClient.invalidateQueries({
         queryKey: pullRequestKeys.summary(orgId, repoId, id),
       });
+      // Covers a regenerate that finishes without passing through
+      // queued/running (e.g. a cached result).
+      queryClient.invalidateQueries({
+        queryKey: pullRequestKeys.detail(orgId, repoId, id),
+      });
     },
     onError: (error: Error) => {
       toast.error(error.message);
