@@ -8,12 +8,16 @@ import MembersCard from "../MembersCard";
 import NotificationsCard from "../NotificationsCard";
 import OrganizationCard from "../OrganizationCard";
 
-const SettingsView = React.memo(() => {
+interface SettingsViewProps {
+  orgId?: string;
+}
+
+const SettingsView = React.memo(({ orgId }: SettingsViewProps) => {
   return (
     <div className="mx-auto flex max-w-190 flex-col gap-4">
       <OrganizationCard />
-      <AiProviderCard />
-      <IntegrationsCard />
+      <AiProviderCard orgId={orgId} />
+      <IntegrationsCard orgId={orgId} />
       <NotificationsCard />
       <MembersCard />
     </div>

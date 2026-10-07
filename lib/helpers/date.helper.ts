@@ -10,3 +10,23 @@ export const formatRelativeTime = (isoString: string): string => {
   if (diffDays === 1) return "yesterday";
   return `${diffDays} days ago`;
 };
+
+// Whole days until a future date, rounded up; negative once it has passed.
+export const getDaysUntil = (isoString: string, now = Date.now()): number =>
+  Math.ceil((new Date(isoString).getTime() - now) / (24 * 60 * 60 * 1000));
+
+export const formatDate = (isoString: string): string =>
+  new Date(isoString).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+export const formatDateTime = (isoString: string): string =>
+  new Date(isoString).toLocaleString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });

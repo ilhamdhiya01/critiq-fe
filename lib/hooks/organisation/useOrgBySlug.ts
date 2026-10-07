@@ -15,5 +15,5 @@ export const useOrgBySlug = (slug: string) => {
     (item) => item.organization.slug === slug,
   );
 
-  return { ...rest, orgId: membership?.organizationId };
+  return { ...rest, membership, orgId: membership?.organizationId };
 };

@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import type { ApiResponse } from "@/lib/types/api.types";
 import type {
-  GitLabIntegration,
+  Integration,
   IntegrationSource,
   RawRepoCandidate,
   RepoBranches,
@@ -15,10 +15,34 @@ import {
   API_CONNECT_REPOS,
   API_INTEGRATION_CANDIDATES,
   API_INTEGRATION_REPO_BRANCHES,
+  API_INTEGRATIONS,
   API_INTEGRATIONS_GITHUB,
   API_INTEGRATIONS_GITLAB,
+  API_INTEGRATIONS_GITLAB_HEALTH,
   API_ORG,
 } from "@/routes";
+
+export const getIntegrations = async (
+  orgId: string,
+): Promise<ApiResponse<Integration[]>> => {
+  try {
+    const res = await axiosInstance.get(API_INTEGRATIONS(orgId));
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getGitLabHealth = async (
+  orgId: string,
+): Promise<ApiResponse<Integration>> => {
+  try {
+    const res = await axiosInstance.get(API_INTEGRATIONS_GITLAB_HEALTH(orgId));
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const createOrganization = async (payload: {
   name: string;
@@ -57,7 +81,7 @@ export const updateOrganization = async (payload: {
 export const verifyGitLabToken = async (
   orgId: string,
   input: VerifyGitLabTokenInput,
-): Promise<ApiResponse<GitLabIntegration>> => {
+): Promise<ApiResponse<Integration>> => {
   try {
     const payload = {
       instance_url: input.instanceUrl,
