@@ -7,6 +7,7 @@ import Modal from "@/components/ui/modal";
 import { GITLAB_DEFAULT_INSTANCE_URL } from "@/const/integration.constant";
 import { formatDate, getDaysUntil } from "@/lib/helpers/date.helper";
 import {
+  formatConnectedRepoCount,
   formatDayCount,
   getIntegrationStatus,
   hostOf,
@@ -16,7 +17,9 @@ import { useDisconnectGitlab } from "@/lib/hooks/integrations/useDisconnectGitla
 import type { Integration } from "@/lib/types/integration.types";
 
 import SettingsChip from "../SettingsChip";
+import ConnectRepositoriesAction from "./ConnectRepositoriesAction";
 import GitLabConnectModal from "./GitLabConnectModal";
+import NoReposHint from "./NoReposHint";
 import StatusBanner from "./StatusBanner";
 
 type ModalMode = "connect" | "replace";
@@ -61,10 +64,11 @@ const GitLabRow = React.memo(
       ? [
           integration.tokenLast4 && `••••${integration.tokenLast4}`,
           integration.expiresAt && getExpiryLabel(integration.expiresAt),
-          repoCount !== undefined &&
-            `${repoCount} ${repoCount === 1 ? "repo" : "repos"}`,
+          repoCount !== undefined && formatConnectedRepoCount(repoCount),
         ].filter(Boolean)
       : [];
+    // Defined only when the Admin may connect repos and the count has loaded.
+    const adminRepoCount = isAdmin && integration ? repoCount : undefined;
 
     return (
       <>
@@ -134,8 +138,20 @@ const GitLabRow = React.memo(
             <StatusBanner tone={status.tone} message={status.message} />
           )}
 
+          {adminRepoCount === 0 && (
+            <NoReposHint orgId={orgId} provider="GITLAB" />
+          )}
+
           {isAdmin && integration && (
             <div className="flex flex-wrap gap-2.5">
+              {adminRepoCount !== undefined && adminRepoCount > 0 && (
+                <ConnectRepositoriesAction
+                  orgId={orgId}
+                  provider="GITLAB"
+                  label="Connect more"
+                  variant="ghost"
+                />
+              )}
               <Button
                 type="button"
                 variant="secondary"
