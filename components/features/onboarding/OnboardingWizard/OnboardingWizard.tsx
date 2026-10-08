@@ -3,12 +3,14 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
+import { DEFAULT_BRANCH_POLICY } from "@/const/repository.constant";
 import { useConnectRepositories } from "@/lib/hooks/integrations/useConnectRepositories";
 import { useCreateOrganization } from "@/lib/hooks/integrations/useCreateOrganization";
 import { useMembershipWithOrg } from "@/lib/hooks/integrations/useMembershipWithOrg";
+import { useRepoSelection } from "@/lib/hooks/repositories/useRepoSelection";
 import type { DecodedToken } from "@/lib/types/auth.types";
+import type { BranchPolicy } from "@/lib/types/repository.types";
 
-import type { BranchPolicy } from "../BranchPolicyStep";
 import BranchPolicyStep from "../BranchPolicyStep";
 import OrganizationStep from "../OrganizationStep";
 import RepositoriesStep from "../RepositoriesStep";
@@ -60,14 +62,19 @@ const OnboardingWizard = React.memo(
         ONBOARDING_STEP.ORGANIZATION,
     );
 
-    const [selectedRepos, setSelectedRepos] = useState<Record<string, boolean>>(
-      {},
-    );
-    const [selectedBranches, setSelectedBranches] = useState<
-      Record<string, Record<string, boolean>>
-    >({});
+    const {
+      selectedRepos,
+      selectedBranches,
+      selectedCount: selectedRepoCount,
+      toggleRepo: handleToggleRepo,
+      toggleBranch: handleToggleBranch,
+      markBranchesReady: handleBranchesReady,
+      toProjects,
+    } = useRepoSelection();
     const [branchContinueBlocked, setBranchContinueBlocked] = useState(false);
-    const [branchPolicy, setBranchPolicy] = useState<BranchPolicy>("allow_ai");
+    const [branchPolicy, setBranchPolicy] = useState<BranchPolicy>(
+      DEFAULT_BRANCH_POLICY,
+    );
 
     const { orgSlug } = useMembershipWithOrg(
       decodedToken?.activeOrgId as string,
@@ -85,7 +92,7 @@ const OnboardingWizard = React.memo(
     const { handleConnectRepositories, isConnectingRepos } =
       useConnectRepositories(
         organisationId ?? queryOrgId ?? decodedToken?.activeOrgId ?? "",
-        orgSlug,
+        { redirectSlug: orgSlug },
       );
 
     // Reload di tengah wizard, atau redirect balik dari GitHub App install,
@@ -117,18 +124,9 @@ const OnboardingWizard = React.memo(
       const source: "github" | "gitlab" =
         decodedToken.provider === "GITHUB" ? "github" : "gitlab";
 
-      const projects = Object.entries(selectedRepos)
-        .filter(([, isSelected]) => isSelected)
-        .map(([id]) => ({
-          id,
-          monitoredBranches: Object.entries(selectedBranches[id] ?? {})
-            .filter(([, picked]) => picked)
-            .map(([branch]) => branch),
-        }));
-
       const payload = {
         source,
-        projects,
+        projects: toProjects(),
         defaultPolicy: branchPolicy,
       };
       await handleConnectRepositories(payload);
@@ -136,8 +134,7 @@ const OnboardingWizard = React.memo(
       branchPolicy,
       decodedToken?.provider,
       handleConnectRepositories,
-      selectedBranches,
-      selectedRepos,
+      toProjects,
     ]);
 
     const handleContinue = useCallback(async () => {
@@ -157,39 +154,6 @@ const OnboardingWizard = React.memo(
       setStep(NEXT_STEP[step]);
     }, [step, needsSave, processConnectRepositories, handleCreateOrganization]);
 
-    const handleToggleRepo = useCallback((id: string) => {
-      setSelectedRepos((prev) => {
-        const next = { ...prev, [id]: !prev[id] };
-        if (!next[id]) {
-          setSelectedBranches((prevBranches) => {
-            if (!(id in prevBranches)) return prevBranches;
-            const rest = { ...prevBranches };
-            delete rest[id];
-            return rest;
-          });
-        }
-        return next;
-      });
-    }, []);
-
-    const handleToggleBranch = useCallback((repoId: string, branch: string) => {
-      setSelectedBranches((prev) => ({
-        ...prev,
-        [repoId]: { ...prev[repoId], [branch]: !prev[repoId]?.[branch] },
-      }));
-    }, []);
-
-    const handleBranchesReady = useCallback(
-      (repoId: string, defaultBranch: string) => {
-        setSelectedBranches((prev) =>
-          prev[repoId]
-            ? prev
-            : { ...prev, [repoId]: { [defaultBranch]: true } },
-        );
-      },
-      [],
-    );
-
     const handleContinueBlockedChange = useCallback((blocked: boolean) => {
       setBranchContinueBlocked(blocked);
     }, []);
@@ -197,9 +161,6 @@ const OnboardingWizard = React.memo(
     const handleSelectBranchPolicy = useCallback((value: BranchPolicy) => {
       setBranchPolicy(value);
     }, []);
-
-    const selectedRepoCount =
-      Object.values(selectedRepos).filter(Boolean).length;
 
     const canContinue =
       (step === ONBOARDING_STEP.ORGANIZATION &&

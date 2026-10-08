@@ -27,6 +27,10 @@ export interface IntegrationStatusView {
 
 const GITLAB_FORM_FIELDS: GitLabFormField[] = ["token", "instance_url"];
 
+// Repos connected in Critiq — not the repos the GitHub App may access.
+export const formatConnectedRepoCount = (count: number): string =>
+  `${count} ${count === 1 ? "repo" : "repos"} connected`;
+
 export const formatDayCount = (days: number): string =>
   `${days} ${days === 1 ? "day" : "days"}`;
 
