@@ -1,6 +1,6 @@
-import { BranchPolicy } from "@/components/features/onboarding/BranchPolicyStep";
-
 import type { IntegrationProvider } from "./integration.types";
+
+export type BranchPolicy = "manual_only" | "allow_ai" | "require_both";
 
 export interface OrgRepository {
   id: string;
@@ -16,7 +16,7 @@ export type QualityGate = "PASSED" | "FAILED";
 export type QualityRating = "A" | "B" | "C";
 export type ScanStatus = "idle" | "scanning";
 
-interface Project {
+export interface ConnectProjectInput {
   id: string;
   monitoredBranches: string[];
 }
@@ -28,7 +28,7 @@ export interface ConnectedRepo {
   defaultBranch: string;
   monitoredBranches: string[];
   webhook: {
-    status: "installed" | "not_configured" | "failed";
+    status: "installed" | "app_managed" | "not_configured" | "failed";
   };
 }
 
@@ -64,7 +64,7 @@ export interface ScanHistoryEntry {
 
 export interface ConnectRepositoryInput {
   source: "github" | "gitlab";
-  projects: Project[];
+  projects: ConnectProjectInput[];
   defaultPolicy: BranchPolicy;
 }
 

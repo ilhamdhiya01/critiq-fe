@@ -1,19 +1,13 @@
 "use client";
 
-import classNames from "classnames";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 
-import Checkbox from "@/components/ui/checkbox";
-import Icon from "@/components/ui/icon/Icon";
+import RepoPicker from "@/components/shared/repo-picker";
 import { useDisconnectGitlab } from "@/lib/hooks/integrations/useDisconnectGitlab";
 import { useIntegrationCandidates } from "@/lib/hooks/integrations/useIntegrationCandidates";
-import { useIntegrationRepoBranches } from "@/lib/hooks/integrations/useIntegrationRepoBranches";
-import { useDebounce } from "@/lib/hooks/useDebounce";
 import { Provider } from "@/lib/types/auth.types";
-import type { RepoCandidate } from "@/lib/types/integration.types";
 
 import StepCard from "../StepCard";
-import BranchMultiSelect from "./BranchMultiSelect";
 import GitHubConnectGate from "./GitHubConnectGate";
 import GitLabTokenGate from "./GitLabTokenGate";
 
@@ -22,149 +16,6 @@ const hostOf = (url: string) =>
     .trim()
     .replace(/^https?:\/\//, "")
     .replace(/\/.*$/, "") || "gitlab.com";
-
-interface BranchFetchStatus {
-  isFetching: boolean;
-  isError: boolean;
-}
-
-interface RepoRowProps {
-  repo: RepoCandidate;
-  checked: boolean;
-  onToggle: (id: number) => void;
-  source: "github" | "gitlab";
-  organizationId: string;
-  selectedBranches: Record<string, boolean> | undefined;
-  onToggleBranch: (repoId: string, branch: string) => void;
-  onBranchesReady: (repoId: string, defaultBranch: string) => void;
-  onBranchStatusChange: (repoId: string, status: BranchFetchStatus) => void;
-}
-
-const RepoRow = React.memo(
-  ({
-    repo,
-    checked,
-    onToggle,
-    source,
-    organizationId,
-    selectedBranches,
-    onToggleBranch,
-    onBranchesReady,
-    onBranchStatusChange,
-  }: RepoRowProps) => {
-    const repoId = String(repo.id);
-    const [query, setQuery] = useState("");
-    const debouncedQuery = useDebounce(query, 300);
-
-    const {
-      data: branchData,
-      isFetching: isBranchesFetching,
-      isError: isBranchesError,
-      refetch: refetchBranches,
-    } = useIntegrationRepoBranches(
-      organizationId,
-      source,
-      repo.id,
-      checked,
-      debouncedQuery,
-    );
-
-    useEffect(() => {
-      onBranchStatusChange(repoId, {
-        isFetching: isBranchesFetching,
-        isError: isBranchesError,
-      });
-    }, [repoId, isBranchesFetching, isBranchesError, onBranchStatusChange]);
-
-    // Buka-tutup repo yang sama tidak boleh membawa kata kunci lama.
-    useEffect(() => {
-      if (!checked) setQuery("");
-    }, [checked]);
-
-    useEffect(() => {
-      if (branchData && selectedBranches === undefined) {
-        onBranchesReady(repoId, branchData.defaultBranch);
-      }
-    }, [branchData, selectedBranches, repoId, onBranchesReady]);
-
-    const handleToggleBranch = useCallback(
-      (branch: string) => onToggleBranch(repoId, branch),
-      [onToggleBranch, repoId],
-    );
-
-    const handleRetry = useCallback(
-      (e: React.MouseEvent) => {
-        e.stopPropagation();
-        refetchBranches();
-      },
-      [refetchBranches],
-    );
-
-    return (
-      <div
-        className={classNames(
-          "flex flex-col border-b border-border-row last:border-b-0",
-          { "bg-green-500/4": checked },
-        )}
-      >
-        <div
-          onClick={() => onToggle(repo.id)}
-          className={"flex cursor-pointer items-center gap-3 px-3.5 py-2.5"}
-        >
-          <Checkbox checked={checked} readOnly />
-          <span className="flex-1 font-mono text-[12.5px] text-neutral-100">
-            {repo.path}
-          </span>
-          <span className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-            <span className="h-1.5 w-1.5 rounded-full bg-info" />
-            {repo.lang}
-          </span>
-          <span className="rounded-full border border-border-default px-2 py-0.5 font-mono text-[10px] text-text-secondary capitalize">
-            {repo.visibility}
-          </span>
-        </div>
-
-        {checked && !branchData && isBranchesFetching && (
-          <div className="px-3.5 pb-2.5 font-mono text-[11px] text-text-muted">
-            Loading branches…
-          </div>
-        )}
-
-        {checked && isBranchesError && !isBranchesFetching && (
-          <div className="flex items-center gap-1.5 px-3.5 pb-2.5 text-[11px] text-danger">
-            <Icon icon="TbAlertTriangle" size={13} />
-            Failed to load branches —{" "}
-            <button
-              type="button"
-              onClick={handleRetry}
-              className="underline underline-offset-2"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        {checked && branchData && !isBranchesError && (
-          <div className="px-3.5 pb-2.5">
-            <BranchMultiSelect
-              branches={branchData.branches}
-              defaultBranch={branchData.defaultBranch}
-              total={branchData.total}
-              truncated={branchData.truncated}
-              selected={selectedBranches ?? {}}
-              onToggle={handleToggleBranch}
-              query={query}
-              onQueryChange={setQuery}
-              isRefreshing={isBranchesFetching}
-            />
-          </div>
-        )}
-      </div>
-    );
-  },
-);
-
-RepoRow.displayName = "RepoRow";
 
 interface RepositoriesStepProps {
   selectedRepos: Record<string, boolean>;
@@ -193,9 +44,6 @@ const RepositoriesStep = React.memo(
     const source = provider === "GITHUB" ? "github" : "gitlab";
 
     const [verifiedInstanceUrl, setVerifiedInstanceUrl] = useState("");
-    const [branchStatus, setBranchStatus] = useState<
-      Record<string, BranchFetchStatus>
-    >({});
 
     const handleGitLabVerified = useCallback((instanceUrl: string) => {
       setVerifiedInstanceUrl(instanceUrl);
@@ -217,18 +65,6 @@ const RepositoriesStep = React.memo(
       isFetching,
     } = useIntegrationCandidates(organizationId, source, !!organizationId);
 
-    const handleToggle = useCallback(
-      (id: number) => onToggleRepo(String(id)),
-      [onToggleRepo],
-    );
-
-    const handleBranchStatusChange = useCallback(
-      (repoId: string, status: BranchFetchStatus) => {
-        setBranchStatus((prev) => ({ ...prev, [repoId]: status }));
-      },
-      [],
-    );
-
     const selectedCount = Object.values(selectedRepos).filter(Boolean).length;
 
     const totalBranchesSelected = Object.values(selectedBranches).reduce(
@@ -236,16 +72,6 @@ const RepositoriesStep = React.memo(
         sum + Object.values(repoBranches).filter(Boolean).length,
       0,
     );
-
-    const hasBlockingBranchIssue = Object.entries(selectedRepos)
-      .filter(([, isSelected]) => isSelected)
-      .some(
-        ([id]) => branchStatus[id]?.isFetching || branchStatus[id]?.isError,
-      );
-
-    useEffect(() => {
-      onContinueBlockedChange(hasBlockingBranchIssue);
-    }, [hasBlockingBranchIssue, onContinueBlockedChange]);
 
     const description =
       isNotConnected && provider === "GITHUB"
@@ -294,39 +120,21 @@ const RepositoriesStep = React.memo(
             />
           )}
 
-          {!isNotConnected && isFetching && (
-            <div className="rounded-lg border border-border-subtle px-3.5 py-4 text-center text-[12.5px] text-text-secondary">
-              Fetching projects…
-            </div>
+          {!isNotConnected && (
+            <RepoPicker
+              organizationId={organizationId}
+              source={source}
+              candidates={candidates}
+              isLoading={isFetching}
+              selectedRepos={selectedRepos}
+              selectedBranches={selectedBranches}
+              onToggleRepo={onToggleRepo}
+              onToggleBranch={onToggleBranch}
+              onBranchesReady={onBranchesReady}
+              onBlockedChange={onContinueBlockedChange}
+              emptyState="No projects reachable by this token."
+            />
           )}
-
-          {!isNotConnected && !isFetching && candidates?.length === 0 && (
-            <div className="rounded-lg border border-border-subtle px-3.5 py-4 text-center text-[12.5px] text-text-secondary">
-              No projects reachable by this token.
-            </div>
-          )}
-
-          {!isNotConnected &&
-            !isFetching &&
-            candidates &&
-            candidates.length > 0 && (
-              <div className="max-h-62.5 overflow-auto rounded-lg border border-border-subtle">
-                {candidates.map((repo) => (
-                  <RepoRow
-                    key={repo.id}
-                    repo={repo}
-                    checked={!!selectedRepos[String(repo.id)]}
-                    onToggle={handleToggle}
-                    source={source}
-                    organizationId={organizationId}
-                    selectedBranches={selectedBranches[String(repo.id)]}
-                    onToggleBranch={onToggleBranch}
-                    onBranchesReady={onBranchesReady}
-                    onBranchStatusChange={handleBranchStatusChange}
-                  />
-                ))}
-              </div>
-            )}
         </div>
       </StepCard>
     );
