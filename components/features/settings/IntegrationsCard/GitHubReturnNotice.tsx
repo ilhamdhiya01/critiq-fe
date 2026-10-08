@@ -11,14 +11,11 @@ import {
 import { integrationKeys } from "@/lib/hooks/integrations/queryKeys";
 import { toast } from "@/lib/toast";
 
-interface GitHubReturnNoticeProps {
-  orgId?: string;
-}
-
-// Handles `?github=connected|pending_approval|error` after the GitHub App
-// install redirect: toast once, refetch, then drop the param so a refresh
-// does not repeat the toast.
-const GitHubReturnNotice = React.memo(({ orgId }: GitHubReturnNoticeProps) => {
+// Handles `?github=connected|pending_approval|error|updated` after the GitHub
+// App install or "Manage on GitHub" redirect: toast once, refetch every
+// integration query (so newly granted repos show up as candidates), then drop
+// the param so a refresh does not repeat the toast.
+const GitHubReturnNotice = React.memo(() => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -38,9 +35,7 @@ const GitHubReturnNotice = React.memo(({ orgId }: GitHubReturnNoticeProps) => {
     const notice = GITHUB_RETURN_TOAST[status as GitHubReturnStatus];
     if (notice) toast[notice.variant](notice.message);
 
-    if (orgId) {
-      queryClient.invalidateQueries({ queryKey: integrationKeys.list(orgId) });
-    }
+    queryClient.invalidateQueries({ queryKey: integrationKeys.all });
 
     const params = new URLSearchParams(searchParams.toString());
     params.delete("github");
@@ -48,7 +43,7 @@ const GitHubReturnNotice = React.memo(({ orgId }: GitHubReturnNoticeProps) => {
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
     });
-  }, [status, orgId, pathname, router, searchParams, queryClient]);
+  }, [status, pathname, router, searchParams, queryClient]);
 
   return null;
 });

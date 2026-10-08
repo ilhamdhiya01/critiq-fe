@@ -21,6 +21,10 @@ export const GITHUB_RETURN_TOAST = {
     message: "Waiting for approval from the GitHub org owner",
   },
   error: { variant: "error", message: "Failed to connect GitHub, try again" },
+  updated: {
+    variant: "success",
+    message: "Repository access updated on GitHub",
+  },
 } as const;
 
 export type GitHubReturnStatus = keyof typeof GITHUB_RETURN_TOAST;
