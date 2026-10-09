@@ -1,6 +1,8 @@
 import type { IconName } from "@/components/ui/icon/Icon";
 import type {
+  AiSummaryBlockedStatus,
   AiSummaryRiskLevel,
+  AiSummaryStatus,
   EffectivePolicy,
   FindingSeverity,
   FindingSource,
@@ -135,6 +137,82 @@ export const FINDING_SOURCE_STYLE: Record<
     border: "border-primary-500/45",
   },
 };
+
+export const AI_SUMMARY_BLOCKED_STATE: Record<
+  AiSummaryBlockedStatus,
+  {
+    title: string;
+    body: string;
+    tone: "indigo" | "warning" | "neutral";
+    hasSettingsAction: boolean;
+    // Shown instead of "Open Settings" to non-Admins.
+    nonAdminNote?: string;
+  }
+> = {
+  not_configured: {
+    title: "No AI provider configured",
+    body: "Add a provider and API key for this organization to enable AI summaries. Static rules keep running regardless.",
+    tone: "indigo",
+    hasSettingsAction: true,
+    nonAdminNote: "Ask an Admin to configure an AI provider.",
+  },
+  consent_required: {
+    title: "AI review is waiting for consent",
+    body: "Diff content is only sent to the AI provider after an Admin allows it in Settings → AI Provider. Static rules keep running regardless.",
+    tone: "indigo",
+    hasSettingsAction: true,
+    nonAdminNote: "Ask an Admin to allow sending diffs to the AI provider.",
+  },
+  budget_exceeded: {
+    title: "Daily AI budget reached",
+    body: "This organization used its daily AI token budget. Admins can raise it in Settings → AI Provider.",
+    tone: "warning",
+    hasSettingsAction: true,
+    nonAdminNote: "Ask an Admin to raise the daily AI budget.",
+  },
+  skipped_too_large: {
+    title: "Diff too large for AI review",
+    body: "This PR exceeds the size limit for AI review. Split the PR or review the static findings below.",
+    tone: "warning",
+    hasSettingsAction: false,
+  },
+  skipped_manual_mode: {
+    title: "AI assistance is off",
+    body: "Manual review — the model is not called for this PR. Rule findings are still listed below.",
+    tone: "neutral",
+    hasSettingsAction: false,
+  },
+};
+
+export const REVIEW_MODE_COPY = {
+  lockedNote:
+    "This branch requires manual review — AI-Assisted mode is disabled by branch policy.",
+  freeNote:
+    "Either way, the final decision is always yours — AI never auto-approves or merges.",
+  lockedTooltip: (targetBranch: string) =>
+    `Branch policy for → ${targetBranch} requires manual review — AI-Assisted mode is disabled for this PR.`,
+  freeTooltip: "Model analysis assists your review; approval stays manual.",
+  // Branch policy is manual-only: the BE never calls the model.
+  policyManualNotice:
+    "Manual review — AI assistance is off; the model is not called for this PR. Rule findings are still listed below.",
+  // The reviewer picked Manual: AI may have run, its output is just hidden.
+  chosenManualNotice:
+    "Manual review — AI results are hidden while you review on your own. Rule findings are still listed below.",
+} as const;
+
+// The scan was blocked, but the org's AI setup is complete now (`error.stale`).
+export const AI_SUMMARY_STALE_STATE = {
+  title: "AI provider is configured now",
+  fallbackBody:
+    "AI was not set up when this scan ran. It is now — run the AI review to get a summary.",
+  badge: "Not run",
+  viewerNote: "Ask an Admin or Reviewer to run the AI review.",
+} as const;
+
+export const isAiSummaryBlocked = (
+  status: AiSummaryStatus | undefined,
+): status is AiSummaryBlockedStatus =>
+  !!status && status in AI_SUMMARY_BLOCKED_STATE;
 
 export const AI_SUMMARY_RISK_LABEL: Record<AiSummaryRiskLevel, string> = {
   low: "LOW",

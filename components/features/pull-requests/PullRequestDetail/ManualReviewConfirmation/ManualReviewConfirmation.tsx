@@ -21,7 +21,9 @@ const ManualReviewConfirmation = React.memo(() => {
         aria-pressed={isConfirmed}
         className={classNames(
           "flex h-[18px] w-[18px] shrink-0 cursor-pointer items-center justify-center rounded border transition-colors",
-          isConfirmed ? "border-success bg-success" : "border-border-default",
+          isConfirmed
+            ? "border-success bg-success"
+            : "border-border-default bg-raised",
         )}
       >
         {isConfirmed && (
@@ -31,10 +33,10 @@ const ManualReviewConfirmation = React.memo(() => {
 
       <div className="flex flex-1 flex-col gap-0.5">
         <span className="text-[13px] font-semibold text-text-strong">
-          Konfirmasi review manual
+          Manual review confirmation
         </span>
         <span className="text-[11.5px] text-text-faint">
-          Saya sudah meninjau seluruh diff dan temuan yang ditandai di bawah.
+          I have manually reviewed the full diff and the flagged issues below.
         </span>
       </div>
 
@@ -46,7 +48,7 @@ const ManualReviewConfirmation = React.memo(() => {
             : "border-warning/40 bg-warning/10 text-warning-light",
         )}
       >
-        {isConfirmed ? "SELESAI" : "WAJIB"}
+        {isConfirmed ? "DONE" : "REQUIRED"}
       </span>
     </div>
   );

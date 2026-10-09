@@ -9,7 +9,6 @@ import classNames from "classnames";
 import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 
-import StateStatus from "@/components/shared/state-status";
 import Icon from "@/components/ui/icon/Icon";
 import {
   PULL_REQUEST_NUMBER_PREFIX,
@@ -26,6 +25,7 @@ import type {
 import { ROUTES } from "@/routes";
 
 import FilterChip from "../FilterChip";
+import PullRequestEmptyState from "./PullRequestEmptyState";
 import PullRequestListSkeleton from "./PullRequestListSkeleton";
 
 const features = tableFeatures({});
@@ -193,6 +193,10 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
     return <PullRequestListSkeleton />;
   }
 
+  if (pullRequests.length === 0) {
+    return <PullRequestEmptyState slug={slug} />;
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
@@ -257,37 +261,26 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
                 ))}
               </tr>
             ))}
+            {filteredData.length === 0 && (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="px-4.5 py-10 text-center text-[12.5px] text-text-secondary"
+                >
+                  No pull requests match this filter.{" "}
+                  <button
+                    type="button"
+                    onClick={handleResetFilter}
+                    className="cursor-pointer text-info-light hover:underline"
+                  >
+                    Show all
+                  </button>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
-
-      {/* {filteredData.length === 0 ? (
-        <StateStatus
-          title={
-            pullRequests.length === 0
-              ? "Belum ada pull request untuk organisasi ini"
-              : "Tidak ada pull request yang cocok dengan filter ini"
-          }
-          description={
-            pullRequests.length === 0
-              ? "Pull request akan muncul di sini setelah webhook menerima aktivitas baru."
-              : undefined
-          }
-          action={
-            pullRequests.length > 0 && (
-              <button
-                type="button"
-                onClick={handleResetFilter}
-                className="text-[12.5px] text-primary-400 hover:underline"
-              >
-                Tampilkan semua
-              </button>
-            )
-          }
-        />
-      ) : (
-       
-      )} */}
     </div>
   );
 });
