@@ -1,11 +1,10 @@
 "use client";
 
-import classNames from "classnames";
 import React, { useState } from "react";
 
+import Avatar from "@/components/ui/avatar";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import { getAvatarColor, getInitials } from "@/lib/helpers/avatar.helper";
 import { useUser } from "@/lib/hooks/auth/useUser";
 import type { PullRequestComment } from "@/lib/types/pull-request.types";
 
@@ -37,16 +36,7 @@ const DiffCommentThread = React.memo(
           <CommentItem key={comment.id} comment={comment} size="sm" />
         ))}
         <form onSubmit={handleSubmit} className="flex items-center gap-2.5">
-          {user?.name && (
-            <span
-              className={classNames(
-                "flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full text-[9.5px] font-bold text-neutral-50",
-                getAvatarColor(user.name),
-              )}
-            >
-              {getInitials(user.name)}
-            </span>
-          )}
+          {user?.name && <Avatar name={user.name} size="sm" />}
           <Input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}

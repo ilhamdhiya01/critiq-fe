@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import Icon from "@/components/ui/icon/Icon";
+import Notice from "@/components/ui/notice";
 import { isAdminSettings } from "@/lib/helpers/ai-settings.helper";
 import { useAiSettings } from "@/lib/hooks/ai-settings/useAiSettings";
 
@@ -52,16 +52,9 @@ const AiProviderCard = React.memo(({ orgId }: AiProviderCardProps) => {
       </div>
 
       {isAiBlocked && (
-        <div className="flex items-start gap-2.5 rounded-lg border border-warning/35 bg-warning/7 px-3.5 py-2.5">
-          <Icon
-            icon="TbAlertTriangle"
-            size={14}
-            className="mt-px flex-none text-warning-light"
-          />
-          <span className="text-xs leading-normal text-warning-soft">
-            Review AI tidak berjalan sampai provider dan izin diatur.
-          </span>
-        </div>
+        <Notice>
+          Review AI tidak berjalan sampai provider dan izin diatur.
+        </Notice>
       )}
 
       {renderBody()}

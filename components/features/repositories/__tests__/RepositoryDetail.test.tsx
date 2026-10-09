@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { AxiosError, type AxiosResponse } from "axios";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -241,5 +241,36 @@ describe("RepositoryDetail", { timeout: 15_000 }, () => {
     ).not.toBeInTheDocument();
     await screen.findByText("Rate limiter for public GraphQL gateway");
     expect(screen.queryByText("PR Scan History")).not.toBeInTheDocument();
+  });
+
+  it("polls while a scan is active and refreshes once it finishes", async () => {
+    vi.mocked(getRepoPulls).mockReset();
+    vi.mocked(getRepoPulls)
+      .mockResolvedValueOnce({ data: [PULL] } as unknown as Awaited<
+        ReturnType<typeof getRepoPulls>
+      >)
+      .mockResolvedValue({
+        data: [{ ...PULL, activeScan: null, latestScan: { criticalCount: 3 } }],
+      } as unknown as Awaited<ReturnType<typeof getRepoPulls>>);
+    vi.mocked(getRepoScans).mockClear();
+    vi.mocked(getOrgRepositories).mockClear();
+    renderDetail();
+
+    const row = (
+      await screen.findByText("Rate limiter for public GraphQL gateway")
+    ).closest("a") as HTMLElement;
+    expect(within(row).getByLabelText("Scanning")).toBeInTheDocument();
+
+    await waitFor(
+      () => expect(within(row).getByText("3")).toBeInTheDocument(),
+      { timeout: 6000 },
+    );
+    expect(within(row).queryByLabelText("Scanning")).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(vi.mocked(getRepoScans).mock.calls.length).toBeGreaterThan(1);
+      expect(vi.mocked(getOrgRepositories).mock.calls.length).toBeGreaterThan(
+        1,
+      );
+    });
   });
 });

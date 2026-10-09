@@ -2,9 +2,13 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 
+import SectionCard from "@/components/shared/section-card";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
+import Notice from "@/components/ui/notice";
+import SegmentedControl from "@/components/ui/segmented-control";
 import {
+  BRANCH_POLICY_SEGMENTS,
   BRANCHES_MUST_EXIST_NOTE,
   FINAL_APPROVAL_NOTE,
   SCAN_CONFIG_HELP_TEXT,
@@ -29,7 +33,6 @@ import type {
 
 import AddBranchControl from "./AddBranchControl";
 import PolicyRow from "./PolicyRow";
-import PolicySegmented from "./PolicySegmented";
 
 interface BranchPolicyTableProps {
   orgId: string;
@@ -108,16 +111,10 @@ const BranchPolicyTable = React.memo(
     };
 
     return (
-      <section className="flex flex-col rounded-lg border border-border-subtle bg-surface">
-        <div className="flex items-center justify-between gap-3 border-b border-border-subtle px-5 py-3.5">
-          <h3 className="font-mono text-[13px] font-semibold text-text-strong">
-            {withPolicies ? "Branches & review policy" : "Monitored branches"}
-          </h3>
-          <span className="text-[11.5px] text-text-muted">
-            {rows.length} monitored
-          </span>
-        </div>
-
+      <SectionCard
+        title={withPolicies ? "Branches & review policy" : "Monitored branches"}
+        meta={`${rows.length} monitored`}
+      >
         <div className="flex items-start gap-2 border-b border-border-row px-5 py-3">
           <Icon
             icon="TbInfoCircle"
@@ -130,13 +127,9 @@ const BranchPolicyTable = React.memo(
         </div>
 
         {saveErrors.formError && (
-          <div
-            role="alert"
-            className="flex items-center gap-2 border-b border-border-row bg-danger/7 px-5 py-2.5 text-[12px] text-danger-light"
-          >
-            <Icon icon="TbAlertTriangle" size={13} />
+          <Notice tone="danger" variant="row">
             {saveErrors.formError}
-          </div>
+          </Notice>
         )}
 
         {isAdmin && withPolicies && rows.length > 1 && (
@@ -144,7 +137,9 @@ const BranchPolicyTable = React.memo(
             <span className="text-[11.5px] text-text-secondary">
               Apply to all branches
             </span>
-            <PolicySegmented
+            <SegmentedControl
+              size="sm"
+              options={BRANCH_POLICY_SEGMENTS}
               value={sharedPolicy}
               onChange={handleApplyAll}
               ariaLabel="Apply a review policy to all branches"
@@ -216,7 +211,7 @@ const BranchPolicyTable = React.memo(
             </span>
           )}
         </div>
-      </section>
+      </SectionCard>
     );
   },
 );

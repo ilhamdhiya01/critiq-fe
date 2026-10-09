@@ -3,6 +3,7 @@
 import React, { useCallback, useState } from "react";
 
 import RepoPicker from "@/components/shared/repo-picker";
+import Badge from "@/components/ui/badge";
 import { useDisconnectGitlab } from "@/lib/hooks/integrations/useDisconnectGitlab";
 import { useIntegrationCandidates } from "@/lib/hooks/integrations/useIntegrationCandidates";
 import { Provider } from "@/lib/types/auth.types";
@@ -107,9 +108,13 @@ const RepositoriesStep = React.memo(
               >
                 Change
               </button>
-              <span className="rounded-full border border-vendor-gitlab/50 px-2.5 py-0.5 font-mono text-[10px] tracking-[.06em] text-vendor-gitlab uppercase">
+              <Badge
+                tone="gitlab"
+                weight="normal"
+                className="tracking-[.06em] uppercase"
+              >
                 GitLab · Token
-              </span>
+              </Badge>
             </div>
           )}
 

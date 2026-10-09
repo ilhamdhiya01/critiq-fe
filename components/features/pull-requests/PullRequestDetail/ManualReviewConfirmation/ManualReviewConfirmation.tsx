@@ -3,6 +3,7 @@
 import classNames from "classnames";
 import React, { useCallback, useState } from "react";
 
+import Badge from "@/components/ui/badge";
 import Icon from "@/components/ui/icon/Icon";
 
 const ManualReviewConfirmation = React.memo(() => {
@@ -40,16 +41,9 @@ const ManualReviewConfirmation = React.memo(() => {
         </span>
       </div>
 
-      <span
-        className={classNames(
-          "shrink-0 rounded-full border px-2.5 py-1 font-mono text-[10.5px] font-semibold",
-          isConfirmed
-            ? "border-success/40 bg-success/10 text-success"
-            : "border-warning/40 bg-warning/10 text-warning-light",
-        )}
-      >
+      <Badge tone={isConfirmed ? "green" : "orange"}>
         {isConfirmed ? "DONE" : "REQUIRED"}
-      </span>
+      </Badge>
     </div>
   );
 });

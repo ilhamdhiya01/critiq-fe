@@ -1,12 +1,11 @@
 import classNames from "classnames";
 import React from "react";
 
+import Badge from "@/components/ui/badge";
 import type {
   AiProviderId,
   AiProviderOption,
 } from "@/lib/types/ai-settings.types";
-
-import SettingsChip from "../SettingsChip";
 
 interface ProviderPickerProps {
   providers: AiProviderOption[];
@@ -43,7 +42,7 @@ const ProviderPicker = React.memo(
               )}
             >
               {provider.label}
-              {isDisabled && <SettingsChip>SEGERA</SettingsChip>}
+              {isDisabled && <Badge>SEGERA</Badge>}
             </button>
           );
         })}

@@ -3,6 +3,7 @@ import React from "react";
 
 import Icon from "@/components/ui/icon/Icon";
 import Input from "@/components/ui/input";
+import Spinner from "@/components/ui/spinner";
 import { AI_MODELS_WARNING_MESSAGE } from "@/const/ai-settings.constant";
 import { formatContextWindow } from "@/lib/helpers/ai-settings.helper";
 import type { AiModel, AiModelList } from "@/lib/types/ai-settings.types";
@@ -82,14 +83,18 @@ const ModelPicker = React.memo(
               </>
             )}
           </select>
-          <Icon
-            icon={isLoading ? "TbLoader2" : "TbChevronDown"}
-            size={14}
-            className={classNames(
-              "pointer-events-none absolute top-1/2 right-3 -translate-y-1/2",
-              isLoading ? "animate-spin text-primary-400" : "text-text-muted",
-            )}
-          />
+          {isLoading ? (
+            <Spinner
+              size={14}
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-primary-400"
+            />
+          ) : (
+            <Icon
+              icon="TbChevronDown"
+              size={14}
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-text-muted"
+            />
+          )}
         </div>
 
         {isCustom && !isLoading && (

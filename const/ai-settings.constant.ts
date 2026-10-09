@@ -1,3 +1,4 @@
+import type { SegmentedOption } from "@/components/ui/segmented-control";
 import type {
   AiLocale,
   AiProviderId,
@@ -14,9 +15,9 @@ export const AI_PROVIDER_LABEL: Record<AiProviderId, string> = {
   google: "Google",
 };
 
-export const AI_LOCALE_OPTIONS: { value: AiLocale; label: string }[] = [
-  { value: "id", label: "Indonesia" },
-  { value: "en", label: "English" },
+export const AI_LOCALE_OPTIONS: SegmentedOption<AiLocale>[] = [
+  { value: "id", label: "Indonesia", tone: "primary" },
+  { value: "en", label: "English", tone: "primary" },
 ];
 
 export const AI_LOCALE_READONLY_LABEL: Record<AiLocale, string> = {

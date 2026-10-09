@@ -6,7 +6,9 @@ import { useParams } from "next/navigation";
 import React from "react";
 
 import StateStatus from "@/components/shared/state-status";
-import { languageDotClass, repoName } from "@/lib/helpers/repository.helper";
+import LanguageDot from "@/components/ui/language-dot";
+import Skeleton from "@/components/ui/skeleton";
+import { repoName } from "@/lib/helpers/repository.helper";
 import { useOrgRepositories } from "@/lib/hooks/repositories/useOrgRepositories";
 import type { OrgRepository } from "@/lib/types/repository.types";
 import { ROUTES } from "@/routes";
@@ -35,13 +37,7 @@ const RepositoryCard = React.memo(({ repo, href }: RepositoryCardProps) => {
 
       {repo.language && (
         <span className="flex items-center gap-2 text-[12px] text-text-secondary">
-          <span
-            data-testid="language-dot"
-            className={classNames(
-              "h-2 w-2 rounded-full",
-              languageDotClass(repo.language),
-            )}
-          />
+          <LanguageDot language={repo.language} />
           {repo.language}
         </span>
       )}
@@ -93,10 +89,10 @@ const RepositoryList = React.memo(({ orgId }: RepositoryListProps) => {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4">
-        <div className="animate-shimmer h-4 w-80 rounded" />
+        <Skeleton className="h-4 w-80 rounded" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: SKELETON_CARDS }, (_, index) => (
-            <div key={index} className="animate-shimmer h-32 rounded-lg" />
+            <Skeleton key={index} className="h-32 rounded-lg" />
           ))}
         </div>
       </div>

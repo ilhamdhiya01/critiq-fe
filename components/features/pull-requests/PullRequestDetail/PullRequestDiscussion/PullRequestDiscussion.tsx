@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 
+import SectionCard from "@/components/shared/section-card";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
 import Textarea from "@/components/ui/textarea";
@@ -30,13 +31,7 @@ const PullRequestDiscussion = React.memo(() => {
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
-      <div className="border-b border-border-subtle px-5 py-3.5">
-        <span className="font-mono text-[13px] font-semibold text-text-strong">
-          Diskusi <span className="text-text-faint">({comments.length})</span>
-        </span>
-      </div>
-
+    <SectionCard title="Diskusi" count={comments.length}>
       {comments.length === 0 ? (
         <div className="border-b border-border-row px-5 py-4 text-xs text-text-muted">
           Belum ada komentar.
@@ -73,7 +68,7 @@ const PullRequestDiscussion = React.memo(() => {
           </Button>
         </div>
       </form>
-    </div>
+    </SectionCard>
   );
 });
 

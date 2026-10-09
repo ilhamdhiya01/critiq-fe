@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState } from "react";
 
+import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { useVerifyGitLabToken } from "@/lib/hooks/integrations/useVerifyGitLabToken";
@@ -71,9 +72,13 @@ const GitLabTokenGate = React.memo(
     return (
       <div className="flex flex-col gap-3 rounded-lg border border-vendor-gitlab/30 bg-vendor-gitlab/5 p-3.5">
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-vendor-gitlab/15 px-2 py-0.5 font-mono text-[10px] tracking-[.06em] text-vendor-gitlab uppercase">
+          <Badge
+            tone="gitlab"
+            weight="normal"
+            className="tracking-[.06em] uppercase"
+          >
             GitLab
-          </span>
+          </Badge>
           <span className="text-[13px] font-semibold text-neutral-100">
             Connect your GitLab instance
           </span>

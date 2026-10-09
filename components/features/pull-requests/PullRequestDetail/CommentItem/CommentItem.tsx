@@ -1,7 +1,6 @@
-import classNames from "classnames";
 import React from "react";
 
-import { getAvatarColor, getInitials } from "@/lib/helpers/avatar.helper";
+import Avatar from "@/components/ui/avatar";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import type { PullRequestComment } from "@/lib/types/pull-request.types";
 
@@ -13,15 +12,7 @@ interface CommentItemProps {
 const CommentItem = React.memo(({ comment, size = "md" }: CommentItemProps) => {
   return (
     <div className="flex gap-3">
-      <span
-        className={classNames(
-          "flex shrink-0 items-center justify-center rounded-full font-bold text-neutral-50",
-          getAvatarColor(comment.author),
-          size === "sm" ? "h-5.5 w-5.5 text-[9px]" : "h-7 w-7 text-[10px]",
-        )}
-      >
-        {getInitials(comment.author)}
-      </span>
+      <Avatar name={comment.author} size={size === "sm" ? "xs" : "md"} />
       <div className="flex min-w-0 flex-col gap-1">
         <span className="text-xs text-text-nav">
           {comment.author}

@@ -2,8 +2,10 @@
 
 import React, { useCallback, useState } from "react";
 
+import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
+import Notice from "@/components/ui/notice";
 import {
   formatConnectedRepoCount,
   getIntegrationStatus,
@@ -13,10 +15,8 @@ import { useInstallGitHubApps } from "@/lib/hooks/integrations/useInstallGitHubA
 import type { Integration } from "@/lib/types/integration.types";
 import { GITHUB_INSTALLATIONS_URL } from "@/routes";
 
-import SettingsChip from "../SettingsChip";
 import ConnectRepositoriesAction from "./ConnectRepositoriesAction";
 import NoReposHint from "./NoReposHint";
-import StatusBanner from "./StatusBanner";
 
 interface GitHubRowProps {
   orgId: string;
@@ -98,9 +98,7 @@ const GitHubRow = React.memo(
 
           <div className="flex shrink-0 items-center gap-2.5">
             {status && (
-              <SettingsChip tone={status.tone}>
-                {status.label.toUpperCase()}
-              </SettingsChip>
+              <Badge tone={status.tone}>{status.label.toUpperCase()}</Badge>
             )}
             {isAdmin && !integration && (
               <Button
@@ -118,7 +116,9 @@ const GitHubRow = React.memo(
         </div>
 
         {status?.message && status.tone !== "green" && (
-          <StatusBanner tone={status.tone} message={status.message} />
+          <Notice tone={status.tone === "red" ? "danger" : "warning"}>
+            {status.message}
+          </Notice>
         )}
 
         {adminRepoCount === 0 && (

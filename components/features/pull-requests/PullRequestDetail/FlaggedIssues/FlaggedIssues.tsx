@@ -2,6 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 
+import SectionCard from "@/components/shared/section-card";
 import Icon from "@/components/ui/icon/Icon";
 import type {
   Finding,
@@ -125,19 +126,12 @@ const FlaggedIssues = React.memo(
     const skippedLabel = `${DUMMY_SKIPPED.length} skipped (${DUMMY_SKIPPED.map((item) => item.reason).join(", ")})`;
 
     return (
-      <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
-        <div className="flex items-center justify-between gap-4 border-b border-border-subtle px-5 py-3.5">
-          <span className="font-mono text-[13px] font-semibold text-text-strong">
-            Flagged Issues{" "}
-            <span className="text-danger-light">
-              ({criticalFindings.length})
-            </span>
-          </span>
-          <span className="font-mono text-[11px] text-text-muted">
-            CRITICAL · SORTED BY FILE
-          </span>
-        </div>
-
+      <SectionCard
+        title="Flagged Issues"
+        count={criticalFindings.length}
+        countTone="danger"
+        meta="Critical · sorted by file"
+      >
         {visibleFindings.map((finding) => (
           <FindingItem
             key={finding.id}
@@ -216,9 +210,9 @@ const FlaggedIssues = React.memo(
               key={item.location}
               className="flex items-start gap-3.5 border-b border-border-row px-5 py-3.5 opacity-65 last:border-b-0"
             >
-              <span className="inline-flex shrink-0 items-center rounded-full border border-border-default bg-raised px-2.5 py-0.5 font-mono text-[10.5px] font-semibold tracking-[0.03em] whitespace-nowrap text-text-muted">
+              <Badge tone="gray" className="tracking-[0.03em]">
                 SKIPPED
-              </span>
+              </Badge>
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="text-xs font-semibold text-neutral-300">
                   {item.title} <span className="text-text-faint">·</span>{" "}
@@ -238,7 +232,7 @@ const FlaggedIssues = React.memo(
             Sebagian temuan tidak ditampilkan karena jumlahnya terlalu banyak.
           </div>
         )}
-      </div>
+      </SectionCard>
     );
   },
 );

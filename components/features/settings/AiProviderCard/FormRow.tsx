@@ -1,5 +1,7 @@
 import React from "react";
 
+import FieldError from "@/components/ui/field-error";
+
 interface FormRowProps {
   label: string;
   helper?: React.ReactNode;
@@ -17,7 +19,7 @@ const FormRow = React.memo(
         <div className="flex min-w-0 flex-1 basis-80 flex-col gap-2">
           {children}
           {helper && <p className="text-[11px] text-text-muted">{helper}</p>}
-          {error && <p className="text-[11px] text-danger-light">{error}</p>}
+          {error && <FieldError withIcon={false}>{error}</FieldError>}
         </div>
       </div>
     );

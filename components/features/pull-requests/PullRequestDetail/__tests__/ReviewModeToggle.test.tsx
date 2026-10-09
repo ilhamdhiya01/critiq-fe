@@ -16,7 +16,7 @@ describe("ReviewModeToggle", () => {
       />,
     );
 
-    const aiTab = screen.getByRole("button", { name: /AI-Assisted Review/ });
+    const aiTab = screen.getByRole("radio", { name: /AI-Assisted Review/ });
     expect(aiTab).toHaveAttribute("aria-disabled", "true");
     expect(aiTab).toHaveAttribute(
       "title",
@@ -44,10 +44,10 @@ describe("ReviewModeToggle", () => {
     );
 
     expect(
-      screen.getByRole("button", { name: /AI-Assisted Review/ }),
-    ).toHaveAttribute("aria-pressed", "true");
+      screen.getByRole("radio", { name: /AI-Assisted Review/ }),
+    ).toHaveAttribute("aria-checked", "true");
 
-    fireEvent.click(screen.getByRole("button", { name: "Manual Review" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Manual Review" }));
     expect(onChange).toHaveBeenCalledWith("manual");
     expect(
       screen.getByText(
@@ -67,15 +67,15 @@ describe("ReviewModeToggle", () => {
       />,
     );
 
-    const manualTab = screen.getByRole("button", { name: "Manual Review" });
+    const manualTab = screen.getByRole("radio", { name: "Manual Review" });
     expect(manualTab).toHaveAttribute("aria-disabled", "true");
     expect(manualTab).toHaveAttribute(
       "title",
       expect.stringContaining("→ dev uses AI-Assisted review"),
     );
     expect(
-      screen.getByRole("button", { name: /AI-Assisted Review/ }),
-    ).toHaveAttribute("aria-pressed", "true");
+      screen.getByRole("radio", { name: /AI-Assisted Review/ }),
+    ).toHaveAttribute("aria-checked", "true");
 
     fireEvent.click(manualTab);
     expect(onChange).not.toHaveBeenCalled();

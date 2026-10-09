@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import React from "react";
 
+import Avatar from "@/components/ui/avatar";
 import Icon from "@/components/ui/icon/Icon";
-import { getInitials } from "@/lib/helpers/avatar.helper";
 import { useUser } from "@/lib/hooks/auth/useUser";
 
 interface NavbarProps {
@@ -43,19 +42,13 @@ const Navbar = React.memo(({ title }: NavbarProps) => {
       </span>
 
       <div className="flex items-center gap-2.5 border-l border-border-default pl-3.5">
-        {user && user.avatarUrl && (
-          <Image
-            alt="avatar"
+        {user && (
+          <Avatar
+            name={user.name ?? ""}
             src={user.avatarUrl}
-            width={30}
-            height={30}
-            className="rounded-full"
+            size="lg"
+            colorClass="bg-info/25 text-info-light"
           />
-        )}
-        {user && !user.avatarUrl && (
-          <span className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-full bg-info/25 text-[11px] font-bold text-info-light">
-            {getInitials(user?.name ?? "")}
-          </span>
         )}
         <span className="flex flex-col gap-px">
           <span className="text-[12.5px] leading-tight font-semibold text-text-strong">

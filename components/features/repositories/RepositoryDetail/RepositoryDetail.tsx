@@ -1,15 +1,18 @@
 "use client";
 
-import classNames from "classnames";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import React from "react";
 
+import BackLink from "@/components/shared/back-link";
+import StatCard from "@/components/shared/stat-card";
 import StateStatus from "@/components/shared/state-status";
+import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
+import LanguageDot from "@/components/ui/language-dot";
+import Skeleton from "@/components/ui/skeleton";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
-import { languageDotClass, repoName } from "@/lib/helpers/repository.helper";
+import { repoName } from "@/lib/helpers/repository.helper";
 import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
 import { useOrgRepositories } from "@/lib/hooks/repositories/useOrgRepositories";
 import { useRescanRepo } from "@/lib/hooks/repositories/useRescanRepo";
@@ -20,31 +23,6 @@ import { ROUTES } from "@/routes";
 import BranchPolicyTable from "./BranchPolicyTable";
 import RepoPullsTable from "./RepoPullsTable";
 import RepoScanHistory from "./RepoScanHistory";
-
-const CHIP =
-  "rounded-md border border-border-default bg-raised px-2 py-0.75 font-mono text-[11.5px] text-text-secondary";
-
-interface StatCardProps {
-  label: string;
-  value: number;
-  isAlert?: boolean;
-}
-
-const StatCard = ({ label, value, isAlert = false }: StatCardProps) => (
-  <div className="flex flex-col gap-1.5 rounded-lg border border-border-subtle bg-surface px-4 py-3.5">
-    <span className="text-[11px] tracking-[.07em] text-text-secondary uppercase">
-      {label}
-    </span>
-    <span
-      className={classNames(
-        "font-mono text-[26px] leading-none font-bold",
-        isAlert ? "text-danger-light" : "text-neutral-100",
-      )}
-    >
-      {value}
-    </span>
-  </div>
-);
 
 interface RepositoryHeaderProps {
   orgId: string;
@@ -59,21 +37,20 @@ const RepositoryHeader = ({ orgId, repo, isAdmin }: RepositoryHeaderProps) => {
     <div className="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-border-subtle bg-surface px-5 py-4.5">
       <div className="flex min-w-0 flex-col gap-3">
         <span className="flex min-w-0 items-center gap-2.5" title={repo.path}>
-          {repo.language && (
-            <span
-              className={classNames(
-                "h-2.5 w-2.5 flex-none rounded-full",
-                languageDotClass(repo.language),
-              )}
-            />
-          )}
+          <LanguageDot language={repo.language} size="lg" />
           <h2 className="truncate font-mono text-[18px] font-semibold text-neutral-50">
             {repoName(repo.path)}
           </h2>
         </span>
         <div className="flex flex-wrap items-center gap-2.5">
-          {repo.language && <span className={CHIP}>{repo.language}</span>}
-          <span className={CHIP}>default: {repo.defaultBranch}</span>
+          {repo.language && (
+            <Badge tone="neutral" shape="tag" size="md" weight="normal">
+              {repo.language}
+            </Badge>
+          )}
+          <Badge tone="neutral" shape="tag" size="md" weight="normal">
+            default: {repo.defaultBranch}
+          </Badge>
           {repo.lastScanAt !== undefined && (
             <span className="text-[11.5px] text-text-faint">
               {repo.lastScanAt
@@ -138,9 +115,9 @@ const RepositoryDetail = React.memo(
       if (isLoadingRepos) {
         return (
           <div className="flex flex-col gap-4">
-            <div className="animate-shimmer h-24 rounded-lg" />
-            <div className="animate-shimmer h-20 rounded-lg" />
-            <div className="animate-shimmer h-48 rounded-lg" />
+            <Skeleton className="h-24 rounded-lg" />
+            <Skeleton className="h-20 rounded-lg" />
+            <Skeleton className="h-48 rounded-lg" />
           </div>
         );
       }
@@ -186,7 +163,7 @@ const RepositoryDetail = React.memo(
               Couldn&apos;t load branches and review policies.
             </p>
           ) : isLoadingConfig || !config ? (
-            <div className="animate-shimmer h-48 rounded-lg" />
+            <Skeleton className="h-48 rounded-lg" />
           ) : (
             <BranchPolicyTable
               orgId={orgId}
@@ -204,13 +181,10 @@ const RepositoryDetail = React.memo(
 
     return (
       <div className="mx-auto flex max-w-270 flex-col gap-4">
-        <Link
+        <BackLink
           href={ROUTES.repositories(slug)}
-          className="flex w-fit items-center gap-1.5 text-xs text-text-faint transition-colors hover:text-text-nav"
-        >
-          <Icon icon="TbChevronLeft" size={13} />
-          Back to Repositories
-        </Link>
+          label="Back to Repositories"
+        />
         {renderBody()}
       </div>
     );

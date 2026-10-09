@@ -4,6 +4,10 @@ import classNames from "classnames";
 import Link from "next/link";
 import React from "react";
 
+import SectionCard from "@/components/shared/section-card";
+import SectionMessage from "@/components/shared/section-message";
+import Badge from "@/components/ui/badge";
+import Skeleton from "@/components/ui/skeleton";
 import { SCAN_STATUS_LABEL } from "@/const/repository.constant";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import { useRepoScans } from "@/lib/hooks/repositories/useRepoScans";
@@ -12,12 +16,15 @@ import { ROUTES } from "@/routes";
 
 // Scan status, not a quality gate — "Done" deliberately avoids the green
 // PASSED look.
-const STATUS_CLASS: Record<RepoScanStatus, string> = {
-  DONE: "border-border-default bg-raised text-text-secondary",
-  FAILED: "border-danger/40 bg-danger/10 text-danger-light",
-  RUNNING: "border-primary-500/40 bg-primary-500/10 text-primary-300",
-  QUEUED: "border-primary-500/40 bg-primary-500/10 text-primary-300",
-  SUPERSEDED: "border-border-default text-text-muted",
+const STATUS_TONE: Record<
+  RepoScanStatus,
+  React.ComponentProps<typeof Badge>["tone"]
+> = {
+  DONE: "neutral",
+  FAILED: "red",
+  RUNNING: "primary",
+  QUEUED: "primary",
+  SUPERSEDED: "gray",
 };
 
 interface RepoScanHistoryProps {
@@ -39,29 +46,21 @@ const RepoScanHistory = React.memo(
     if (isUnavailable) return null;
 
     return (
-      <section className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
-        <div className="flex items-center justify-between gap-3 border-b border-border-subtle px-5 py-3.5">
-          <h3 className="font-mono text-[13px] font-semibold text-text-strong">
-            PR Scan History
-          </h3>
-          <span className="font-mono text-[10.5px] tracking-[.04em] text-text-muted">
-            ONE SCAN PER PR PUSH · DIFF ONLY
-          </span>
-        </div>
-
+      <SectionCard
+        title="PR Scan History"
+        meta="One scan per PR push · diff only"
+      >
         {isError ? (
-          <p className="px-5 py-6 text-[12.5px] text-danger-light">
+          <SectionMessage tone="danger">
             Couldn&apos;t load scan history.
-          </p>
+          </SectionMessage>
         ) : isLoading ? (
           <div className="flex flex-col gap-2 px-5 py-4">
-            <div className="animate-shimmer h-4 w-full rounded" />
-            <div className="animate-shimmer h-4 w-3/4 rounded" />
+            <Skeleton className="h-4 w-full rounded" />
+            <Skeleton className="h-4 w-3/4 rounded" />
           </div>
         ) : !scans || scans.length === 0 ? (
-          <p className="px-5 py-8 text-center text-[12.5px] text-text-secondary">
-            No scans yet.
-          </p>
+          <SectionMessage>No scans yet.</SectionMessage>
         ) : (
           <ol>
             {scans.map((scan) => (
@@ -73,14 +72,9 @@ const RepoScanHistory = React.memo(
                   {formatRelativeTime(scan.finishedAt ?? scan.createdAt)}
                 </span>
                 <span>
-                  <span
-                    className={classNames(
-                      "inline-flex rounded-full border px-2.5 py-0.5 font-mono text-[10.5px] font-semibold",
-                      STATUS_CLASS[scan.status],
-                    )}
-                  >
+                  <Badge tone={STATUS_TONE[scan.status]}>
                     {SCAN_STATUS_LABEL[scan.status]}
-                  </span>
+                  </Badge>
                 </span>
                 <span
                   className={classNames("font-mono text-[12px]", {
@@ -101,7 +95,7 @@ const RepoScanHistory = React.memo(
             ))}
           </ol>
         )}
-      </section>
+      </SectionCard>
     );
   },
 );

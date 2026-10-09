@@ -1,3 +1,4 @@
+import type { SegmentedOption } from "@/components/ui/segmented-control";
 import type { IntegrationProvider } from "@/lib/types/integration.types";
 import type { EffectivePolicy } from "@/lib/types/pull-request.types";
 import type {
@@ -30,6 +31,24 @@ export const BRANCH_POLICY_OPTIONS: {
       "AI analysis and manual confirmation must both complete before approval.",
   },
 ];
+
+const BRANCH_POLICY_TONE: Record<
+  BranchPolicy,
+  SegmentedOption<BranchPolicy>["tone"]
+> = {
+  manual_only: "neutral",
+  allow_ai: "primary",
+  require_both: "warning",
+};
+
+// The same options as a segmented control (repo detail policy rows).
+export const BRANCH_POLICY_SEGMENTS: SegmentedOption<BranchPolicy>[] =
+  BRANCH_POLICY_OPTIONS.map((option) => ({
+    value: option.value,
+    label: option.label,
+    title: option.description,
+    tone: BRANCH_POLICY_TONE[option.value],
+  }));
 
 export const CONNECT_REPO_ERROR_MESSAGE: Record<
   FailedConnectRepo["error"],
@@ -87,6 +106,14 @@ export const BRANCH_LIST_TRUNCATED_HINT =
   "Showing the first 50 branches of this repository.";
 
 export const FINAL_APPROVAL_NOTE = "Final approval is always manual.";
+
+// Repo detail polls pulls/scans while a scan is queued or running.
+export const REPO_SCAN_POLL_INTERVAL_MS = 3000;
+
+export const ACTIVE_REPO_SCAN_STATUSES: ReadonlySet<RepoScanStatus> = new Set([
+  "QUEUED",
+  "RUNNING",
+]);
 
 // Status of the scan itself — never a quality gate (no PASSED/FAILED gate yet).
 export const SCAN_STATUS_LABEL: Record<RepoScanStatus, string> = {

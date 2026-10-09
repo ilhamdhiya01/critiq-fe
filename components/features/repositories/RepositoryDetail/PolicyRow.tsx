@@ -3,14 +3,17 @@
 import React from "react";
 
 import Button from "@/components/ui/button";
+import FieldError from "@/components/ui/field-error";
 import Icon from "@/components/ui/icon/Icon";
-import { BRANCH_POLICY_OPTIONS } from "@/const/repository.constant";
+import SegmentedControl from "@/components/ui/segmented-control";
+import {
+  BRANCH_POLICY_OPTIONS,
+  BRANCH_POLICY_SEGMENTS,
+} from "@/const/repository.constant";
 import type {
   BranchPolicy,
   BranchPolicyEntry,
 } from "@/lib/types/repository.types";
-
-import PolicySegmented from "./PolicySegmented";
 
 interface PolicyRowProps {
   row: BranchPolicyEntry;
@@ -57,7 +60,9 @@ const PolicyRow = React.memo(
 
           {showPolicy &&
             (isAdmin ? (
-              <PolicySegmented
+              <SegmentedControl
+                size="sm"
+                options={BRANCH_POLICY_SEGMENTS}
                 value={row.policy}
                 onChange={(policy) => onPolicyChange(row.branch, policy)}
                 ariaLabel={`Review policy for ${row.branch}`}
@@ -87,12 +92,7 @@ const PolicyRow = React.memo(
           )}
         </div>
 
-        {error && (
-          <span className="flex items-center gap-1.5 pl-6.5 text-[11px] text-danger-light">
-            <Icon icon="TbAlertTriangle" size={12} />
-            {error}
-          </span>
-        )}
+        {error && <FieldError className="pl-6.5">{error}</FieldError>}
       </div>
     );
   },
