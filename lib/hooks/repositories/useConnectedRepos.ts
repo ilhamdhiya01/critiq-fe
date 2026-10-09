@@ -8,18 +8,19 @@ import { getOrgRepositories } from "@/services/repositories.service";
 
 import { repositoryKeys } from "./queryKeys";
 
-// Same query as useRepoCountByProvider; `select` keeps only the paths of one
-// provider so candidates can be marked as already connected.
-export const useConnectedRepoPaths = (
+// Same query as useRepoCountByProvider; `select` keeps one provider's repos as
+// path → Critiq repo id, so candidates can be marked as connected and linked
+// to their settings page.
+export const useConnectedRepos = (
   orgId: string,
   provider: IntegrationProvider,
 ) => {
   const select = useCallback(
     (response: ApiResponse<OrgRepository[]>) =>
-      new Set(
+      new Map(
         (response.data ?? [])
           .filter((repo) => repo.provider === provider)
-          .map((repo) => repo.path),
+          .map((repo) => [repo.path, repo.id] as const),
       ),
     [provider],
   );

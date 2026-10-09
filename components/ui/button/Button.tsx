@@ -121,6 +121,7 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
             disabled,
           })}
           href={link}
+          aria-disabled={disabled || undefined}
           {...(props as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
         >
           {content}
@@ -139,6 +140,9 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
           isLoading,
           disabled,
         })}
+        // Native disabled too, so keyboard (Enter/Space) cannot trigger a
+        // button that only looks disabled.
+        disabled={disabled || isLoading}
         {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}
       >
         {content}

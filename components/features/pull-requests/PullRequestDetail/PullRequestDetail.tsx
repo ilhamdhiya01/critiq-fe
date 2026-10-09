@@ -62,7 +62,7 @@ const PullRequestDetail = React.memo(
     const { data: summary, isLoading: isLoadingSummary } =
       usePullRequestSummary(orgId ?? "", repoId, id);
 
-    // Only used when the policy lets the reviewer choose (ALLOW_AI). Not
+    // Only used when the policy opens both tabs (REQUIRE_BOTH). Not
     // persisted — the BE has no per-PR mode yet.
     const [chosenMode, setChosenMode] = useState<ReviewMode>("ai");
     const handleChangeMode = useCallback(
@@ -71,12 +71,11 @@ const PullRequestDetail = React.memo(
     );
 
     const policy = data?.effectivePolicy;
-    const reviewMode: ReviewMode =
-      policy === "MANUAL_ONLY"
-        ? "manual"
-        : policy === "ALLOW_AI"
-          ? chosenMode
-          : "ai";
+    // MANUAL_ONLY locks Manual, ALLOW_AI locks AI-Assisted, REQUIRE_BOTH
+    // leaves both tabs open.
+    const lockedMode: ReviewMode | null =
+      policy === "MANUAL_ONLY" ? "manual" : policy === "ALLOW_AI" ? "ai" : null;
+    const reviewMode: ReviewMode = lockedMode ?? chosenMode;
 
     // Manual review shows rule findings only, as in the mockup.
     const findings = useMemo(() => {
@@ -150,15 +149,15 @@ const PullRequestDetail = React.memo(
 
         <PullRequestDetailHeader detail={data} />
 
-        {requiresBoth ? (
+        <ReviewModeToggle
+          mode={reviewMode}
+          lockedMode={lockedMode}
+          targetBranch={data.targetBranch}
+          onChange={handleChangeMode}
+        />
+
+        {requiresBoth && (
           <BranchPolicyBanner targetBranch={data.targetBranch} />
-        ) : (
-          <ReviewModeToggle
-            mode={reviewMode}
-            isAiLocked={data.effectivePolicy === "MANUAL_ONLY"}
-            targetBranch={data.targetBranch}
-            onChange={handleChangeMode}
-          />
         )}
 
         {reviewMode === "manual" ? (

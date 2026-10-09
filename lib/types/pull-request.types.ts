@@ -56,6 +56,8 @@ export interface PullRequest {
   createdAt: string;
   updatedAt: string;
   latestScan: LatestScan | null;
+  // A scan currently queued/running for this PR, if any.
+  activeScan?: { id: string; status: ScanStatus } | null;
 }
 
 export interface PullRequestFile {
