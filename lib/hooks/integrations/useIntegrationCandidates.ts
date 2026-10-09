@@ -42,14 +42,18 @@ export const useIntegrationCandidates = (
     retry: false,
   });
 
-  const fieldErrors =
-    (query.error as AxiosError<ErrorResponse> | null)?.response?.data?.errors ??
-    [];
+  const axiosError = query.error as AxiosError<ErrorResponse> | null;
+  const fieldErrors = axiosError?.response?.data?.errors ?? [];
   const isNotConnected = fieldErrors.some(
     (error) =>
       error.message === "gitlab_not_connected" ||
       error.message === "github_not_connected",
   );
 
-  return { ...query, isNotConnected };
+  return {
+    ...query,
+    isNotConnected,
+    errorCode: fieldErrors[0]?.message ?? null,
+    errorStatus: axiosError?.response?.status ?? null,
+  };
 };

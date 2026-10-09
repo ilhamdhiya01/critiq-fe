@@ -2,24 +2,37 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import StateStatus from "@/components/shared/state-status";
 import Icon from "@/components/ui/icon/Icon";
+import { REVIEW_MODE_COPY } from "@/const/pull-request.constant";
+import { getErrorCode } from "@/lib/helpers/integration.helper";
+import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
 import { usePullRequestDetail } from "@/lib/hooks/pull-requests/usePullRequestDetail";
 import { usePullRequestDetailDiff } from "@/lib/hooks/pull-requests/usePullRequestDetailDiff";
 import { usePullRequestSummary } from "@/lib/hooks/pull-requests/usePullRequestSummary";
+import type {
+  ParsedPullRequestFile,
+  ReviewMode,
+} from "@/lib/types/pull-request.types";
 import { ROUTES } from "@/routes";
 
 import AiSummaryCard from "./AiSummaryCard";
 import AiSummaryCardSkeleton from "./AiSummaryCard/AiSummaryCardSkeleton";
 import BranchPolicyBanner from "./BranchPolicyBanner";
+import DiffErrorState from "./DiffErrorState";
 import FlaggedIssues from "./FlaggedIssues";
+import ManualModeNotice from "./ManualModeNotice";
 import ManualReviewConfirmation from "./ManualReviewConfirmation";
 import PullRequestDetailHeader from "./PullRequestDetailHeader";
 import PullRequestDetailSkeleton from "./PullRequestDetailSkeleton";
 import PullRequestDiff from "./PullRequestDiff";
 import PullRequestDiscussion from "./PullRequestDiscussion";
+import ReviewModeToggle from "./ReviewModeToggle";
+
+// Stable empty list so memoised children do not re-render when the diff failed.
+const NO_DIFF_FILES: ParsedPullRequestFile[] = [];
 
 interface PullRequestDetailProps {
   orgId?: string;
@@ -31,6 +44,7 @@ const PullRequestDetail = React.memo(
   ({ id, repoId, orgId }: PullRequestDetailProps) => {
     const params = useParams<{ slug: string }>();
     const slug = params.slug;
+    const { membership } = useOrgBySlug(slug);
 
     const { data, isLoading, isError } = usePullRequestDetail(
       orgId ?? "",
@@ -42,31 +56,56 @@ const PullRequestDetail = React.memo(
       data: diff,
       isLoading: isLoadingDiff,
       isError: isErrorDiff,
+      error: diffError,
     } = usePullRequestDetailDiff(orgId ?? "", repoId, id);
 
     const { data: summary, isLoading: isLoadingSummary } =
       usePullRequestSummary(orgId ?? "", repoId, id);
 
+    // Only used when the policy lets the reviewer choose (ALLOW_AI). Not
+    // persisted — the BE has no per-PR mode yet.
+    const [chosenMode, setChosenMode] = useState<ReviewMode>("ai");
+    const handleChangeMode = useCallback(
+      (mode: ReviewMode) => setChosenMode(mode),
+      [],
+    );
+
+    const policy = data?.effectivePolicy;
+    const reviewMode: ReviewMode =
+      policy === "MANUAL_ONLY"
+        ? "manual"
+        : policy === "ALLOW_AI"
+          ? chosenMode
+          : "ai";
+
+    // Manual review shows rule findings only, as in the mockup.
+    const findings = useMemo(() => {
+      const all = data?.latestScan?.findings ?? [];
+      return reviewMode === "manual"
+        ? all.filter((finding) => finding.source !== "AI")
+        : all;
+    }, [data?.latestScan?.findings, reviewMode]);
+
     // The diff-viewer gutter flags Critical (red) and Major (orange) lines —
     // Minor/Info findings exist in the type but have no gutter marker.
     const flaggableFindingsForDiff = useMemo(
       () =>
-        (data?.latestScan?.findings ?? []).filter(
+        findings.filter(
           (finding) =>
             finding.severity === "CRITICAL" || finding.severity === "MAJOR",
         ),
-      [data?.latestScan?.findings],
+      [findings],
     );
 
     const criticalCount = data?.latestScan?.criticalCount ?? 0;
 
     const suggestionCount = useMemo(
       () =>
-        (data?.latestScan?.findings ?? []).filter(
+        findings.filter(
           (finding) =>
             finding.severity === "MAJOR" || finding.severity === "MINOR",
         ).length,
-      [data?.latestScan?.findings],
+      [findings],
     );
 
     const { additions, deletions } = useMemo(
@@ -90,11 +129,14 @@ const PullRequestDetail = React.memo(
       );
     }
 
-    if (isLoading || isLoadingDiff || !diff || !data) {
+    // A failed diff must not hold the page on the skeleton — the rest of the
+    // detail still renders and the diff area explains the error.
+    if (isLoading || isLoadingDiff || !data) {
       return <PullRequestDetailSkeleton />;
     }
 
     const requiresBoth = data.effectivePolicy === "REQUIRE_BOTH";
+    const diffFiles = diff?.files ?? NO_DIFF_FILES;
 
     return (
       <div className="flex flex-col gap-4">
@@ -108,11 +150,26 @@ const PullRequestDetail = React.memo(
 
         <PullRequestDetailHeader detail={data} />
 
-        {requiresBoth && (
+        {requiresBoth ? (
           <BranchPolicyBanner targetBranch={data.targetBranch} />
+        ) : (
+          <ReviewModeToggle
+            mode={reviewMode}
+            isAiLocked={data.effectivePolicy === "MANUAL_ONLY"}
+            targetBranch={data.targetBranch}
+            onChange={handleChangeMode}
+          />
         )}
 
-        {isLoadingSummary ? (
+        {reviewMode === "manual" ? (
+          <ManualModeNotice
+            message={
+              data.effectivePolicy === "MANUAL_ONLY"
+                ? REVIEW_MODE_COPY.policyManualNotice
+                : REVIEW_MODE_COPY.chosenManualNotice
+            }
+          />
+        ) : isLoadingSummary ? (
           <AiSummaryCardSkeleton />
         ) : (
           <AiSummaryCard
@@ -122,25 +179,24 @@ const PullRequestDetail = React.memo(
             summary={summary}
             criticalCount={criticalCount}
             suggestionCount={suggestionCount}
-            filesChanged={data.latestScan?.filesChanged ?? diff.files.length}
+            filesChanged={data.latestScan?.filesChanged ?? diffFiles.length}
             additions={additions}
             deletions={deletions}
+            settingsHref={ROUTES.settings(slug)}
+            role={membership?.role}
           />
         )}
 
         {requiresBoth && <ManualReviewConfirmation />}
 
         <FlaggedIssues
-          findings={data.latestScan?.findings ?? []}
-          files={diff.files}
+          findings={findings}
+          files={diffFiles}
           truncated={data.latestScan?.findingsTruncated ?? false}
         />
 
-        {isErrorDiff ? (
-          <StateStatus
-            title="Gagal memuat diff"
-            description="Terjadi kesalahan saat mengambil perubahan file. Coba muat ulang halaman."
-          />
+        {isErrorDiff || !diff ? (
+          <DiffErrorState errorCode={getErrorCode(diffError)} />
         ) : (
           <PullRequestDiff
             files={diff.files}

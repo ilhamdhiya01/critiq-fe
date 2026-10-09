@@ -61,7 +61,7 @@ const IntegrationsCard = React.memo(({ orgId }: IntegrationsCardProps) => {
       {renderBody()}
 
       <Suspense fallback={null}>
-        <GitHubReturnNotice orgId={orgId} />
+        <GitHubReturnNotice />
       </Suspense>
     </div>
   );

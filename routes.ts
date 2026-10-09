@@ -49,6 +49,8 @@ export const API_INTEGRATIONS_GITLAB = (orgId: string) =>
   `${API_INTEGRATIONS(orgId)}/gitlab`;
 export const API_INTEGRATIONS_GITLAB_HEALTH = (orgId: string) =>
   `${API_INTEGRATIONS_GITLAB(orgId)}/health`;
+export const API_INTEGRATIONS_GITHUB_ROOT = (orgId: string) =>
+  `${API_INTEGRATIONS(orgId)}/github`;
 export const API_INTEGRATIONS_GITHUB = (orgId: string) =>
   `${API_INTEGRATIONS(orgId)}/github/install-intent`;
 export const API_INTEGRATION_CANDIDATES = (

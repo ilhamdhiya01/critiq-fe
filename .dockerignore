@@ -32,6 +32,9 @@ commitlint.config.js
 coverage
 vitest.config.mts
 vitest.setup.ts
+# Test files must go too: without vitest.setup.ts their jest-dom matchers
+# (toBeInTheDocument, …) are untyped and fail next build's TypeScript step.
+**/__tests__
 
 # docs
 *.md
