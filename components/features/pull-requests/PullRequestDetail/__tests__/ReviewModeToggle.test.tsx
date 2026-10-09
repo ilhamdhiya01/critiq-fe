@@ -10,7 +10,7 @@ describe("ReviewModeToggle", () => {
     render(
       <ReviewModeToggle
         mode="manual"
-        isAiLocked
+        lockedMode="manual"
         targetBranch="main"
         onChange={onChange}
       />,
@@ -32,12 +32,12 @@ describe("ReviewModeToggle", () => {
     ).toBeInTheDocument();
   });
 
-  it("lets the reviewer switch modes when AI is allowed", () => {
+  it("opens both tabs under a require-both policy", () => {
     const onChange = vi.fn();
     render(
       <ReviewModeToggle
         mode="ai"
-        isAiLocked={false}
+        lockedMode={null}
         targetBranch="main"
         onChange={onChange}
       />,
@@ -52,6 +52,36 @@ describe("ReviewModeToggle", () => {
     expect(
       screen.getByText(
         "Either way, the final decision is always yours — AI never auto-approves or merges.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("locks Manual Review under an AI-Assisted policy", () => {
+    const onChange = vi.fn();
+    render(
+      <ReviewModeToggle
+        mode="ai"
+        lockedMode="ai"
+        targetBranch="dev"
+        onChange={onChange}
+      />,
+    );
+
+    const manualTab = screen.getByRole("button", { name: "Manual Review" });
+    expect(manualTab).toHaveAttribute("aria-disabled", "true");
+    expect(manualTab).toHaveAttribute(
+      "title",
+      expect.stringContaining("→ dev uses AI-Assisted review"),
+    );
+    expect(
+      screen.getByRole("button", { name: /AI-Assisted Review/ }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(manualTab);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        "This branch uses AI-Assisted review — Manual mode is disabled by branch policy.",
       ),
     ).toBeInTheDocument();
   });

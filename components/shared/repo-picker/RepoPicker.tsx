@@ -23,7 +23,10 @@ interface RepoPickerProps {
   // True while a selected repo's branches are loading or failed to load.
   onBlockedChange: (blocked: boolean) => void;
   emptyState: React.ReactNode;
-  connectedPaths?: Set<string>;
+  // Already connected repos: path → Critiq repo id. Shown disabled.
+  connectedRepos?: Map<string, string>;
+  // Builds the "Edit settings" link for a connected repo.
+  getSettingsHref?: (repoId: string) => string;
   rowErrors?: Record<string, string>;
   listClassName?: string;
 }
@@ -44,7 +47,8 @@ const RepoPicker = React.memo(
     onBranchesReady,
     onBlockedChange,
     emptyState,
-    connectedPaths,
+    connectedRepos,
+    getSettingsHref,
     rowErrors,
     listClassName = "max-h-62.5",
   }: RepoPickerProps) => {
@@ -99,22 +103,31 @@ const RepoPicker = React.memo(
           listClassName,
         )}
       >
-        {candidates.map((repo) => (
-          <RepoRow
-            key={repo.id}
-            repo={repo}
-            checked={!!selectedRepos[String(repo.id)]}
-            onToggle={handleToggle}
-            source={source}
-            organizationId={organizationId}
-            selectedBranches={selectedBranches[String(repo.id)]}
-            onToggleBranch={onToggleBranch}
-            onBranchesReady={onBranchesReady}
-            onBranchStatusChange={handleBranchStatusChange}
-            isConnected={connectedPaths?.has(repo.path) ?? false}
-            error={rowErrors?.[String(repo.id)]}
-          />
-        ))}
+        {candidates.map((repo) => {
+          const connectedRepoId = connectedRepos?.get(repo.path);
+
+          return (
+            <RepoRow
+              key={repo.id}
+              repo={repo}
+              checked={!!selectedRepos[String(repo.id)]}
+              onToggle={handleToggle}
+              source={source}
+              organizationId={organizationId}
+              selectedBranches={selectedBranches[String(repo.id)]}
+              onToggleBranch={onToggleBranch}
+              onBranchesReady={onBranchesReady}
+              onBranchStatusChange={handleBranchStatusChange}
+              isConnected={connectedRepoId !== undefined}
+              settingsHref={
+                connectedRepoId && getSettingsHref
+                  ? getSettingsHref(connectedRepoId)
+                  : undefined
+              }
+              error={rowErrors?.[String(repo.id)]}
+            />
+          );
+        })}
       </div>
     );
   },

@@ -1,6 +1,7 @@
 "use client";
 
 import classNames from "classnames";
+import Link from "next/link";
 import React, { useCallback, useEffect, useState } from "react";
 
 import Checkbox from "@/components/ui/checkbox";
@@ -35,6 +36,8 @@ interface RepoRowProps {
   onBranchesReady: (repoId: string, defaultBranch: string) => void;
   onBranchStatusChange: (repoId: string, status: BranchFetchStatus) => void;
   isConnected?: boolean;
+  // Settings page of an already connected repo ("Edit settings" link).
+  settingsHref?: string;
   error?: string;
 }
 
@@ -50,6 +53,7 @@ const RepoRow = React.memo(
     onBranchesReady,
     onBranchStatusChange,
     isConnected = false,
+    settingsHref,
     error,
   }: RepoRowProps) => {
     const repoId = String(repo.id);
@@ -116,17 +120,35 @@ const RepoRow = React.memo(
           onClick={isConnected ? undefined : () => onToggle(repo.id)}
           className={classNames("flex items-center gap-3 px-3.5 py-2.5", {
             "cursor-pointer": !isConnected,
-            "cursor-default opacity-60": isConnected,
+            "cursor-default": isConnected,
           })}
         >
-          <Checkbox checked={checked} disabled={isConnected} readOnly />
-          <span className="flex-1 font-mono text-[12.5px] text-neutral-100">
+          <Checkbox
+            checked={checked}
+            disabled={isConnected}
+            readOnly
+            className={classNames({ "opacity-60": isConnected })}
+          />
+          <span
+            className={classNames(
+              "flex-1 font-mono text-[12.5px] text-neutral-100",
+              { "opacity-60": isConnected },
+            )}
+          >
             {repo.path}
           </span>
           {isConnected && (
             <span className="rounded-full border border-success/40 bg-success/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-success-light">
               Connected
             </span>
+          )}
+          {settingsHref && (
+            <Link
+              href={settingsHref}
+              className="text-[11px] whitespace-nowrap text-info-light hover:underline"
+            >
+              Edit settings
+            </Link>
           )}
           <span className="flex items-center gap-1.5 text-[11px] text-text-secondary">
             <span className="h-1.5 w-1.5 rounded-full bg-info" />

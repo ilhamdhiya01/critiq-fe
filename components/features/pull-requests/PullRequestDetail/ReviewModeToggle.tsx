@@ -9,7 +9,8 @@ import type { ReviewMode } from "@/lib/types/pull-request.types";
 
 interface ReviewModeToggleProps {
   mode: ReviewMode;
-  isAiLocked: boolean;
+  // The mode the branch policy forces, or null when both tabs are open.
+  lockedMode: ReviewMode | null;
   targetBranch: string;
   onChange: (mode: ReviewMode) => void;
 }
@@ -18,8 +19,16 @@ const TAB_BASE =
   "flex items-center gap-1.75 rounded-[5px] px-4 py-1.75 font-mono text-xs font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-400";
 
 const ReviewModeToggle = React.memo(
-  ({ mode, isAiLocked, targetBranch, onChange }: ReviewModeToggleProps) => {
+  ({ mode, lockedMode, targetBranch, onChange }: ReviewModeToggleProps) => {
     const isManual = mode === "manual";
+    const isManualLocked = lockedMode === "ai";
+    const isAiLocked = lockedMode === "manual";
+
+    const note = isAiLocked
+      ? REVIEW_MODE_COPY.lockedNote
+      : isManualLocked
+        ? REVIEW_MODE_COPY.manualLockedNote
+        : REVIEW_MODE_COPY.freeNote;
 
     return (
       <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2">
@@ -31,11 +40,21 @@ const ReviewModeToggle = React.memo(
           <button
             type="button"
             aria-pressed={isManual}
-            onClick={() => onChange("manual")}
+            aria-disabled={isManualLocked}
+            title={
+              isManualLocked
+                ? REVIEW_MODE_COPY.manualLockedTooltip(targetBranch)
+                : undefined
+            }
+            onClick={() => {
+              if (!isManualLocked) onChange("manual");
+            }}
             className={classNames(TAB_BASE, {
-              "cursor-default bg-white/10 text-text-bright": isManual,
+              "cursor-not-allowed text-neutral-700": isManualLocked,
+              "cursor-default bg-white/10 text-text-bright":
+                !isManualLocked && isManual,
               "cursor-pointer text-text-secondary hover:text-text-strong":
-                !isManual,
+                !isManualLocked && !isManual,
             })}
           >
             Manual Review
@@ -64,9 +83,7 @@ const ReviewModeToggle = React.memo(
             AI-Assisted Review
           </button>
         </div>
-        <span className="text-[11.5px] text-text-muted">
-          {isAiLocked ? REVIEW_MODE_COPY.lockedNote : REVIEW_MODE_COPY.freeNote}
-        </span>
+        <span className="text-[11.5px] text-text-muted">{note}</span>
       </div>
     );
   },

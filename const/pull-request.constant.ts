@@ -192,6 +192,10 @@ export const REVIEW_MODE_COPY = {
   lockedTooltip: (targetBranch: string) =>
     `Branch policy for → ${targetBranch} requires manual review — AI-Assisted mode is disabled for this PR.`,
   freeTooltip: "Model analysis assists your review; approval stays manual.",
+  manualLockedNote:
+    "This branch uses AI-Assisted review — Manual mode is disabled by branch policy.",
+  manualLockedTooltip: (targetBranch: string) =>
+    `Branch policy for → ${targetBranch} uses AI-Assisted review — Manual mode is disabled for this PR.`,
   // Branch policy is manual-only: the BE never calls the model.
   policyManualNotice:
     "Manual review — AI assistance is off; the model is not called for this PR. Rule findings are still listed below.",
