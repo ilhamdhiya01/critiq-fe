@@ -14,6 +14,24 @@ export const GITLAB_ERROR_MESSAGE: Record<string, string> = {
 export const INTEGRATION_FORBIDDEN_MESSAGE =
   "Only Admins can change integrations.";
 
+export const GITHUB_UNINSTALLED_MESSAGE =
+  "The Critiq app was removed from GitHub. Reinstall it to resume scanning, or disconnect to remove these repositories from Critiq.";
+
+export const GITHUB_SUSPENDED_MESSAGE =
+  "The Critiq app is suspended on GitHub. Unsuspend it in GitHub to resume scanning.";
+
+// 409 from candidates / connect / branches / PR diff once the App is gone.
+export const GITHUB_ACCESS_ERROR_CODES = [
+  "github_uninstalled",
+  "github_suspended",
+] as const;
+
+export const GITHUB_ACCESS_REMOVED_MESSAGE =
+  "GitHub access was removed — an Admin can reinstall or disconnect in Settings → Integrations.";
+
+export const GITHUB_UNREACHABLE_MESSAGE =
+  "Couldn't reach GitHub — nothing was removed. Try again.";
+
 export const GITHUB_RETURN_TOAST = {
   connected: { variant: "success", message: "GitHub connected" },
   pending_approval: {

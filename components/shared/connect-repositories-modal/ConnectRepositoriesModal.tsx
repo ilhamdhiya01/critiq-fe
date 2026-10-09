@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useState } from "react";
 
 import BranchPolicyOptions from "@/components/shared/branch-policy-options";
+import GitHubAccessNotice from "@/components/shared/github-access-notice";
 import RepoPicker from "@/components/shared/repo-picker";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
@@ -13,6 +14,7 @@ import {
   CONNECT_REPOS_FORBIDDEN_MESSAGE,
   DEFAULT_BRANCH_POLICY,
 } from "@/const/repository.constant";
+import { isGitHubAccessError } from "@/lib/helpers/integration.helper";
 import { summarizeConnectResult } from "@/lib/helpers/repository.helper";
 import { integrationKeys } from "@/lib/hooks/integrations/queryKeys";
 import { useConnectRepositories } from "@/lib/hooks/integrations/useConnectRepositories";
@@ -84,6 +86,14 @@ const ConnectRepositoriesModal = React.memo(
       onClose();
     }, [isNotConnected, orgId, onClose, queryClient]);
 
+    // The App was uninstalled/suspended on GitHub: refresh the card so it
+    // shows the new state behind the modal.
+    const hasGitHubAccessError = isGitHubAccessError(errorCode);
+    useEffect(() => {
+      if (!hasGitHubAccessError) return;
+      queryClient.invalidateQueries({ queryKey: integrationKeys.list(orgId) });
+    }, [hasGitHubAccessError, orgId, queryClient]);
+
     const handleToggleRepo = useCallback(
       (id: string) => {
         toggleRepo(id);
@@ -130,6 +140,8 @@ const ConnectRepositoriesModal = React.memo(
     };
 
     const renderBody = () => {
+      if (hasGitHubAccessError) return <GitHubAccessNotice />;
+
       if (isError && !isNotConnected) {
         return (
           <div className="flex flex-col items-center gap-2 rounded-lg border border-border-subtle px-3.5 py-4 text-center text-[12.5px] text-danger-light">

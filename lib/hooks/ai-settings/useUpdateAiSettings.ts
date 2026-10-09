@@ -13,6 +13,7 @@ import type {
 import type { ErrorResponse } from "@/lib/types/api.types";
 import { updateAiSettings } from "@/services/ai-settings.service";
 
+import { pullRequestKeys } from "../pull-requests/queryKeys";
 import { aiSettingsKeys } from "./queryKeys";
 
 export const useUpdateAiSettings = (orgId: string) => {
@@ -28,6 +29,14 @@ export const useUpdateAiSettings = (orgId: string) => {
       queryClient.setQueryData(aiSettingsKeys.detail(orgId), response);
       queryClient.invalidateQueries({
         queryKey: aiSettingsKeys.models(orgId),
+      });
+      // AI status on PR detail/summary is evaluated against the current
+      // config (e.g. `error.stale`), so refetch them after a change.
+      queryClient.invalidateQueries({
+        queryKey: pullRequestKeys.orgDetails(orgId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: pullRequestKeys.orgSummaries(orgId),
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {

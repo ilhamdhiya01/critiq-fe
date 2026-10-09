@@ -2,7 +2,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 
+import { GITHUB_ACCESS_REMOVED_MESSAGE } from "@/const/integration.constant";
 import { CONNECT_REPOS_FORBIDDEN_MESSAGE } from "@/const/repository.constant";
+import {
+  getErrorCode,
+  isGitHubAccessError,
+} from "@/lib/helpers/integration.helper";
 import { repositoryKeys } from "@/lib/hooks/repositories/queryKeys";
 import { toast } from "@/lib/toast";
 import type { ErrorResponse } from "@/lib/types/api.types";
@@ -65,6 +70,13 @@ export const useConnectRepositories = (
       router.replace(ROUTES.dashboard(redirectSlug));
     },
     onError: (error: AxiosError<ErrorResponse>) => {
+      if (isGitHubAccessError(getErrorCode(error))) {
+        queryClient.invalidateQueries({
+          queryKey: integrationKeys.list(orgId),
+        });
+        toast.error(GITHUB_ACCESS_REMOVED_MESSAGE);
+        return;
+      }
       toast.error(
         error.response?.status === 403
           ? CONNECT_REPOS_FORBIDDEN_MESSAGE

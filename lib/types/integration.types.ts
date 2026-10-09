@@ -6,8 +6,15 @@ export type IntegrationProvider = "GITHUB" | "GITLAB";
 export type IntegrationCredentialKind =
   "GROUP_TOKEN" | "OAUTH" | "INSTALLATION";
 
+// The BE may add values later — always handle an unknown state.
 export type IntegrationStatus =
-  "ACTIVE" | "EXPIRING_SOON" | "TOKEN_EXPIRED" | "INVALID" | "PENDING_APPROVAL";
+  | "ACTIVE"
+  | "EXPIRING_SOON"
+  | "TOKEN_EXPIRED"
+  | "INVALID"
+  | "PENDING_APPROVAL"
+  | "UNINSTALLED"
+  | "SUSPENDED";
 
 export type GitLabTokenKind = "GROUP" | "PERSONAL";
 

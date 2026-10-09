@@ -17,6 +17,7 @@ import {
   API_INTEGRATION_REPO_BRANCHES,
   API_INTEGRATIONS,
   API_INTEGRATIONS_GITHUB,
+  API_INTEGRATIONS_GITHUB_ROOT,
   API_INTEGRATIONS_GITLAB,
   API_INTEGRATIONS_GITLAB_HEALTH,
   API_ORG,
@@ -106,6 +107,19 @@ export const installIntentGithub = async (
       API_INTEGRATIONS_GITHUB(orgId),
       payload,
     );
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Uninstalls the App on GitHub (if still installed) and deletes the
+// integration with every GitHub repo, PR, scan and finding of the org.
+export const disconnectGitHub = async (
+  orgId: string,
+): Promise<ApiResponse<null>> => {
+  try {
+    const res = await axiosInstance.delete(API_INTEGRATIONS_GITHUB_ROOT(orgId));
     return res.data;
   } catch (error) {
     throw error;

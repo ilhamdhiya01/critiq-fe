@@ -1,7 +1,7 @@
 "use client";
 
 import classNames from "classnames";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import Markdown from "react-markdown";
 
 import Button from "@/components/ui/button";
@@ -9,13 +9,15 @@ import Icon from "@/components/ui/icon/Icon";
 import {
   AI_SUMMARY_RISK_LABEL,
   AI_SUMMARY_RISK_STYLE,
+  AI_SUMMARY_STALE_STATE,
 } from "@/const/pull-request.constant";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
+import { getAiBlockedView } from "@/lib/helpers/pull-request.helper";
 import { useRegeneratePullRequestSummary } from "@/lib/hooks/pull-requests/useRescanPullRequest";
-import type {
-  AiSummaryStatus,
-  PullRequestSummary,
-} from "@/lib/types/pull-request.types";
+import type { Role } from "@/lib/types/auth.types";
+import type { PullRequestSummary } from "@/lib/types/pull-request.types";
+
+import AiBlockedNotice from "./AiBlockedNotice";
 
 // Backend has sent `error` both as a plain string and as a structured
 // { code, hint } object — normalise to a renderable string either way so a
@@ -29,19 +31,6 @@ const getErrorMessage = (
   return error.hint || error.code || "Analisis AI gagal dijalankan.";
 };
 
-const BLOCKED_MESSAGE: Record<
-  Exclude<AiSummaryStatus, "queued" | "running" | "done" | "cached" | "failed">,
-  string
-> = {
-  skipped_manual_mode:
-    "Review manual saja — AI tidak dijalankan untuk branch ini.",
-  consent_required:
-    "Analisis AI butuh persetujuan organisasi sebelum bisa berjalan.",
-  not_configured: "Analisis AI belum dikonfigurasi untuk repositori ini.",
-  skipped_too_large: "Perubahan terlalu besar untuk dianalisis AI.",
-  budget_exceeded: "Kuota analisis AI organisasi sudah habis.",
-};
-
 interface AiSummaryCardProps {
   orgId: string;
   repoId: string;
@@ -52,6 +41,9 @@ interface AiSummaryCardProps {
   filesChanged: number;
   additions: number;
   deletions: number;
+  settingsHref: string;
+  // Current user's role in the org; undefined while it loads.
+  role?: Role;
 }
 
 const AiSummaryCard = React.memo(
@@ -65,21 +57,33 @@ const AiSummaryCard = React.memo(
     filesChanged,
     additions,
     deletions,
+    settingsHref,
+    role,
   }: AiSummaryCardProps) => {
-    console.log(summary);
     const status = summary?.aiStatus;
     const isInProgress = status === "queued" || status === "running";
     const isDone = status === "done" || status === "cached";
+    const blockedView = useMemo(
+      () => getAiBlockedView(summary, role),
+      [summary, role],
+    );
+    const isStale = blockedView?.isStale ?? false;
     const riskStyle = summary?.riskLevel
       ? AI_SUMMARY_RISK_STYLE[summary.riskLevel]
       : null;
+
+    console.log(summary);
 
     const { handleRegenerate, isRegenerating } =
       useRegeneratePullRequestSummary(orgId, repoId, id);
     const isRegenerateDisabled = isRegenerating || isInProgress;
 
-    const onRegenerateClick = useCallback(() => {
-      handleRegenerate();
+    const onRegenerateClick = useCallback(async () => {
+      try {
+        await handleRegenerate();
+      } catch {
+        // Handled in useRegeneratePullRequestSummary (toast / refetch).
+      }
     }, [handleRegenerate]);
 
     return (
@@ -90,11 +94,16 @@ const AiSummaryCard = React.memo(
             <span className="font-mono text-[13px] font-semibold text-primary-100">
               AI Summary
             </span>
-            {summary?.model && (
-              <span className="rounded-full border border-primary-500/45 px-2.5 py-0.5 font-mono text-[10.5px] text-primary-300">
-                {summary.model}
-              </span>
-            )}
+            <span
+              className={classNames(
+                "rounded-full border px-2.5 py-0.5 font-mono text-[10.5px]",
+                isStale
+                  ? "border-border-default text-text-secondary"
+                  : "border-primary-500/45 text-primary-300",
+              )}
+            >
+              {isStale ? AI_SUMMARY_STALE_STATE.badge : (summary?.model ?? "—")}
+            </span>
             {isDone && riskStyle && summary?.riskLevel && (
               <span
                 className={classNames(
@@ -117,24 +126,31 @@ const AiSummaryCard = React.memo(
               </span>
             )}
 
-            <Button
-              type="button"
-              variant="ghost-primary"
-              size="sm"
-              fullWidth={false}
-              onClick={onRegenerateClick}
-              disabled={isRegenerateDisabled}
-              icon={
-                <Icon
-                  icon="TbRefresh"
-                  size={12}
-                  className={isRegenerateDisabled ? "animate-spin" : undefined}
-                />
-              }
-              className="gap-1.5 font-mono"
-            >
-              Regenerate
-            </Button>
+            {/* A blocked run is either fixed in Settings or, when stale, run via
+                the body's "Run AI review" — the header button would be a
+                duplicate or a guaranteed 412. */}
+            {!blockedView && (
+              <Button
+                type="button"
+                variant="ghost-primary"
+                size="sm"
+                fullWidth={false}
+                onClick={onRegenerateClick}
+                disabled={isRegenerateDisabled}
+                icon={
+                  <Icon
+                    icon="TbRefresh"
+                    size={12}
+                    className={
+                      isRegenerateDisabled ? "animate-spin" : undefined
+                    }
+                  />
+                }
+                className="gap-1.5 font-mono"
+              >
+                Regenerate
+              </Button>
+            )}
           </span>
         </div>
 
@@ -168,25 +184,28 @@ const AiSummaryCard = React.memo(
           </p>
         )}
 
-        {status &&
-          status in BLOCKED_MESSAGE &&
-          (() => {
-            const message =
-              BLOCKED_MESSAGE[status as keyof typeof BLOCKED_MESSAGE];
-            return <p className="text-[12.5px] text-text-faint">{message}</p>;
-          })()}
+        {blockedView && (
+          <AiBlockedNotice
+            view={blockedView}
+            settingsHref={settingsHref}
+            onRun={onRegenerateClick}
+            isRunning={isRegenerateDisabled}
+          />
+        )}
 
-        <div className="flex flex-wrap gap-2">
-          <span className="rounded-full border border-danger/40 bg-danger/10 px-2.5 py-1 font-mono text-[11px] font-medium text-danger-light">
-            {criticalCount} critical
-          </span>
-          <span className="rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 font-mono text-[11px] font-medium text-warning-light">
-            {suggestionCount} suggestions
-          </span>
-          <span className="rounded-full border border-border-default bg-raised px-2.5 py-1 font-mono text-[11px] font-medium text-text-secondary">
-            {filesChanged} files · +{additions} −{deletions}
-          </span>
-        </div>
+        {!blockedView && (
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full border border-danger/40 bg-danger/10 px-2.5 py-1 font-mono text-[11px] font-medium text-danger-light">
+              {criticalCount} critical
+            </span>
+            <span className="rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 font-mono text-[11px] font-medium text-warning-light">
+              {suggestionCount} suggestions
+            </span>
+            <span className="rounded-full border border-border-default bg-raised px-2.5 py-1 font-mono text-[11px] font-medium text-text-secondary">
+              {filesChanged} files · +{additions} −{deletions}
+            </span>
+          </div>
+        )}
       </div>
     );
   },
