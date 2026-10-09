@@ -13,5 +13,10 @@ export const getAvatarColor = (username: string): string => {
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 };
 
-export const getInitials = (username: string): string =>
-  username.slice(0, 2).toUpperCase();
+// "Ilham Dhiya" → "ID", "dan.herrera" → "DH", "ilhamdhiya01" → "IL".
+export const getInitials = (name: string): string => {
+  const parts = name.split(/[\s@.]+/).filter(Boolean);
+  return parts.length >= 2
+    ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+    : name.slice(0, 2).toUpperCase();
+};

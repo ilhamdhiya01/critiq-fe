@@ -1,11 +1,15 @@
 "use client";
 
-import classNames from "classnames";
 import React, { useCallback, useState } from "react";
 
+import Avatar from "@/components/ui/avatar";
+import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
 import Input from "@/components/ui/input";
+import SegmentedControl, {
+  type SegmentedOption,
+} from "@/components/ui/segmented-control";
 
 type MemberRole = "ADMIN" | "REVIEWER" | "VIEWER";
 
@@ -23,6 +27,15 @@ const ROLE_OPTIONS: { value: MemberRole; description: string }[] = [
   { value: "REVIEWER", description: "Review dan approve pull request." },
   { value: "VIEWER", description: "Lihat pull request dan hasil scan saja." },
 ];
+
+const ROLE_SEGMENTS: SegmentedOption<MemberRole>[] = ROLE_OPTIONS.map(
+  (option) => ({
+    value: option.value,
+    label: option.value,
+    title: option.description,
+    tone: "primary",
+  }),
+);
 
 const INITIAL_MEMBERS: Member[] = [
   {
@@ -66,14 +79,6 @@ const INITIAL_MEMBERS: Member[] = [
     isCurrentUser: false,
   },
 ];
-
-const getInitials = (name: string): string =>
-  name
-    .split(/[\s@.]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("");
 
 interface RoleDropdownProps {
   member: Member;
@@ -204,23 +209,14 @@ const MembersCard = React.memo(() => {
             placeholder="nama@perusahaan.com"
             className="font-mono text-[12.5px]"
           />
-          <div className="flex gap-2">
-            {ROLE_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setInviteRole(option.value)}
-                className={classNames(
-                  "flex-1 cursor-pointer rounded-md border px-2.5 py-1.5 font-mono text-[11px] font-semibold",
-                  inviteRole === option.value
-                    ? "border-primary-500/45 bg-primary-500/12 text-primary-300"
-                    : "border-border-default text-text-secondary hover:bg-raised-alt",
-                )}
-              >
-                {option.value}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            size="sm"
+            fullWidth
+            options={ROLE_SEGMENTS}
+            value={inviteRole}
+            onChange={setInviteRole}
+            ariaLabel="Role anggota yang diundang"
+          />
           <Button
             variant="primary"
             size="sm"
@@ -236,26 +232,24 @@ const MembersCard = React.memo(() => {
       <div className="flex flex-col divide-y divide-border-row">
         {members.map((member) => (
           <div key={member.id} className="flex items-center gap-3 py-2.5">
-            <span
-              className={classNames(
-                "flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-bold",
-                member.avatarColor,
-              )}
-            >
-              {getInitials(member.name)}
-            </span>
+            <Avatar
+              name={member.name}
+              size="md"
+              colorClass={member.avatarColor}
+              className="font-mono"
+            />
             <span className="flex-1 truncate text-[12.5px] text-neutral-100">
               {member.name}
             </span>
             {member.isPending && (
-              <span className="rounded-full border border-border-default bg-raised px-2 py-0.5 font-mono text-[10px] text-text-secondary">
+              <Badge tone="neutral" weight="normal">
                 INVITED
-              </span>
+              </Badge>
             )}
             {member.isCurrentUser ? (
-              <span className="rounded-full border border-border-default bg-raised px-2.5 py-1 font-mono text-[11px] text-text-secondary">
+              <Badge tone="neutral" size="md" weight="normal">
                 {member.role}
-              </span>
+              </Badge>
             ) : (
               <RoleDropdown
                 member={member}

@@ -4,9 +4,12 @@ import classNames from "classnames";
 import Link from "next/link";
 import React from "react";
 
-import Icon from "@/components/ui/icon/Icon";
+import SectionCard from "@/components/shared/section-card";
+import SectionMessage from "@/components/shared/section-message";
+import Avatar from "@/components/ui/avatar";
+import Skeleton from "@/components/ui/skeleton";
+import Spinner from "@/components/ui/spinner";
 import { EFFECTIVE_POLICY_LABEL } from "@/const/repository.constant";
-import { getAvatarColor, getInitials } from "@/lib/helpers/avatar.helper";
 import { useRepoPulls } from "@/lib/hooks/repositories/useRepoPulls";
 import type { PullRequest } from "@/lib/types/pull-request.types";
 import { ROUTES } from "@/routes";
@@ -24,11 +27,7 @@ const CriticalCell = ({ pull }: { pull: PullRequest }) => {
   if (pull.activeScan) {
     return (
       <span aria-label="Scanning" title="Scanning…" className="flex">
-        <Icon
-          icon="TbLoader2"
-          size={14}
-          className="animate-spin text-primary-300"
-        />
+        <Spinner size={14} />
       </span>
     );
   }
@@ -53,31 +52,18 @@ const RepoPullsTable = React.memo(
     const { data: pulls, isLoading, isError } = useRepoPulls(orgId, repoId);
 
     return (
-      <section className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
-        <div className="border-b border-border-subtle px-5 py-3.5">
-          <h3 className="font-mono text-[13px] font-semibold text-text-strong">
-            Pull Requests{" "}
-            {pulls && (
-              <span className="font-normal text-text-faint">
-                ({pulls.length})
-              </span>
-            )}
-          </h3>
-        </div>
-
+      <SectionCard title="Pull Requests" count={pulls?.length}>
         {isError ? (
-          <p className="px-5 py-6 text-[12.5px] text-danger-light">
+          <SectionMessage tone="danger">
             Couldn&apos;t load pull requests.
-          </p>
+          </SectionMessage>
         ) : isLoading ? (
           <div className="flex flex-col gap-2 px-5 py-4">
-            <div className="animate-shimmer h-4 w-full rounded" />
-            <div className="animate-shimmer h-4 w-4/5 rounded" />
+            <Skeleton className="h-4 w-full rounded" />
+            <Skeleton className="h-4 w-4/5 rounded" />
           </div>
         ) : !pulls || pulls.length === 0 ? (
-          <p className="px-5 py-8 text-center text-[12.5px] text-text-secondary">
-            No pull requests yet.
-          </p>
+          <SectionMessage>No pull requests yet.</SectionMessage>
         ) : (
           <>
             <div
@@ -106,14 +92,7 @@ const RepoPullsTable = React.memo(
                 <span className="flex min-w-0 items-center gap-2">
                   {pull.authorUsername ? (
                     <>
-                      <span
-                        className={classNames(
-                          "flex h-5.5 w-5.5 flex-none items-center justify-center rounded-full text-[9px] font-bold text-neutral-50",
-                          getAvatarColor(pull.authorUsername),
-                        )}
-                      >
-                        {getInitials(pull.authorUsername)}
-                      </span>
+                      <Avatar name={pull.authorUsername} />
                       <span className="truncate text-[12px] text-text-secondary">
                         {pull.authorUsername}
                       </span>
@@ -130,7 +109,7 @@ const RepoPullsTable = React.memo(
             ))}
           </>
         )}
-      </section>
+      </SectionCard>
     );
   },
 );

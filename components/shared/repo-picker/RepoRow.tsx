@@ -4,8 +4,10 @@ import classNames from "classnames";
 import Link from "next/link";
 import React, { useCallback, useEffect, useState } from "react";
 
+import Badge from "@/components/ui/badge";
 import Checkbox from "@/components/ui/checkbox";
-import Icon from "@/components/ui/icon/Icon";
+import FieldError from "@/components/ui/field-error";
+import LanguageDot from "@/components/ui/language-dot";
 import { GITHUB_ACCESS_REMOVED_MESSAGE } from "@/const/integration.constant";
 import {
   getErrorCode,
@@ -127,44 +129,45 @@ const RepoRow = React.memo(
             checked={checked}
             disabled={isConnected}
             readOnly
-            className={classNames({ "opacity-60": isConnected })}
+            className={classNames("shrink-0", { "opacity-60": isConnected })}
           />
-          <span
-            className={classNames(
-              "flex-1 font-mono text-[12.5px] text-neutral-100",
-              { "opacity-60": isConnected },
-            )}
-          >
-            {repo.path}
-          </span>
-          {isConnected && (
-            <span className="rounded-full border border-success/40 bg-success/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-success-light">
-              Connected
-            </span>
-          )}
-          {settingsHref && (
-            <Link
-              href={settingsHref}
-              className="text-[11px] whitespace-nowrap text-info-light hover:underline"
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <span
+              title={repo.path}
+              className={classNames(
+                "truncate font-mono text-[12.5px] text-neutral-100",
+                { "opacity-60": isConnected },
+              )}
             >
-              Edit settings
-            </Link>
+              {repo.path}
+            </span>
+            <span className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+              {repo.lang && (
+                <>
+                  <LanguageDot language={repo.lang} size="sm" />
+                  {repo.lang}
+                  <span className="text-text-faint">·</span>
+                </>
+              )}
+              <span className="capitalize">{repo.visibility}</span>
+            </span>
+          </div>
+          {isConnected && (
+            <div className="flex shrink-0 items-center gap-2.5">
+              <Badge tone="green">Connected</Badge>
+              {settingsHref && (
+                <Link
+                  href={settingsHref}
+                  className="text-[11px] whitespace-nowrap text-info-light hover:underline"
+                >
+                  Edit settings
+                </Link>
+              )}
+            </div>
           )}
-          <span className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-            <span className="h-1.5 w-1.5 rounded-full bg-info" />
-            {repo.lang}
-          </span>
-          <span className="rounded-full border border-border-default px-2 py-0.5 font-mono text-[10px] text-text-secondary capitalize">
-            {repo.visibility}
-          </span>
         </div>
 
-        {error && (
-          <div className="flex items-center gap-1.5 px-3.5 pb-2.5 text-[11px] text-danger-light">
-            <Icon icon="TbAlertTriangle" size={13} />
-            {error}
-          </div>
-        )}
+        {error && <FieldError className="px-3.5 pb-2.5">{error}</FieldError>}
 
         {checked && !branchData && isBranchesFetching && (
           <div className="px-3.5 pb-2.5 font-mono text-[11px] text-text-muted">
@@ -176,18 +179,16 @@ const RepoRow = React.memo(
           isBranchesError &&
           !isBranchesFetching &&
           hasGitHubAccessError && (
-            <div className="flex items-center gap-1.5 px-3.5 pb-2.5 text-[11px] text-warning-light">
-              <Icon icon="TbAlertTriangle" size={13} />
+            <FieldError tone="warning" className="px-3.5 pb-2.5">
               {GITHUB_ACCESS_REMOVED_MESSAGE}
-            </div>
+            </FieldError>
           )}
 
         {checked &&
           isBranchesError &&
           !isBranchesFetching &&
           !hasGitHubAccessError && (
-            <div className="flex items-center gap-1.5 px-3.5 pb-2.5 text-[11px] text-danger">
-              <Icon icon="TbAlertTriangle" size={13} />
+            <FieldError className="px-3.5 pb-2.5">
               Failed to load branches —{" "}
               <button
                 type="button"
@@ -196,7 +197,7 @@ const RepoRow = React.memo(
               >
                 Retry
               </button>
-            </div>
+            </FieldError>
           )}
 
         {checked && branchData && !isBranchesError && (

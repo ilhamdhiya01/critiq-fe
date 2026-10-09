@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 
+import BackLink from "@/components/shared/back-link";
 import StateStatus from "@/components/shared/state-status";
-import Icon from "@/components/ui/icon/Icon";
 import { REVIEW_MODE_COPY } from "@/const/pull-request.constant";
 import { getErrorCode } from "@/lib/helpers/integration.helper";
 import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
@@ -139,13 +138,10 @@ const PullRequestDetail = React.memo(
 
     return (
       <div className="flex flex-col gap-4">
-        <Link
+        <BackLink
           href={ROUTES.pullRequests(slug)}
-          className="flex w-fit items-center gap-1.5 text-xs text-text-faint transition-colors hover:text-text-nav"
-        >
-          <Icon icon="TbChevronLeft" size={13} />
-          Kembali ke Pull Requests
-        </Link>
+          label="Kembali ke Pull Requests"
+        />
 
         <PullRequestDetailHeader detail={data} />
 

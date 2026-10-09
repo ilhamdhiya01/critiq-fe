@@ -2,7 +2,8 @@
 
 import React, { useMemo } from "react";
 
-import Icon from "@/components/ui/icon/Icon";
+import FieldError from "@/components/ui/field-error";
+import Skeleton from "@/components/ui/skeleton";
 import {
   BRANCH_LIST_TRUNCATED_HINT,
   PROVIDER_ACCESS_ERROR_MESSAGE,
@@ -48,8 +49,7 @@ const AddBranchControl = React.memo(
         const accessMessage =
           PROVIDER_ACCESS_ERROR_MESSAGE[getErrorCode(error) ?? ""];
         return (
-          <span className="flex flex-wrap items-center gap-2.5 text-[11.5px] text-danger-light">
-            <Icon icon="TbAlertTriangle" size={13} />
+          <FieldError className="flex-wrap">
             {accessMessage ??
               `Couldn't load branches from ${PROVIDER_NAME[provider]}.`}
             {!accessMessage && (
@@ -61,17 +61,13 @@ const AddBranchControl = React.memo(
                 Try again
               </button>
             )}
-          </span>
+          </FieldError>
         );
       }
 
       if (isLoading) {
         return Array.from({ length: SKELETON_CHIPS }, (_, index) => (
-          <span
-            key={index}
-            aria-hidden
-            className="animate-shimmer h-6.5 w-24 rounded-full"
-          />
+          <Skeleton key={index} className="h-6.5 w-24 rounded-full" />
         ));
       }
 

@@ -99,7 +99,7 @@ const RepoPicker = React.memo(
     return (
       <div
         className={classNames(
-          "overflow-auto rounded-lg border border-border-subtle",
+          "overflow-x-hidden overflow-y-auto rounded-lg border border-border-subtle",
           listClassName,
         )}
       >

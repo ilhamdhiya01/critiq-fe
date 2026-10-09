@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import React from "react";
 
+import Badge from "@/components/ui/badge";
 import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
 
 import OrganizationCardSkeleton from "./OrganizationCardSkeleton";
@@ -57,9 +58,7 @@ const OrganizationCard = React.memo(() => {
 
         <span className="text-text-secondary">Your role</span>
         <span className="flex items-center gap-2.5">
-          <span className="rounded-full border border-primary-500/45 bg-primary-500/12 px-2.5 py-0.5 font-mono text-[10.5px] font-semibold text-primary-300">
-            {role}
-          </span>
+          <Badge tone="primary">{role}</Badge>
           <span className="text-text-faint">
             roles are per organization — you may hold a different one elsewhere
           </span>

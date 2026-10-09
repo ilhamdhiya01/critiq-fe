@@ -3,6 +3,7 @@
 import React, { useCallback, useState } from "react";
 
 import Button from "@/components/ui/button";
+import FieldError from "@/components/ui/field-error";
 import Input from "@/components/ui/input";
 import Modal from "@/components/ui/modal";
 import { useConnectGitLab } from "@/lib/hooks/integrations/useConnectGitLab";
@@ -91,9 +92,9 @@ const GitLabConnectModal = React.memo(
               className="font-mono text-[12.5px]"
             />
             {connectFieldErrors.instance_url && (
-              <span className="text-[11px] text-danger-light">
+              <FieldError withIcon={false}>
                 {connectFieldErrors.instance_url}
-              </span>
+              </FieldError>
             )}
           </div>
 
@@ -114,9 +115,9 @@ const GitLabConnectModal = React.memo(
               className="font-mono text-[12.5px]"
             />
             {connectFieldErrors.token && (
-              <span className="text-[11px] text-danger-light">
+              <FieldError withIcon={false}>
                 {connectFieldErrors.token}
-              </span>
+              </FieldError>
             )}
             <span className="text-[11px] leading-normal text-text-faint">
               Needs the{" "}

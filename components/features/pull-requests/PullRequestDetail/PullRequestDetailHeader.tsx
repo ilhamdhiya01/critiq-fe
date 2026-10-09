@@ -1,6 +1,7 @@
-import classNames from "classnames";
 import React from "react";
 
+import Avatar from "@/components/ui/avatar";
+import Badge from "@/components/ui/badge";
 import Icon from "@/components/ui/icon/Icon";
 import {
   PULL_REQUEST_NUMBER_PREFIX,
@@ -10,7 +11,6 @@ import {
   PULL_REQUEST_STATUS_BADGE_STYLE,
   PULL_REQUEST_STATUS_MAP,
 } from "@/const/pull-request.constant";
-import { getAvatarColor, getInitials } from "@/lib/helpers/avatar.helper";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import { PullRequestDetail } from "@/lib/types/pull-request.types";
 
@@ -29,30 +29,14 @@ const PullRequestDetailHeader = React.memo(
           <span className="font-mono text-[17px] font-semibold text-neutral-50">
             {`${PULL_REQUEST_NUMBER_PREFIX[detail.provider]}${detail.externalId} ${detail.title}`}
           </span>
-          <span
-            className={classNames(
-              "shrink-0 rounded-full border px-2.5 py-1 font-mono text-[11px] font-semibold",
-              statusStyle.text,
-              statusStyle.bg,
-              statusStyle.border,
-            )}
-          >
+          <Badge palette={statusStyle} size="md">
             {status.label}
-          </span>
+          </Badge>
         </div>
 
         <div className="flex flex-wrap items-center gap-3.5">
           <span className="flex items-center gap-1.5">
-            {detail.authorUsername && (
-              <span
-                className={classNames(
-                  "flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-neutral-50",
-                  getAvatarColor(detail.authorUsername),
-                )}
-              >
-                {getInitials(detail.authorUsername)}
-              </span>
-            )}
+            {detail.authorUsername && <Avatar name={detail.authorUsername} />}
             <span className="text-xs text-text-secondary">
               {detail.authorUsername ?? "—"}
             </span>
@@ -66,24 +50,17 @@ const PullRequestDetailHeader = React.memo(
             {PULL_REQUEST_PROVIDER_LABEL[detail.provider]}
           </span>
 
-          <span className="rounded-md border border-border-default bg-raised px-2 py-1 font-mono text-[11px] text-text-secondary">
+          <Badge tone="neutral" shape="tag" size="md" weight="normal">
             {detail.repositoryPath}
-          </span>
+          </Badge>
 
-          <span className="rounded-md border border-border-default bg-raised px-2 py-1 font-mono text-[11px] text-text-secondary">
+          <Badge tone="neutral" shape="tag" size="md" weight="normal">
             {detail.sourceBranch} → {detail.targetBranch}
-          </span>
+          </Badge>
 
-          <span
-            className={classNames(
-              "rounded-full border px-2.5 py-1 font-mono text-[10.5px] font-medium",
-              policyStyle.text,
-              policyStyle.bg,
-              policyStyle.border,
-            )}
-          >
+          <Badge palette={policyStyle}>
             {PULL_REQUEST_POLICY_LABEL[detail.effectivePolicy]}
-          </span>
+          </Badge>
 
           <span className="ml-auto text-[11.5px] text-text-muted">
             dibuka {formatRelativeTime(detail.createdAt)}
