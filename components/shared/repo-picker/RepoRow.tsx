@@ -5,6 +5,11 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import Checkbox from "@/components/ui/checkbox";
 import Icon from "@/components/ui/icon/Icon";
+import { GITHUB_ACCESS_REMOVED_MESSAGE } from "@/const/integration.constant";
+import {
+  getErrorCode,
+  isGitHubAccessError,
+} from "@/lib/helpers/integration.helper";
 import { useIntegrationRepoBranches } from "@/lib/hooks/integrations/useIntegrationRepoBranches";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import type {
@@ -55,6 +60,7 @@ const RepoRow = React.memo(
       data: branchData,
       isFetching: isBranchesFetching,
       isError: isBranchesError,
+      error: branchesError,
       refetch: refetchBranches,
     } = useIntegrationRepoBranches(
       organizationId,
@@ -62,6 +68,10 @@ const RepoRow = React.memo(
       repo.id,
       checked,
       debouncedQuery,
+    );
+
+    const hasGitHubAccessError = isGitHubAccessError(
+      getErrorCode(branchesError),
     );
 
     useEffect(() => {
@@ -140,19 +150,32 @@ const RepoRow = React.memo(
           </div>
         )}
 
-        {checked && isBranchesError && !isBranchesFetching && (
-          <div className="flex items-center gap-1.5 px-3.5 pb-2.5 text-[11px] text-danger">
-            <Icon icon="TbAlertTriangle" size={13} />
-            Failed to load branches —{" "}
-            <button
-              type="button"
-              onClick={handleRetry}
-              className="underline underline-offset-2"
-            >
-              Retry
-            </button>
-          </div>
-        )}
+        {checked &&
+          isBranchesError &&
+          !isBranchesFetching &&
+          hasGitHubAccessError && (
+            <div className="flex items-center gap-1.5 px-3.5 pb-2.5 text-[11px] text-warning-light">
+              <Icon icon="TbAlertTriangle" size={13} />
+              {GITHUB_ACCESS_REMOVED_MESSAGE}
+            </div>
+          )}
+
+        {checked &&
+          isBranchesError &&
+          !isBranchesFetching &&
+          !hasGitHubAccessError && (
+            <div className="flex items-center gap-1.5 px-3.5 pb-2.5 text-[11px] text-danger">
+              <Icon icon="TbAlertTriangle" size={13} />
+              Failed to load branches —{" "}
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="underline underline-offset-2"
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
         {checked && branchData && !isBranchesError && (
           <div className="px-3.5 pb-2.5">

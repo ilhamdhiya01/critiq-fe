@@ -1,6 +1,7 @@
 export type PullRequestProvider = "GITHUB" | "GITLAB";
 export type PullRequestState = "OPEN" | "CLOSED" | "MERGED";
 export type EffectivePolicy = "MANUAL_ONLY" | "ALLOW_AI" | "REQUIRE_BOTH";
+export type ReviewMode = "manual" | "ai";
 export type PullRequestFilter = "all" | "open" | "merged" | "closed";
 export type ScanStatus =
   "QUEUED" | "RUNNING" | "DONE" | "FAILED" | "SUPERSEDED";
@@ -121,11 +122,20 @@ export type AiSummaryStatus =
   | "skipped_too_large"
   | "budget_exceeded";
 
+// Statuses where the AI run did not (and will not) produce a summary.
+export type AiSummaryBlockedStatus = Exclude<
+  AiSummaryStatus,
+  "queued" | "running" | "done" | "cached" | "failed"
+>;
+
 export type AiSummaryRiskLevel = "low" | "medium" | "high";
 
 export interface PullRequestSummaryErrorDetail {
   code: string;
   hint: string;
+  // True when the scan was blocked (not_configured / consent_required) but
+  // the org's AI setup is complete now. Missing on older BE versions.
+  stale?: boolean;
 }
 
 export interface PullRequestSummary {

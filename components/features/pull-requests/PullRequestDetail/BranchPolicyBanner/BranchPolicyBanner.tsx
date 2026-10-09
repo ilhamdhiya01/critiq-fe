@@ -11,9 +11,9 @@ const BranchPolicyBanner = React.memo(
     <div className="flex items-center gap-2.5 rounded-lg border border-warning/45 bg-warning/7 px-4 py-3">
       <Icon icon="TbLock" size={15} className="shrink-0 text-warning-light" />
       <span className="text-[12.5px] text-warning-light">
-        Branch policy untuk → {targetBranch}: Wajib Keduanya — analisis AI di
-        bawah dan konfirmasi review manual kamu harus selesai dulu sebelum
-        Approve aktif.
+        Branch policy for → {targetBranch}: Require Both — the AI analysis below
+        and your manual review confirmation must both complete before Approve is
+        enabled.
       </span>
     </div>
   ),

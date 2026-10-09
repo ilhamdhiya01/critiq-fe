@@ -1,9 +1,14 @@
+import type { AxiosError } from "axios";
+
 import {
+  GITHUB_ACCESS_ERROR_CODES,
+  GITHUB_SUSPENDED_MESSAGE,
+  GITHUB_UNINSTALLED_MESSAGE,
   GITLAB_ERROR_MESSAGE,
   INTEGRATION_FORBIDDEN_MESSAGE,
 } from "@/const/integration.constant";
 import { getDaysUntil } from "@/lib/helpers/date.helper";
-import type { ApiFieldError } from "@/lib/types/api.types";
+import type { ApiFieldError, ErrorResponse } from "@/lib/types/api.types";
 import type {
   Integration,
   IntegrationsBySource,
@@ -65,8 +70,33 @@ export const getIntegrationStatus = (
             tone: "red",
             message: "Token rejected by GitLab",
           };
+    case "UNINSTALLED":
+      return {
+        label: "Uninstalled on GitHub",
+        tone: "red",
+        message: GITHUB_UNINSTALLED_MESSAGE,
+      };
+    case "SUSPENDED":
+      return {
+        label: "Suspended on GitHub",
+        tone: "orange",
+        message: GITHUB_SUSPENDED_MESSAGE,
+      };
+    default:
+      // A state added by the BE after this build — show it, never crash.
+      return { label: "Unknown", tone: "red", message: null };
   }
 };
+
+// The error code of a failed API call: `errors[0].message`, falling back to
+// a top-level `message` (e.g. 502 `github_unreachable`).
+export const getErrorCode = (error: unknown): string | null => {
+  const data = (error as AxiosError<ErrorResponse> | null)?.response?.data;
+  return data?.errors?.[0]?.message ?? data?.message ?? null;
+};
+
+export const isGitHubAccessError = (code: string | null): boolean =>
+  !!code && (GITHUB_ACCESS_ERROR_CODES as readonly string[]).includes(code);
 
 export const splitIntegrations = (
   integrations: Integration[],
