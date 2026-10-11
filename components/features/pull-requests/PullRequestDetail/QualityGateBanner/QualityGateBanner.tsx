@@ -13,7 +13,9 @@ import {
   PR_GATE_STATUS_LABEL,
 } from "@/const/pull-request.constant";
 import { RULE_TIER_META } from "@/const/rules.constant";
+import { getUncheckedTiersNotice } from "@/lib/helpers/pull-request.helper";
 import type {
+  AiSummaryStatus,
   PrQualityGate,
   QualityGateStatus,
 } from "@/lib/types/pull-request.types";
@@ -21,6 +23,10 @@ import type {
 interface QualityGateBannerProps {
   gate: PrQualityGate;
   rulesHref: string;
+  settingsHref: string;
+  // Decides why the unchecked tiers were skipped — see
+  // getUncheckedTiersNotice. Absent on older BE versions.
+  aiStatus?: AiSummaryStatus | null;
 }
 
 const BANNER_TONE: Record<
@@ -45,8 +51,9 @@ const BANNER_TONE: Record<
 };
 
 const QualityGateBanner = React.memo(
-  ({ gate, rulesHref }: QualityGateBannerProps) => {
+  ({ gate, rulesHref, settingsHref, aiStatus }: QualityGateBannerProps) => {
     const tone = BANNER_TONE[gate.status];
+    const uncheckedNotice = getUncheckedTiersNotice(aiStatus);
 
     return (
       <>
@@ -94,19 +101,28 @@ const QualityGateBanner = React.memo(
           </div>
         </div>
 
-        {gate.uncheckedTiers.length > 0 && (
-          <Notice tone="warning" icon="TbAlertTriangle">
+        {gate.uncheckedTiers.length > 0 && uncheckedNotice && (
+          <Notice tone={uncheckedNotice.tone} icon="TbAlertTriangle">
             Kategori{" "}
             {gate.uncheckedTiers
               .map((tier) => RULE_TIER_META[tier].title)
               .join(", ")}{" "}
-            tidak dicek — AI review tidak berjalan di scan ini.{" "}
-            <Link
-              href={rulesHref}
-              className="underline underline-offset-2 hover:text-warning-light"
-            >
-              Atur quality profile
-            </Link>
+            {uncheckedNotice.body}
+            {uncheckedNotice.link && (
+              <>
+                {" "}
+                <Link
+                  href={
+                    uncheckedNotice.link.target === "settings"
+                      ? settingsHref
+                      : rulesHref
+                  }
+                  className="underline underline-offset-2 hover:text-warning-light"
+                >
+                  {uncheckedNotice.link.label}
+                </Link>
+              </>
+            )}
           </Notice>
         )}
       </>
