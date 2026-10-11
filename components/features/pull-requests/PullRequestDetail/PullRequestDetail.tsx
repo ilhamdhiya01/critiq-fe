@@ -154,6 +154,8 @@ const PullRequestDetail = React.memo(
           <QualityGateBanner
             gate={data.qualityGate}
             rulesHref={ROUTES.rules(slug)}
+            settingsHref={ROUTES.settings(slug)}
+            aiStatus={data.latestScan?.aiStatus}
           />
         )}
 
