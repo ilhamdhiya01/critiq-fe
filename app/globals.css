@@ -43,6 +43,11 @@
   --surface-active: rgba(255, 255, 255, 0.07);
   --surface-hover: rgba(255, 255, 255, 0.04);
 
+  /* Scrollbars — thin and self-effacing. The UA default on macOS is a thick
+     light bar that reads as a seam on these dark surfaces. */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.13);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
+
   /* Text tokens — ordered brightest to dimmest */
   --text-bright: #f0f0f0;
   --text-strong: #e8e8e8;
@@ -190,4 +195,43 @@ body {
     background-image: none;
     background-color: var(--border-subtle);
   }
+}
+
+/* Scrollbars.
+   Applied globally rather than per-container: every scroll area in the app
+   (main, modal, table, pickers) wants the same treatment, and the UA default
+   clashes with the dark palette in all of them.
+
+   Firefox gets the two-keyword `scrollbar-*` properties; WebKit/Blink needs
+   the pseudo-elements. `background-clip: content-box` plus a transparent
+   border is what makes the thumb read as a slim pill with breathing room
+   instead of filling the full gutter width. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+/* Without this the two bars meet in an opaque square at the corner. */
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
