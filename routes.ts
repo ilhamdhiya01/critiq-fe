@@ -14,6 +14,7 @@ export const ROUTES = {
   pullRequestDetail: (slug: string, id: string, repositoryId: string) =>
     `/${slug}/pull-requests/${id}?repoId=${repositoryId}`,
   repositories: (slug: string) => `/${slug}/repositories`,
+  repositoryDetail: (slug: string, id: string) => `/${slug}/repositories/${id}`,
   rules: (slug: string) => `/${slug}/rules`,
   activity: (slug: string) => `/${slug}/activity`,
   insights: (slug: string) => `/${slug}/insights`,
@@ -36,6 +37,16 @@ export const API_ME_ORG = `${API_BASE_URL}/me/orgs`;
 // Repositories
 export const API_REPOS = `${API_ORG}/repos`;
 export const API_CONNECT_REPOS = (ordId: string) => `${API_ORG}/${ordId}/repos`;
+export const API_ORG_REPO = (orgId: string, repoId: string) =>
+  `${API_ORG}/${orgId}/repos/${repoId}`;
+export const API_REPO_SCAN_CONFIG = (orgId: string, repoId: string) =>
+  `${API_ORG_REPO(orgId, repoId)}/scan-config`;
+export const API_ORG_REPO_PULLS = (orgId: string, repoId: string) =>
+  `${API_ORG_REPO(orgId, repoId)}/pulls`;
+export const API_ORG_REPO_SCANS = (orgId: string, repoId: string) =>
+  `${API_ORG_REPO(orgId, repoId)}/scans`;
+export const API_ORG_REPO_BRANCHES = (orgId: string, repoId: string) =>
+  `${API_ORG_REPO(orgId, repoId)}/branches`;
 export const API_REPO_DETAIL = (id: string) => `${API_BASE_URL}/repos/${id}`;
 export const API_REPO_SCANS = (id: string) =>
   `${API_BASE_URL}/repos/${id}/scans`;

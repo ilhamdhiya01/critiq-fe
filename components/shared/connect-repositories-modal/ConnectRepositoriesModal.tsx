@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 
 import BranchPolicyOptions from "@/components/shared/branch-policy-options";
@@ -19,12 +20,12 @@ import { summarizeConnectResult } from "@/lib/helpers/repository.helper";
 import { integrationKeys } from "@/lib/hooks/integrations/queryKeys";
 import { useConnectRepositories } from "@/lib/hooks/integrations/useConnectRepositories";
 import { useIntegrationCandidates } from "@/lib/hooks/integrations/useIntegrationCandidates";
-import { useConnectedRepoPaths } from "@/lib/hooks/repositories/useConnectedRepoPaths";
+import { useConnectedRepos } from "@/lib/hooks/repositories/useConnectedRepos";
 import { useRepoSelection } from "@/lib/hooks/repositories/useRepoSelection";
 import { toast } from "@/lib/toast";
 import type { IntegrationProvider } from "@/lib/types/integration.types";
 import type { BranchPolicy } from "@/lib/types/repository.types";
-import { GITHUB_INSTALLATIONS_URL } from "@/routes";
+import { GITHUB_INSTALLATIONS_URL, ROUTES } from "@/routes";
 
 interface ConnectRepositoriesModalProps {
   orgId: string;
@@ -58,7 +59,13 @@ const ConnectRepositoriesModal = React.memo(
       errorStatus,
       refetch,
     } = useIntegrationCandidates(orgId, source, true);
-    const { data: connectedPaths } = useConnectedRepoPaths(orgId, provider);
+    const { data: connectedRepos } = useConnectedRepos(orgId, provider);
+    const params = useParams<{ slug: string }>();
+    const slug = params.slug;
+    const getSettingsHref = useCallback(
+      (repoId: string) => ROUTES.repositoryDetail(slug, repoId),
+      [slug],
+    );
     const {
       selectedRepos,
       selectedBranches,
@@ -173,7 +180,8 @@ const ConnectRepositoriesModal = React.memo(
           onToggleBranch={toggleBranch}
           onBranchesReady={markBranchesReady}
           onBlockedChange={setIsBranchBlocked}
-          connectedPaths={connectedPaths}
+          connectedRepos={connectedRepos}
+          getSettingsHref={getSettingsHref}
           rowErrors={rowErrors}
           listClassName="max-h-72"
           emptyState={

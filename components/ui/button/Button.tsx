@@ -2,7 +2,8 @@ import Link from "next/link";
 import React, { forwardRef } from "react";
 import { tv } from "tailwind-variants";
 
-import Icon, { IconProps } from "../icon/Icon";
+import type { IconProps } from "../icon/Icon";
+import Spinner from "../spinner";
 
 const button = tv({
   base: "inline-flex items-center justify-center gap-2.5 rounded-[7px] border border-transparent leading-none font-semibold transition-colors",
@@ -97,10 +98,7 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
     const content = (
       <>
         {isLoading ? (
-          <Icon
-            icon="TbLoader2"
-            className="h-3 w-3 animate-spin stroke-indigo-300 md:h-4 md:w-4"
-          />
+          <Spinner className="h-3 w-3 text-primary-300 md:h-4 md:w-4" />
         ) : (
           icon
         )}
@@ -121,6 +119,7 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
             disabled,
           })}
           href={link}
+          aria-disabled={disabled || undefined}
           {...(props as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
         >
           {content}
@@ -139,6 +138,9 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
           isLoading,
           disabled,
         })}
+        // Native disabled too, so keyboard (Enter/Space) cannot trigger a
+        // button that only looks disabled.
+        disabled={disabled || isLoading}
         {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}
       >
         {content}
