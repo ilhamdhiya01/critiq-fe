@@ -82,4 +82,5 @@ export interface RepoBranches {
   branches: string[];
   total: number;
   truncated: boolean;
+  fetchedAt?: string;
 }

@@ -14,7 +14,7 @@ interface SettingsViewProps {
 
 const SettingsView = React.memo(({ orgId }: SettingsViewProps) => {
   return (
-    <div className="mx-auto flex max-w-190 flex-col gap-4">
+    <div className="mx-auto flex flex-col gap-4">
       <OrganizationCard />
       <AiProviderCard orgId={orgId} />
       <IntegrationsCard orgId={orgId} />

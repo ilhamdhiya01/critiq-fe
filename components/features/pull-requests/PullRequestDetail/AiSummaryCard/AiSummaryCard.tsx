@@ -1,11 +1,13 @@
 "use client";
 
-import classNames from "classnames";
 import React, { useCallback, useMemo } from "react";
 import Markdown from "react-markdown";
 
+import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
+import Skeleton from "@/components/ui/skeleton";
+import Spinner from "@/components/ui/spinner";
 import {
   AI_SUMMARY_RISK_LABEL,
   AI_SUMMARY_RISK_STYLE,
@@ -94,27 +96,13 @@ const AiSummaryCard = React.memo(
             <span className="font-mono text-[13px] font-semibold text-primary-100">
               AI Summary
             </span>
-            <span
-              className={classNames(
-                "rounded-full border px-2.5 py-0.5 font-mono text-[10.5px]",
-                isStale
-                  ? "border-border-default text-text-secondary"
-                  : "border-primary-500/45 text-primary-300",
-              )}
-            >
+            <Badge tone={isStale ? "neutral" : "primary"} weight="normal">
               {isStale ? AI_SUMMARY_STALE_STATE.badge : (summary?.model ?? "—")}
-            </span>
+            </Badge>
             {isDone && riskStyle && summary?.riskLevel && (
-              <span
-                className={classNames(
-                  "rounded-full border px-2.5 py-0.5 font-mono text-[10.5px] font-semibold",
-                  riskStyle.text,
-                  riskStyle.bg,
-                  riskStyle.border,
-                )}
-              >
+              <Badge palette={riskStyle}>
                 RISK · {AI_SUMMARY_RISK_LABEL[summary.riskLevel]}
-              </span>
+              </Badge>
             )}
           </span>
 
@@ -157,14 +145,14 @@ const AiSummaryCard = React.memo(
         {isInProgress && (
           <div className="flex flex-col gap-2.5">
             <span className="flex items-center gap-2 font-mono text-[12px] text-primary-200">
-              <Icon icon="TbLoader2" size={13} className="animate-spin" />
+              <Spinner size={13} className="text-primary-200" />
               Menganalisis {filesChanged} file
               {summary?.model ? ` · ${summary.model}` : ""}
             </span>
             <div className="flex flex-col gap-1.5">
-              <div className="animate-shimmer h-3 w-full rounded" />
-              <div className="animate-shimmer h-3 w-5/6 rounded" />
-              <div className="animate-shimmer h-3 w-2/3 rounded" />
+              <Skeleton className="h-3 w-full rounded" />
+              <Skeleton className="h-3 w-5/6 rounded" />
+              <Skeleton className="h-3 w-2/3 rounded" />
             </div>
             <span className="text-[11.5px] text-text-faint">
               Temuan dari rule statis di bawah sudah final.
@@ -195,15 +183,15 @@ const AiSummaryCard = React.memo(
 
         {!blockedView && (
           <div className="flex flex-wrap gap-2">
-            <span className="rounded-full border border-danger/40 bg-danger/10 px-2.5 py-1 font-mono text-[11px] font-medium text-danger-light">
+            <Badge tone="red" size="md" weight="normal">
               {criticalCount} critical
-            </span>
-            <span className="rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 font-mono text-[11px] font-medium text-warning-light">
+            </Badge>
+            <Badge tone="orange" size="md" weight="normal">
               {suggestionCount} suggestions
-            </span>
-            <span className="rounded-full border border-border-default bg-raised px-2.5 py-1 font-mono text-[11px] font-medium text-text-secondary">
+            </Badge>
+            <Badge tone="neutral" size="md" weight="normal">
               {filesChanged} files · +{additions} −{deletions}
-            </span>
+            </Badge>
           </div>
         )}
       </div>

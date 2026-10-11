@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState } from "react";
 
+import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import { useInstallGitHubApps } from "@/lib/hooks/integrations/useInstallGitHubApps";
 
@@ -26,9 +27,13 @@ const GitHubConnectGate = React.memo(({ orgId }: GitHubConnectGateProps) => {
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border-subtle p-3.5">
       <div className="flex items-center gap-2">
-        <span className="rounded-full border border-border-default px-2 py-0.5 font-mono text-[10px] tracking-[.06em] text-text-secondary uppercase">
+        <Badge
+          tone="neutral"
+          weight="normal"
+          className="tracking-[.06em] uppercase"
+        >
           GitHub
-        </span>
+        </Badge>
         <span className="text-[13px] font-semibold text-neutral-100">
           Connect GitHub
         </span>

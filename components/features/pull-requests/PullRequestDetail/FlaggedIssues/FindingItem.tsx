@@ -1,8 +1,8 @@
 "use client";
 
-import classNames from "classnames";
 import React, { useCallback, useEffect, useRef } from "react";
 
+import Badge from "@/components/ui/badge";
 import Icon from "@/components/ui/icon/Icon";
 import {
   FINDING_SEVERITY_STYLE,
@@ -52,28 +52,17 @@ const FindingItem = React.memo(({ finding, canJump }: FindingItemProps) => {
 
   return (
     <div className="flex items-start gap-3.5 border-b border-border-row px-5 py-3.5 last:border-b-0">
-      <span
-        className={classNames(
-          "inline-flex shrink-0 items-center rounded-full border px-2.5 py-0.5 font-mono text-[10.5px] font-semibold tracking-[0.03em] whitespace-nowrap",
-          severityStyle.text,
-          severityStyle.bg,
-          severityStyle.border,
-        )}
-      >
+      <Badge palette={severityStyle} className="tracking-[0.03em]">
         {finding.severity}
-      </span>
+      </Badge>
 
-      <span
+      <Badge
+        palette={sourceStyle}
+        size="xs"
         title={finding.source === "AI" ? "Model review" : "Static rule"}
-        className={classNames(
-          "inline-flex shrink-0 items-center rounded-full border px-1.5 py-0.5 font-mono text-[9.5px] font-semibold whitespace-nowrap",
-          sourceStyle.text,
-          sourceStyle.bg,
-          sourceStyle.border,
-        )}
       >
         {FINDING_SOURCE_LABEL[finding.source]}
-      </span>
+      </Badge>
 
       {/* <Icon
         icon={getFindingIcon(finding.ruleId)}
