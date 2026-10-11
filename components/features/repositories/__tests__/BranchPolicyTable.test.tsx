@@ -112,14 +112,14 @@ describe("BranchPolicyTable", { timeout: 15_000 }, () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 
-  it("has no free-text add or search — only From repo chips", async () => {
+  it("has no free-text add — only From repo chips", async () => {
     renderTable(CONFIG, true);
 
     expect(await screen.findByText("From repo:")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Add Branch/ }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    // A short branch list needs no search box.
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
     expect(getRepoBranches).toHaveBeenCalledWith(
       "org_1",
@@ -188,8 +188,80 @@ describe("BranchPolicyTable", { timeout: 15_000 }, () => {
 
     expect(
       await screen.findByText(
-        "Showing the first 50 branches of this repository.",
+        "Showing the first 50 branches — search to find the others.",
       ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("searchbox")).toBeInTheDocument();
+  });
+
+  it("collapses a long branch list behind a +N more toggle", async () => {
+    const many = Array.from({ length: 20 }, (_, i) => `feature/${i + 1}`);
+    vi.mocked(getRepoBranches).mockResolvedValue({
+      data: {
+        defaultBranch: "main",
+        branches: ["main", ...many],
+        total: 21,
+        truncated: false,
+      },
+    });
+    renderTable(CONFIG, true);
+
+    const toggle = await screen.findByRole("button", { name: "+8 more" });
+    expect(screen.getAllByRole("button", { name: /^Monitor / })).toHaveLength(
+      12,
+    );
+
+    fireEvent.click(toggle);
+    expect(screen.getAllByRole("button", { name: /^Monitor / })).toHaveLength(
+      20,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Show less" }));
+    expect(screen.getAllByRole("button", { name: /^Monitor / })).toHaveLength(
+      12,
+    );
+  });
+
+  it("searches branches on the server and shows only the matches", async () => {
+    vi.mocked(getRepoBranches).mockImplementation(async (_org, _repo, opts) => {
+      const all = ["main", "develop", "release/1.4", "release/1.5", "hotfix"];
+      const search = opts?.search ?? "";
+      return {
+        data: {
+          defaultBranch: "main",
+          branches: all.filter((branch) => branch.includes(search)),
+          total: 80,
+          truncated: true,
+        },
+      };
+    });
+    renderTable(CONFIG, true);
+
+    fireEvent.change(await screen.findByRole("searchbox"), {
+      target: { value: "release" },
+    });
+
+    await waitFor(() =>
+      expect(getRepoBranches).toHaveBeenCalledWith(
+        "org_1",
+        "repo_1",
+        expect.objectContaining({ search: "release" }),
+      ),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "Monitor hotfix" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole("button", { name: "Monitor release/1.4" }),
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("searchbox"), {
+      target: { value: "nope" },
+    });
+    expect(
+      await screen.findByText('No branches match "nope".'),
     ).toBeInTheDocument();
   });
 

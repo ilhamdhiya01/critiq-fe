@@ -180,7 +180,7 @@ const RepositoryDetail = React.memo(
     };
 
     return (
-      <div className="mx-auto flex max-w-270 flex-col gap-4">
+      <div className="mx-auto flex flex-col gap-4">
         <BackLink
           href={ROUTES.repositories(slug)}
           label="Back to Repositories"

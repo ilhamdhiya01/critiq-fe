@@ -101,9 +101,14 @@ export const SCAN_CONFIG_HELP_TEXT =
 export const BRANCHES_MUST_EXIST_NOTE =
   "Branches must already exist in the repository — Critiq doesn't create branches.";
 
-// No search box: branches past the BE limit can't be picked here.
+// The BE caps the list; search reaches branches past that limit.
 export const BRANCH_LIST_TRUNCATED_HINT =
-  "Showing the first 50 branches of this repository.";
+  "Showing the first 50 branches — search to find the others.";
+
+// Repos with many branches show only this many chips until expanded.
+export const BRANCH_CHIPS_COLLAPSED_LIMIT = 12;
+
+export const BRANCH_SEARCH_DEBOUNCE_MS = 300;
 
 export const FINAL_APPROVAL_NOTE = "Final approval is always manual.";
 
