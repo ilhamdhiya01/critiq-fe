@@ -4,8 +4,12 @@ import { useParams } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 
 import BackLink from "@/components/shared/back-link";
+import ScrollToTop from "@/components/shared/scroll-to-top";
 import StateStatus from "@/components/shared/state-status";
-import { REVIEW_MODE_COPY } from "@/const/pull-request.constant";
+import {
+  REVIEW_MODE_COPY,
+  SCROLL_TO_TOP_MIN_DIFF_FILES,
+} from "@/const/pull-request.constant";
 import { getErrorCode } from "@/lib/helpers/integration.helper";
 import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
 import { usePullRequestDetail } from "@/lib/hooks/pull-requests/usePullRequestDetail";
@@ -201,6 +205,8 @@ const PullRequestDetail = React.memo(
         )}
 
         <PullRequestDiscussion />
+
+        {diffFiles.length >= SCROLL_TO_TOP_MIN_DIFF_FILES && <ScrollToTop />}
       </div>
     );
   },
