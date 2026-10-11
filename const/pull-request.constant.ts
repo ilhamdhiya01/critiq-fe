@@ -251,5 +251,8 @@ const FINDING_CATEGORY_ICON: Record<string, IconName> = {
   secret: "TbShieldLock",
 };
 
+// Diffs with at least this many files get a floating "back to top" button.
+export const SCROLL_TO_TOP_MIN_DIFF_FILES = 10;
+
 export const getFindingIcon = (ruleId: string): IconName =>
   FINDING_CATEGORY_ICON[ruleId.split(".")[0]] ?? "TbAlertTriangle";
