@@ -1,22 +1,23 @@
 "use client";
 
-import {
-  createColumnHelper,
-  tableFeatures,
-  useTable,
-} from "@tanstack/react-table";
+import { createColumnHelper, useTable } from "@tanstack/react-table";
 import classNames from "classnames";
 import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 
+import Badge from "@/components/ui/badge";
 import Icon from "@/components/ui/icon/Icon";
+import DataTable from "@/components/ui/table";
 import {
+  PR_GATE_STATUS_BADGE_STYLE,
+  PR_GATE_STATUS_LABEL,
   PULL_REQUEST_NUMBER_PREFIX,
   PULL_REQUEST_POLICY_LABEL,
   PULL_REQUEST_PROVIDER_ICON,
   PULL_REQUEST_STATUS_MAP,
 } from "@/const/pull-request.constant";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
+import { sortableFeatures } from "@/lib/helpers/table.helper";
 import { usePullRequestList } from "@/lib/hooks/pull-requests/usePullRequestList";
 import type {
   PullRequest,
@@ -28,8 +29,7 @@ import FilterChip from "../FilterChip";
 import PullRequestEmptyState from "./PullRequestEmptyState";
 import PullRequestListSkeleton from "./PullRequestListSkeleton";
 
-const features = tableFeatures({});
-const columnHelper = createColumnHelper<typeof features, PullRequest>();
+const columnHelper = createColumnHelper<typeof sortableFeatures, PullRequest>();
 
 const FILTER_OPTIONS: { value: PullRequestFilter; label: string }[] = [
   { value: "all", label: "All" },
@@ -91,6 +91,7 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
         columnHelper.accessor("title", {
           id: "pullRequest",
           header: "Pull request",
+          enableSorting: false,
           cell: (info) => {
             const pr = info.row.original;
             return (
@@ -136,8 +137,19 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
           },
         }),
         columnHelper.accessor("criticalCount", {
-          header: "Critical",
+          header: "Quality gate",
+          enableSorting: false,
           cell: (info) => {
+            // New BE rows carry the gate result; older rows fall back to the
+            // raw critical count this column used to show.
+            const gate = info.row.original.qualityGate;
+            if (gate) {
+              return (
+                <Badge palette={PR_GATE_STATUS_BADGE_STYLE[gate.status]}>
+                  {PR_GATE_STATUS_LABEL[gate.status]}
+                </Badge>
+              );
+            }
             const criticalCount = info.getValue();
             return (
               <span className="flex items-center gap-1.5 font-mono text-[12px]">
@@ -155,6 +167,7 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
         }),
         columnHelper.accessor("state", {
           header: "Status",
+          enableSorting: false,
           cell: (info) => {
             const { label, dot, text } =
               PULL_REQUEST_STATUS_MAP[info.getValue()];
@@ -168,6 +181,8 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
         }),
         columnHelper.accessor("updatedAt", {
           header: "Updated",
+          enableSorting: true,
+          meta: { align: "right" },
           cell: (info) => (
             <span className="block text-right font-mono text-[11.5px] text-text-secondary">
               {formatRelativeTime(info.getValue())}
@@ -178,7 +193,11 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
     [],
   );
 
-  const table = useTable({ features, columns, data: filteredData });
+  const table = useTable({
+    features: sortableFeatures,
+    columns,
+    data: filteredData,
+  });
 
   // if (isError) {
   //   return (
@@ -213,73 +232,32 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
       </div>
 
       <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
-        <table className="w-full table-fixed border-collapse">
-          <colgroup>
-            <col className="w-auto" />
-            <col className="w-30" />
-            <col className="w-30" />
-            <col className="w-30" />
-          </colgroup>
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr
-                key={headerGroup.id}
-                className="border-b border-border-default"
+        <DataTable
+          table={table}
+          columnCount={columns.length}
+          onRowClick={(pr) => handleDetailPullRequest(pr.id, pr.repositoryId)}
+          maxHeight="calc(100vh - 170px)"
+          colgroup={
+            <colgroup>
+              <col className="w-auto" />
+              <col className="w-30" />
+              <col className="w-30" />
+              <col className="w-30" />
+            </colgroup>
+          }
+          emptyMessage={
+            <>
+              No pull requests match this filter.{" "}
+              <button
+                type="button"
+                onClick={handleResetFilter}
+                className="cursor-pointer text-info-light hover:underline"
               >
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className={classNames(
-                      "px-4.5 py-3 text-left font-mono text-[10.5px] tracking-[.06em] text-text-muted uppercase",
-                      { "text-right": header.column.id === "updatedAt" },
-                    )}
-                  >
-                    {header.isPlaceholder ? null : (
-                      <table.FlexRender header={header} />
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className="cursor-pointer border-b border-border-row last:border-b-0 hover:bg-surface-hover"
-                onClick={() =>
-                  handleDetailPullRequest(
-                    row.original.id,
-                    row.original.repositoryId,
-                  )
-                }
-              >
-                {row.getAllCells().map((cell) => (
-                  <td key={cell.id} className="px-4.5 py-3.5">
-                    <table.FlexRender cell={cell} />
-                  </td>
-                ))}
-              </tr>
-            ))}
-            {filteredData.length === 0 && (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="px-4.5 py-10 text-center text-[12.5px] text-text-secondary"
-                >
-                  No pull requests match this filter.{" "}
-                  <button
-                    type="button"
-                    onClick={handleResetFilter}
-                    className="cursor-pointer text-info-light hover:underline"
-                  >
-                    Show all
-                  </button>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                Show all
+              </button>
+            </>
+          }
+        />
       </div>
     </div>
   );

@@ -138,3 +138,25 @@ export const summarizeConnectResult = (
     webhookWarnings,
   };
 };
+
+// "acme/platform/critiq-core" → "critiq-core".
+export const repoName = (path: string): string =>
+  path.split("/").filter(Boolean).at(-1) ?? path;
+
+const LANGUAGE_DOT_CLASS: Record<string, string> = {
+  typescript: "bg-info",
+  javascript: "bg-warning-light",
+  go: "bg-info-light",
+  python: "bg-info",
+  java: "bg-warning",
+  kotlin: "bg-primary-400",
+  swift: "bg-warning",
+  hcl: "bg-primary-400",
+  ruby: "bg-danger-light",
+  rust: "bg-warning",
+  php: "bg-primary-300",
+  "c#": "bg-success",
+};
+
+export const languageDotClass = (language: string): string =>
+  LANGUAGE_DOT_CLASS[language.toLowerCase()] ?? "bg-neutral-500";

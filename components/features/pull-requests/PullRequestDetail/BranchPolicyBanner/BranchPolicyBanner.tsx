@@ -1,6 +1,6 @@
 import React from "react";
 
-import Icon from "@/components/ui/icon/Icon";
+import Notice from "@/components/ui/notice";
 
 interface BranchPolicyBannerProps {
   targetBranch: string;
@@ -8,14 +8,11 @@ interface BranchPolicyBannerProps {
 
 const BranchPolicyBanner = React.memo(
   ({ targetBranch }: BranchPolicyBannerProps) => (
-    <div className="flex items-center gap-2.5 rounded-lg border border-warning/45 bg-warning/7 px-4 py-3">
-      <Icon icon="TbLock" size={15} className="shrink-0 text-warning-light" />
-      <span className="text-[12.5px] text-warning-light">
-        Branch policy for → {targetBranch}: Require Both — the AI analysis below
-        and your manual review confirmation must both complete before Approve is
-        enabled.
-      </span>
-    </div>
+    <Notice icon="TbLock" role="note">
+      Branch policy for → {targetBranch}: Require Both — the AI analysis below
+      and your manual review confirmation must both complete before Approve is
+      enabled.
+    </Notice>
   ),
 );
 

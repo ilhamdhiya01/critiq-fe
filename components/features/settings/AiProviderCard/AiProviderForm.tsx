@@ -2,10 +2,15 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 
+import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import Modal from "@/components/ui/modal";
-import { MIN_DAILY_TOKEN_BUDGET } from "@/const/ai-settings.constant";
+import SegmentedControl from "@/components/ui/segmented-control";
+import {
+  AI_LOCALE_OPTIONS,
+  MIN_DAILY_TOKEN_BUDGET,
+} from "@/const/ai-settings.constant";
 import {
   buildAiSettingsUpdate,
   getSavedFormValues,
@@ -22,11 +27,9 @@ import type {
   AiSettingsAdmin,
 } from "@/lib/types/ai-settings.types";
 
-import SettingsChip from "../SettingsChip";
 import ApiKeyField from "./ApiKeyField";
 import ConsentField from "./ConsentField";
 import FormRow from "./FormRow";
-import LocaleToggle from "./LocaleToggle";
 import ModelPicker from "./ModelPicker";
 import ProviderPicker from "./ProviderPicker";
 import TestStatus from "./TestStatus";
@@ -346,7 +349,14 @@ const AiProviderForm = React.memo(
           </FormRow>
 
           <FormRow label="Bahasa summary">
-            <LocaleToggle value={values.locale} onChange={handleLocaleChange} />
+            <SegmentedControl
+              size="sm"
+              options={AI_LOCALE_OPTIONS}
+              value={values.locale}
+              onChange={handleLocaleChange}
+              ariaLabel="Bahasa summary"
+              className="self-start"
+            />
           </FormRow>
 
           <FormRow
@@ -375,7 +385,7 @@ const AiProviderForm = React.memo(
             <span className="text-text-secondary">Review scope</span>
             <span className="flex items-center gap-2 text-neutral-300">
               Critical severity only
-              <SettingsChip>MVP</SettingsChip>
+              <Badge>MVP</Badge>
             </span>
           </div>
         </div>

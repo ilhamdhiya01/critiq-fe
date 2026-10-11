@@ -1,12 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 
+import BackLink from "@/components/shared/back-link";
+import ScrollToTop from "@/components/shared/scroll-to-top";
 import StateStatus from "@/components/shared/state-status";
-import Icon from "@/components/ui/icon/Icon";
-import { REVIEW_MODE_COPY } from "@/const/pull-request.constant";
+import {
+  REVIEW_MODE_COPY,
+  SCROLL_TO_TOP_MIN_DIFF_FILES,
+} from "@/const/pull-request.constant";
 import { getErrorCode } from "@/lib/helpers/integration.helper";
 import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
 import { usePullRequestDetail } from "@/lib/hooks/pull-requests/usePullRequestDetail";
@@ -29,6 +32,7 @@ import PullRequestDetailHeader from "./PullRequestDetailHeader";
 import PullRequestDetailSkeleton from "./PullRequestDetailSkeleton";
 import PullRequestDiff from "./PullRequestDiff";
 import PullRequestDiscussion from "./PullRequestDiscussion";
+import QualityGateBanner from "./QualityGateBanner";
 import ReviewModeToggle from "./ReviewModeToggle";
 
 // Stable empty list so memoised children do not re-render when the diff failed.
@@ -62,7 +66,7 @@ const PullRequestDetail = React.memo(
     const { data: summary, isLoading: isLoadingSummary } =
       usePullRequestSummary(orgId ?? "", repoId, id);
 
-    // Only used when the policy lets the reviewer choose (ALLOW_AI). Not
+    // Only used when the policy opens both tabs (REQUIRE_BOTH). Not
     // persisted — the BE has no per-PR mode yet.
     const [chosenMode, setChosenMode] = useState<ReviewMode>("ai");
     const handleChangeMode = useCallback(
@@ -71,12 +75,11 @@ const PullRequestDetail = React.memo(
     );
 
     const policy = data?.effectivePolicy;
-    const reviewMode: ReviewMode =
-      policy === "MANUAL_ONLY"
-        ? "manual"
-        : policy === "ALLOW_AI"
-          ? chosenMode
-          : "ai";
+    // MANUAL_ONLY locks Manual, ALLOW_AI locks AI-Assisted, REQUIRE_BOTH
+    // leaves both tabs open.
+    const lockedMode: ReviewMode | null =
+      policy === "MANUAL_ONLY" ? "manual" : policy === "ALLOW_AI" ? "ai" : null;
+    const reviewMode: ReviewMode = lockedMode ?? chosenMode;
 
     // Manual review shows rule findings only, as in the mockup.
     const findings = useMemo(() => {
@@ -140,25 +143,29 @@ const PullRequestDetail = React.memo(
 
     return (
       <div className="flex flex-col gap-4">
-        <Link
+        <BackLink
           href={ROUTES.pullRequests(slug)}
-          className="flex w-fit items-center gap-1.5 text-xs text-text-faint transition-colors hover:text-text-nav"
-        >
-          <Icon icon="TbChevronLeft" size={13} />
-          Kembali ke Pull Requests
-        </Link>
+          label="Kembali ke Pull Requests"
+        />
 
         <PullRequestDetailHeader detail={data} />
 
-        {requiresBoth ? (
-          <BranchPolicyBanner targetBranch={data.targetBranch} />
-        ) : (
-          <ReviewModeToggle
-            mode={reviewMode}
-            isAiLocked={data.effectivePolicy === "MANUAL_ONLY"}
-            targetBranch={data.targetBranch}
-            onChange={handleChangeMode}
+        {data.qualityGate && (
+          <QualityGateBanner
+            gate={data.qualityGate}
+            rulesHref={ROUTES.rules(slug)}
           />
+        )}
+
+        <ReviewModeToggle
+          mode={reviewMode}
+          lockedMode={lockedMode}
+          targetBranch={data.targetBranch}
+          onChange={handleChangeMode}
+        />
+
+        {requiresBoth && (
+          <BranchPolicyBanner targetBranch={data.targetBranch} />
         )}
 
         {reviewMode === "manual" ? (
@@ -206,6 +213,8 @@ const PullRequestDetail = React.memo(
         )}
 
         <PullRequestDiscussion />
+
+        {diffFiles.length >= SCROLL_TO_TOP_MIN_DIFF_FILES && <ScrollToTop />}
       </div>
     );
   },
