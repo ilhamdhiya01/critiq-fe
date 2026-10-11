@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { AxiosError, type AxiosResponse } from "axios";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -18,8 +24,11 @@ import RepositoryDetail from "../RepositoryDetail";
 
 let currentRole: Role = "ADMIN";
 
+const mockPush = vi.fn();
+
 vi.mock("next/navigation", () => ({
   useParams: () => ({ slug: "acme" }),
+  useRouter: () => ({ push: mockPush }),
 }));
 
 vi.mock("@/lib/hooks/organisation/useOrgBySlug", () => ({
@@ -164,38 +173,48 @@ describe("RepositoryDetail", { timeout: 15_000 }, () => {
   });
 
   it("lists pull requests without gate/status columns and a spinner while scanning", async () => {
+    mockPush.mockClear();
     renderDetail();
 
     const row = (
       await screen.findByText("Rate limiter for public GraphQL gateway")
-    ).closest("a") as HTMLElement;
-    expect(row).toHaveAttribute(
-      "href",
-      "/acme/pull-requests/pr_1?repoId=repo_1",
-    );
-    expect(screen.getByText("Review policy")).toBeInTheDocument();
-    expect(screen.queryByText("Quality gate")).not.toBeInTheDocument();
-    expect(screen.queryByText("Status")).not.toBeInTheDocument();
+    ).closest("tr") as HTMLElement;
+    const pullsTable = row.closest("table") as HTMLElement;
+    expect(within(pullsTable).getByText("Review policy")).toBeInTheDocument();
+    expect(
+      within(pullsTable).queryByText("Quality gate"),
+    ).not.toBeInTheDocument();
+    expect(within(pullsTable).queryByText("Status")).not.toBeInTheDocument();
     expect(within(row).getByLabelText("Scanning")).toBeInTheDocument();
     expect(within(row).getByText("Manual only")).toBeInTheDocument();
     expect(within(row).getByText("DA")).toBeInTheDocument();
+
+    fireEvent.click(row);
+    expect(mockPush).toHaveBeenCalledWith(
+      "/acme/pull-requests/pr_1?repoId=repo_1",
+    );
   });
 
   it("shows scan history newest first with scan-status labels and PR links", async () => {
+    mockPush.mockClear();
     renderDetail();
 
     const history = (await screen.findByText("PR Scan History")).closest(
       "section",
     ) as HTMLElement;
-    const items = await within(history).findAllByRole("listitem");
+    const items = await within(history).findAllByRole("row");
+    // First row is the header row.
+    const bodyRows = items.slice(1);
 
-    expect(items.map((item) => item.textContent)).toEqual([
+    expect(bodyRows.map((item) => item.textContent)).toEqual([
       expect.stringContaining("Scanning…"),
       expect.stringContaining("Failed"),
       expect.stringContaining("Done"),
     ]);
-    expect(within(history).getByText("#461")).toHaveAttribute(
-      "href",
+
+    const row = within(history).getByText("#461").closest("tr") as HTMLElement;
+    fireEvent.click(row);
+    expect(mockPush).toHaveBeenCalledWith(
       "/acme/pull-requests/pr_1?repoId=repo_1",
     );
   });
@@ -258,7 +277,7 @@ describe("RepositoryDetail", { timeout: 15_000 }, () => {
 
     const row = (
       await screen.findByText("Rate limiter for public GraphQL gateway")
-    ).closest("a") as HTMLElement;
+    ).closest("tr") as HTMLElement;
     expect(within(row).getByLabelText("Scanning")).toBeInTheDocument();
 
     await waitFor(
