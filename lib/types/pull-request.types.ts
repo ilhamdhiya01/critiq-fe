@@ -1,3 +1,5 @@
+import type { RuleTierId } from "./rules.types";
+
 export type PullRequestProvider = "GITHUB" | "GITLAB";
 export type PullRequestState = "OPEN" | "CLOSED" | "MERGED";
 export type EffectivePolicy = "MANUAL_ONLY" | "ALLOW_AI" | "REQUIRE_BOTH";
@@ -8,6 +10,31 @@ export type ScanStatus =
 export type ScanTrigger = "WEBHOOK" | "MANUAL" | "RESCAN";
 export type FindingSource = "STATIC" | "AI";
 export type FindingSeverity = "CRITICAL" | "MAJOR" | "MINOR" | "INFO";
+
+export type QualityGateStatus = "passed" | "failed" | "pending";
+export type CiAggregate = "success" | "failure" | "pending" | "none";
+
+export type QualityGateReason =
+  | "not_scanned"
+  | "scan_failed"
+  | "scan_running"
+  | "critical_findings"
+  | "ci_failed"
+  | "ci_running"
+  | "ci_not_detected"
+  | "stale_scan";
+
+// Named PrQualityGate because repository.types.ts already exports a legacy
+// `QualityGate` union ("PASSED" | "FAILED") for the old Repository shape.
+export interface PrQualityGate {
+  status: QualityGateStatus;
+  reasons: QualityGateReason[];
+  ci: CiAggregate;
+  // Enabled tiers the scan never checked because they need an AI review and
+  // none ran (Manual only, no provider, diff too large, failed). Informational
+  // only — never blocks the gate.
+  uncheckedTiers: RuleTierId[];
+}
 
 export interface Finding {
   id: string;
@@ -38,6 +65,19 @@ export interface LatestScan {
   rulesetVersion: string;
   errorMessage: string | null;
   findings: Finding[];
+  // Rules-profile & AI-run snapshot shipped together with the quality gate.
+  // Optional on older BE versions.
+  ruleTiers?: RuleTierId[];
+  uncheckedTiers?: RuleTierId[];
+  aiStatus?: AiSummaryStatus | null;
+  aiErrorCode?: string | null;
+  aiProvider?: string | null;
+  aiModel?: string | null;
+  aiCached?: boolean;
+  majorCount?: number;
+  minorCount?: number;
+  aiFindingsDropped?: number;
+  aiReportedRiskLevel?: "critical" | "major" | "minor" | "clean" | null;
 }
 
 export interface PullRequest {
@@ -58,6 +98,9 @@ export interface PullRequest {
   latestScan: LatestScan | null;
   // A scan currently queued/running for this PR, if any.
   activeScan?: { id: string; status: ScanStatus } | null;
+  // Absent on responses from before the rules/profile rollout — keep the
+  // criticalCount-based rendering for those rows.
+  qualityGate?: PrQualityGate;
 }
 
 export interface PullRequestFile {

@@ -32,6 +32,7 @@ import PullRequestDetailHeader from "./PullRequestDetailHeader";
 import PullRequestDetailSkeleton from "./PullRequestDetailSkeleton";
 import PullRequestDiff from "./PullRequestDiff";
 import PullRequestDiscussion from "./PullRequestDiscussion";
+import QualityGateBanner from "./QualityGateBanner";
 import ReviewModeToggle from "./ReviewModeToggle";
 
 // Stable empty list so memoised children do not re-render when the diff failed.
@@ -148,6 +149,13 @@ const PullRequestDetail = React.memo(
         />
 
         <PullRequestDetailHeader detail={data} />
+
+        {data.qualityGate && (
+          <QualityGateBanner
+            gate={data.qualityGate}
+            rulesHref={ROUTES.rules(slug)}
+          />
+        )}
 
         <ReviewModeToggle
           mode={reviewMode}

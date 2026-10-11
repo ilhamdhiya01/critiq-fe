@@ -1,13 +1,17 @@
+import type { BadgePalette } from "@/components/ui/badge/Badge";
 import type { IconName } from "@/components/ui/icon/Icon";
 import type {
   AiSummaryBlockedStatus,
   AiSummaryRiskLevel,
   AiSummaryStatus,
+  CiAggregate,
   EffectivePolicy,
   FindingSeverity,
   FindingSource,
   PullRequest,
   PullRequestState,
+  QualityGateReason,
+  QualityGateStatus,
 } from "@/lib/types/pull-request.types";
 
 export const PULL_REQUEST_STATUS_MAP: Record<
@@ -249,6 +253,74 @@ const FINDING_CATEGORY_ICON: Record<string, IconName> = {
   config: "TbAdjustmentsHorizontal",
   code: "TbAlertCircle",
   secret: "TbShieldLock",
+};
+
+export const PR_GATE_STATUS_LABEL: Record<QualityGateStatus, string> = {
+  passed: "Lolos",
+  failed: "Gagal",
+  pending: "Menunggu",
+};
+
+export const PR_GATE_STATUS_BADGE_STYLE: Record<
+  QualityGateStatus,
+  BadgePalette
+> = {
+  passed: {
+    text: "text-success-light",
+    bg: "bg-success/10",
+    border: "border-success/40",
+  },
+  failed: {
+    text: "text-danger-light",
+    bg: "bg-danger/10",
+    border: "border-danger/40",
+  },
+  pending: {
+    text: "text-warning-light",
+    bg: "bg-warning/10",
+    border: "border-warning/40",
+  },
+};
+
+export const PR_GATE_REASON_LABEL: Record<QualityGateReason, string> = {
+  not_scanned: "Belum ada hasil scan",
+  scan_failed: "Scan terakhir gagal",
+  scan_running: "Scan sedang berjalan",
+  critical_findings: "Ada temuan Critical aktif",
+  ci_failed: "CI gagal",
+  ci_running: "CI masih berjalan",
+  ci_not_detected: "CI tidak terdeteksi",
+  stale_scan: "Hasil scan untuk commit lama",
+};
+
+export const PR_GATE_CI_LABEL: Record<CiAggregate, string> = {
+  success: "CI: hijau",
+  failure: "CI: merah",
+  pending: "CI: berjalan",
+  none: "CI: tidak ada",
+};
+
+export const PR_GATE_CI_BADGE_STYLE: Record<CiAggregate, BadgePalette> = {
+  success: {
+    text: "text-success-light",
+    bg: "bg-success/10",
+    border: "border-success/40",
+  },
+  failure: {
+    text: "text-danger-light",
+    bg: "bg-danger/10",
+    border: "border-danger/40",
+  },
+  pending: {
+    text: "text-warning-light",
+    bg: "bg-warning/10",
+    border: "border-warning/40",
+  },
+  none: {
+    text: "text-text-secondary",
+    bg: "bg-raised",
+    border: "border-border-default",
+  },
 };
 
 // Diffs with at least this many files get a floating "back to top" button.

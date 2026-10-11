@@ -97,6 +97,9 @@ export const API_PULL_SUMMARY_REGENERATE = (
 export const API_PULL_RESCAN = (orgId: string, repoId: string) =>
   `${API_ORG}/${orgId}/repos/${repoId}/rescan`;
 
+// Rules (quality profile)
+export const API_ORG_RULES = (orgId: string) => `${API_ORG}/${orgId}/rules`;
+
 // External
 export const GITHUB_INSTALLATIONS_URL =
   "https://github.com/settings/installations";
