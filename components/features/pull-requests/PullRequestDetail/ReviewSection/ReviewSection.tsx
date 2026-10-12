@@ -62,6 +62,11 @@ const ReviewSection = React.memo(
     if (!canReview || detail.state !== "OPEN") return null;
 
     const requiresBoth = detail.effectivePolicy === "REQUIRE_BOTH";
+    const myReview = getMyReviewForHead(reviews, me?.id, detail.headSha);
+    // My approval of this commit already carries the confirmation to the
+    // BE (and merge relies on it), so it can't be taken back by unchecking.
+    const isConfirmationRecorded =
+      myReview?.decision === "approve" && myReview.manualConfirmation;
     const scan = detail.latestScan;
     const isAiDone =
       !!scan &&
@@ -72,7 +77,8 @@ const ReviewSection = React.memo(
       <>
         {requiresBoth && (
           <ManualReviewConfirmation
-            checked={isConfirmed}
+            checked={isConfirmed || isConfirmationRecorded}
+            isLocked={isConfirmationRecorded}
             onToggle={handleToggle}
           />
         )}
@@ -82,9 +88,9 @@ const ReviewSection = React.memo(
           pullId={detail.id}
           headSha={detail.headSha}
           requiresBoth={requiresBoth}
-          isConfirmed={isConfirmed}
+          isConfirmed={isConfirmed || isConfirmationRecorded}
           isAiDone={isAiDone}
-          myReview={getMyReviewForHead(reviews, me?.id, detail.headSha)}
+          myReview={myReview}
         >
           {mergeControl}
         </ReviewPanel>

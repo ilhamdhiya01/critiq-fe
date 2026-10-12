@@ -381,4 +381,59 @@ describe("ReviewSection", { timeout: 15_000 }, () => {
       expect(screen.queryByText("already_reviewed")).not.toBeInTheDocument();
     });
   });
+
+  describe("Require both after my approval", () => {
+    const REQUIRE_BOTH = {
+      ...DETAIL,
+      effectivePolicy: "REQUIRE_BOTH",
+      merge: { allowed: true, blockers: [] },
+    } as unknown as PullRequestDetail;
+
+    it("locks the confirmation it was recorded with and drops stale blockers", async () => {
+      vi.mocked(getPullRequestReviews).mockResolvedValue({
+        data: [
+          {
+            ...REVIEW,
+            id: "rev_mine",
+            manualConfirmation: true,
+            effectivePolicy: "require_both",
+            sync: { status: "synced", error: null, syncedAt: null },
+          },
+        ],
+      } as never);
+      renderSection({ detail: REQUIRE_BOTH, summaryAiStatus: "done" });
+
+      const checkbox = await screen.findByRole("checkbox", {
+        name: "Manual review confirmation",
+      });
+      await waitFor(() =>
+        expect(checkbox).toHaveAttribute("aria-checked", "true"),
+      );
+      expect(checkbox).toHaveAttribute("aria-disabled", "true");
+      expect(
+        screen.getByText("Recorded with your approval of this commit."),
+      ).toBeInTheDocument();
+
+      // Clicking can no longer uncheck it.
+      fireEvent.click(checkbox);
+      expect(checkbox).toHaveAttribute("aria-checked", "true");
+      expect(
+        screen.queryByText("Confirm the manual review above."),
+      ).not.toBeInTheDocument();
+    });
+
+    it("keeps the checkbox editable before I approve", async () => {
+      renderSection({ detail: REQUIRE_BOTH, summaryAiStatus: "done" });
+      await waitFor(() => expect(getPullRequestReviews).toHaveBeenCalled());
+
+      const checkbox = screen.getByRole("checkbox", {
+        name: "Manual review confirmation",
+      });
+      expect(checkbox).not.toHaveAttribute("aria-disabled");
+      fireEvent.click(checkbox);
+      expect(checkbox).toHaveAttribute("aria-checked", "true");
+      fireEvent.click(checkbox);
+      expect(checkbox).toHaveAttribute("aria-checked", "false");
+    });
+  });
 });

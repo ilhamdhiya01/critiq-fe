@@ -75,6 +75,7 @@ const PullRequestDetail = React.memo(
     // Only used when the policy opens both tabs (REQUIRE_BOTH). Not
     // persisted — the BE has no per-PR mode yet.
     const [chosenMode, setChosenMode] = useState<ReviewMode>("ai");
+
     const handleChangeMode = useCallback(
       (mode: ReviewMode) => setChosenMode(mode),
       [],
