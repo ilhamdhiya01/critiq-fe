@@ -70,11 +70,16 @@ const ReviewPanel = React.memo(
 
     // Require both: approval needs the manual confirmation and a finished
     // AI analysis for this commit. Listed so the reviewer knows why.
+    const hasApproved = myReview?.decision === "approve";
+    const hasRequestedChanges = myReview?.decision === "request_changes";
+
+    // Once I approved this commit the Approve button is gone, so its
+    // blockers would only confuse.
     const approveBlockers: string[] = [];
-    if (requiresBoth && !isConfirmed) {
+    if (requiresBoth && !hasApproved && !isConfirmed) {
       approveBlockers.push(REVIEW_APPROVE_BLOCKED_REASON.confirmation);
     }
-    if (requiresBoth && !isAiDone) {
+    if (requiresBoth && !hasApproved && !isAiDone) {
       approveBlockers.push(REVIEW_APPROVE_BLOCKED_REASON.aiAnalysis);
     }
     const canApprove = approveBlockers.length === 0;
@@ -88,9 +93,6 @@ const ReviewPanel = React.memo(
       !isTooLong &&
       !isBodyMissing &&
       (decision !== "approve" || canApprove);
-
-    const hasApproved = myReview?.decision === "approve";
-    const hasRequestedChanges = myReview?.decision === "request_changes";
 
     const openForm = (next: ReviewDecision) => {
       setDecision(next);
