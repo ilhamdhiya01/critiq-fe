@@ -35,7 +35,6 @@ export const API_ORG = `${API_BASE_URL}/orgs`;
 export const API_ME_ORG = `${API_BASE_URL}/me/orgs`;
 
 // Repositories
-export const API_REPOS = `${API_ORG}/repos`;
 export const API_CONNECT_REPOS = (ordId: string) => `${API_ORG}/${ordId}/repos`;
 export const API_ORG_REPO = (orgId: string, repoId: string) =>
   `${API_ORG}/${orgId}/repos/${repoId}`;
@@ -47,11 +46,6 @@ export const API_ORG_REPO_SCANS = (orgId: string, repoId: string) =>
   `${API_ORG_REPO(orgId, repoId)}/scans`;
 export const API_ORG_REPO_BRANCHES = (orgId: string, repoId: string) =>
   `${API_ORG_REPO(orgId, repoId)}/branches`;
-export const API_REPO_DETAIL = (id: string) => `${API_BASE_URL}/repos/${id}`;
-export const API_REPO_SCANS = (id: string) =>
-  `${API_BASE_URL}/repos/${id}/scans`;
-export const API_REPO_RESCAN = (id: string) =>
-  `${API_BASE_URL}/repos/${id}/rescan`;
 
 // Integrations (GitHub/GitLab)
 export const API_INTEGRATIONS = (orgId: string) =>
@@ -88,6 +82,28 @@ export const API_PULL_DETAIL_SUMMARY = (
   repoId: string,
   id: string,
 ) => `${API_PULL_DETAIL(orgId, repoId, id)}/summary`;
+export const API_PULL_SCANS = (orgId: string, repoId: string, id: string) =>
+  `${API_PULL_DETAIL(orgId, repoId, id)}/scans`;
+export const API_PULL_REVIEW = (orgId: string, repoId: string, id: string) =>
+  `${API_PULL_DETAIL(orgId, repoId, id)}/review`;
+export const API_PULL_REVIEWS = (orgId: string, repoId: string, id: string) =>
+  `${API_PULL_DETAIL(orgId, repoId, id)}/reviews`;
+export const API_PULL_REVIEW_SYNC = (
+  orgId: string,
+  repoId: string,
+  id: string,
+  reviewId: string,
+) => `${API_PULL_REVIEWS(orgId, repoId, id)}/${reviewId}/sync`;
+export const API_PULL_COMMENTS = (orgId: string, repoId: string, id: string) =>
+  `${API_PULL_DETAIL(orgId, repoId, id)}/comments`;
+export const API_PULL_COMMENT_SYNC = (
+  orgId: string,
+  repoId: string,
+  id: string,
+  commentId: string,
+) => `${API_PULL_COMMENTS(orgId, repoId, id)}/${commentId}/sync`;
+export const API_PULL_MERGE = (orgId: string, repoId: string, id: string) =>
+  `${API_PULL_DETAIL(orgId, repoId, id)}/merge`;
 export const API_PULL_SUMMARY_REGENERATE = (
   orgId: string,
   repoId: string,

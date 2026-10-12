@@ -4,12 +4,10 @@ export type RuleTierId =
   | "breaking_change"
   | "error_handling"
   | "performance"
-  | "security"
-  | "ci";
+  | "security";
 
-// How a tier is checked: static rules only, AI review only, both, or the CI
-// status the code host reports.
-export type RuleTierEngine = "static" | "ai" | "static+ai" | "ci";
+// How a tier is checked: static rules only, AI review only, or both.
+export type RuleTierEngine = "static" | "ai" | "static+ai";
 
 export interface RuleTier {
   id: RuleTierId;

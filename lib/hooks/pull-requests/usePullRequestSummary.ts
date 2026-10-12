@@ -9,7 +9,7 @@ import { pullRequestKeys } from "./queryKeys";
 const POLL_INTERVAL_MS = 3000;
 const IN_PROGRESS_STATUSES = new Set(["queued", "running"]);
 
-const isInProgress = (status: string | undefined) =>
+const isInProgress = (status: string | null | undefined) =>
   !!status && IN_PROGRESS_STATUSES.has(status);
 
 export const usePullRequestSummary = (

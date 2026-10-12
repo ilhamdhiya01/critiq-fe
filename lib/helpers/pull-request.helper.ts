@@ -1,5 +1,7 @@
 import {
   AI_SUMMARY_BLOCKED_STATE,
+  AI_SUMMARY_NO_SCAN_CODE,
+  AI_SUMMARY_NO_SCAN_STATE,
   AI_SUMMARY_STALE_STATE,
   isAiSummaryBlocked,
 } from "@/const/pull-request.constant";
@@ -7,6 +9,10 @@ import type { Role } from "@/lib/types/auth.types";
 import type {
   AiSummaryBlockedStatus,
   AiSummaryStatus,
+  CommentSide,
+  DiffLine,
+  PullRequestReview,
+  PullRequestState,
   PullRequestSummary,
 } from "@/lib/types/pull-request.types";
 
@@ -18,12 +24,14 @@ const SETUP_CODES: AiSummaryBlockedStatus[] = [
 ];
 
 export interface AiBlockedView {
-  code: AiSummaryBlockedStatus;
+  code: AiSummaryBlockedStatus | typeof AI_SUMMARY_NO_SCAN_CODE;
   isStale: boolean;
   title: string;
   body: string;
+  // Extra context under the body (e.g. why a merged PR has no scan).
+  note: string | null;
   tone: "indigo" | "warning" | "neutral";
-  action: "run" | "settings" | null;
+  action: "run" | "settings" | "scan" | null;
   // Shown when the viewer's role cannot take the action.
   roleNote: string | null;
 }
@@ -31,14 +39,51 @@ export interface AiBlockedView {
 const isSetupCode = (code: string): code is AiSummaryBlockedStatus =>
   (SETUP_CODES as string[]).includes(code);
 
+// My latest decision on this exact commit. Reviews come newest first, so the
+// first match wins; a review on an older head never matches.
+export const getMyReviewForHead = (
+  reviews: readonly PullRequestReview[] | undefined,
+  meId: string | undefined,
+  headSha: string | null,
+): PullRequestReview | null => {
+  if (!reviews || !meId || !headSha) return null;
+  return (
+    reviews.find(
+      (review) => review.reviewer?.id === meId && review.headSha === headSha,
+    ) ?? null
+  );
+};
+
 // `role` is undefined while membership loads; no action or note is shown then.
+// `error.code` is checked before `aiStatus`: a PR without any scan has no
+// aiStatus at all.
 export const getAiBlockedView = (
   summary: PullRequestSummary | undefined,
   role: Role | undefined,
+  prState: PullRequestState = "OPEN",
 ): AiBlockedView | null => {
-  if (!summary || !isAiSummaryBlocked(summary.aiStatus)) return null;
+  if (!summary) return null;
 
   const detail = typeof summary.error === "object" ? summary.error : null;
+
+  if (detail?.code === AI_SUMMARY_NO_SCAN_CODE) {
+    // The BE never scans merged/closed PRs, so there is nothing to offer.
+    const isOpen = prState === "OPEN";
+    const canScan = role === "ADMIN" || role === "REVIEWER";
+    return {
+      code: AI_SUMMARY_NO_SCAN_CODE,
+      isStale: false,
+      title: AI_SUMMARY_NO_SCAN_STATE.title,
+      body: detail.hint || AI_SUMMARY_NO_SCAN_STATE.fallbackBody,
+      note: isOpen ? null : AI_SUMMARY_NO_SCAN_STATE.closedNote,
+      tone: "neutral",
+      action: isOpen && canScan ? "scan" : null,
+      roleNote:
+        isOpen && role && !canScan ? AI_SUMMARY_NO_SCAN_STATE.viewerNote : null,
+    };
+  }
+
+  if (!isAiSummaryBlocked(summary.aiStatus)) return null;
   const code =
     isSetupCode(summary.aiStatus) && detail && isSetupCode(detail.code)
       ? detail.code
@@ -51,6 +96,7 @@ export const getAiBlockedView = (
       isStale: true,
       title: AI_SUMMARY_STALE_STATE.title,
       body: detail.hint || AI_SUMMARY_STALE_STATE.fallbackBody,
+      note: null,
       tone: "indigo",
       action: canRun ? "run" : null,
       roleNote: role && !canRun ? AI_SUMMARY_STALE_STATE.viewerNote : null,
@@ -64,6 +110,7 @@ export const getAiBlockedView = (
     isStale: false,
     title: state.title,
     body: state.body,
+    note: null,
     tone: state.tone,
     action: state.hasSettingsAction && isAdmin ? "settings" : null,
     roleNote:
@@ -128,4 +175,29 @@ export const getUncheckedTiersNotice = (
         link: { label: "Atur quality profile", target: "rules" },
       };
   }
+};
+
+// Groups inline threads by the diff line they sit on.
+export const getInlineThreadKey = (
+  path: string,
+  side: CommentSide,
+  line: number,
+): string => `${path}:${side}:${line}`;
+
+// Where a comment on this diff row lands: removed rows on the old side,
+// added/context rows on the new side.
+export const getDiffLinePosition = (
+  line: DiffLine,
+): { side: CommentSide; line: number } | null => {
+  if (line.type === "removed") {
+    return line.oldLineNumber !== null
+      ? { side: "old", line: line.oldLineNumber }
+      : null;
+  }
+  if (line.type === "added" || line.type === "context") {
+    return line.newLineNumber !== null
+      ? { side: "new", line: line.newLineNumber }
+      : null;
+  }
+  return null;
 };

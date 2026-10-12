@@ -1,7 +1,12 @@
+"use client";
+
 import React from "react";
 
 import StateStatus from "@/components/shared/state-status";
+import { usePullRequestComments } from "@/lib/hooks/pull-requests/usePullRequestComments";
 import type {
+  CommentScope,
+  CommentThread,
   Finding,
   ParsedPullRequestFile,
 } from "@/lib/types/pull-request.types";
@@ -12,12 +17,26 @@ interface PullRequestDiffProps {
   files: ParsedPullRequestFile[];
   truncated: boolean;
   findings?: Finding[];
+  scope: CommentScope;
 }
 
 const EMPTY_FINDINGS: Finding[] = [];
+const NO_THREADS: Record<string, CommentThread[]> = {};
 
 const PullRequestDiff = React.memo(
-  ({ files, truncated, findings = EMPTY_FINDINGS }: PullRequestDiffProps) => {
+  ({
+    files,
+    truncated,
+    findings = EMPTY_FINDINGS,
+    scope,
+  }: PullRequestDiffProps) => {
+    // One query for every file; each row looks up its own line.
+    const { data: comments } = usePullRequestComments(
+      scope.orgId,
+      scope.repoId,
+      scope.pullId,
+    );
+
     if (files.length === 0) {
       return <StateStatus title="Tidak ada perubahan file" />;
     }
@@ -30,6 +49,8 @@ const PullRequestDiff = React.memo(
             file={file}
             isFirst={index === 0}
             findings={findings}
+            threadsByKey={comments?.inlineByKey ?? NO_THREADS}
+            scope={scope}
           />
         ))}
         {truncated && (

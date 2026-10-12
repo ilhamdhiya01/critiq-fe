@@ -16,4 +16,8 @@ export const pullRequestKeys = {
     [...pullRequestKeys.summaries(), orgId] as const,
   summary: (orgId: string, repoId: string, id: string) =>
     [...pullRequestKeys.summaries(), orgId, repoId, id] as const,
+  reviews: (orgId: string, repoId: string, id: string) =>
+    [...pullRequestKeys.all, "reviews", orgId, repoId, id] as const,
+  comments: (orgId: string, repoId: string, id: string) =>
+    [...pullRequestKeys.all, "comments", orgId, repoId, id] as const,
 };

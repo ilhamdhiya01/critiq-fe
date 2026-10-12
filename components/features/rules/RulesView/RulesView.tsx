@@ -6,6 +6,7 @@ import React from "react";
 import StateStatus from "@/components/shared/state-status";
 import Notice from "@/components/ui/notice";
 import Skeleton from "@/components/ui/skeleton";
+import { RULE_TIER_IDS } from "@/const/rules.constant";
 import { formatDateTime } from "@/lib/helpers/date.helper";
 import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
 import { useOrgRules } from "@/lib/hooks/rules/useOrgRules";
@@ -44,7 +45,7 @@ const RulesView = React.memo(({ orgId }: RulesViewProps) => {
     if (isLoading || !rules) {
       return (
         <div className="flex flex-col gap-4 py-2">
-          {Array.from({ length: 7 }, (_, index) => (
+          {Array.from({ length: RULE_TIER_IDS.length }, (_, index) => (
             <Skeleton key={index} className="h-12 rounded-md" />
           ))}
         </div>
@@ -91,7 +92,8 @@ const RulesView = React.memo(({ orgId }: RulesViewProps) => {
         {rules && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border-row pt-3">
             <span className="text-[11.5px] text-text-faint">
-              {rules.enabledCount} dari {rules.totalCount} kategori aktif
+              {rules.tiers.filter((tier) => tier.enabled).length} dari{" "}
+              {rules.tiers.length} kategori aktif
             </span>
             {rules.updatedAt && (
               <span className="text-[11.5px] text-text-faint">
