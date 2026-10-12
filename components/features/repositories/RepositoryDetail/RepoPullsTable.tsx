@@ -1,15 +1,15 @@
 "use client";
 
 import { createColumnHelper, useTable } from "@tanstack/react-table";
-import classNames from "classnames";
 import { useRouter } from "next/navigation";
 import React, { useMemo } from "react";
 
+import CriticalCount from "@/components/shared/critical-count";
+import ReviewDecisionBadge from "@/components/shared/review-decision-badge";
 import SectionCard from "@/components/shared/section-card";
 import SectionMessage from "@/components/shared/section-message";
 import Avatar from "@/components/ui/avatar";
 import Skeleton from "@/components/ui/skeleton";
-import Spinner from "@/components/ui/spinner";
 import DataTable from "@/components/ui/table";
 import { EFFECTIVE_POLICY_LABEL } from "@/const/repository.constant";
 import { sortableFeatures } from "@/lib/helpers/table.helper";
@@ -25,30 +25,6 @@ interface RepoPullsTableProps {
 
 const EMPTY_PULLS: PullRequest[] = [];
 
-const CriticalCell = ({ pull }: { pull: PullRequest }) => {
-  if (pull.activeScan) {
-    return (
-      <span aria-label="Scanning" title="Scanning…" className="flex">
-        <Spinner size={14} />
-      </span>
-    );
-  }
-  if (!pull.latestScan) {
-    return <span className="text-text-muted">—</span>;
-  }
-  const count = pull.latestScan.criticalCount;
-  return (
-    <span
-      className={classNames("font-mono text-[12.5px]", {
-        "text-danger-light": count > 0,
-        "text-text-muted": count === 0,
-      })}
-    >
-      {count}
-    </span>
-  );
-};
-
 const columnHelper = createColumnHelper<typeof sortableFeatures, PullRequest>();
 
 const RepoPullsTable = React.memo(
@@ -62,11 +38,22 @@ const RepoPullsTable = React.memo(
           columnHelper.accessor("title", {
             header: "Title",
             enableSorting: false,
-            cell: (info) => (
-              <span className="block truncate font-mono text-[12.5px] text-text-strong">
-                {info.getValue()}
-              </span>
-            ),
+            cell: (info) => {
+              const review = info.row.original.latestReview;
+              return (
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate font-mono text-[12.5px] text-text-strong">
+                    {info.getValue()}
+                  </span>
+                  {review && (
+                    <ReviewDecisionBadge
+                      decision={review.decision}
+                      outdated={review.outdated}
+                    />
+                  )}
+                </span>
+              );
+            },
           }),
           columnHelper.display({
             id: "author",
@@ -88,7 +75,12 @@ const RepoPullsTable = React.memo(
           columnHelper.accessor("criticalCount", {
             header: "Critical",
             enableSorting: true,
-            cell: (info) => <CriticalCell pull={info.row.original} />,
+            cell: (info) => (
+              <CriticalCount
+                latestScan={info.row.original.latestScan}
+                activeScan={info.row.original.activeScan}
+              />
+            ),
           }),
           columnHelper.accessor("effectivePolicy", {
             header: "Review policy",

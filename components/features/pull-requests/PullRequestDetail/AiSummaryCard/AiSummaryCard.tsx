@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
-import Markdown from "react-markdown";
 
+import Markdown from "@/components/shared/markdown";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
 import Skeleton from "@/components/ui/skeleton";
 import Spinner from "@/components/ui/spinner";
 import {
+  AI_SUMMARY_NO_SCAN_CODE,
   AI_SUMMARY_RISK_LABEL,
   AI_SUMMARY_RISK_STYLE,
   AI_SUMMARY_STALE_STATE,
@@ -16,8 +17,12 @@ import {
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import { getAiBlockedView } from "@/lib/helpers/pull-request.helper";
 import { useRegeneratePullRequestSummary } from "@/lib/hooks/pull-requests/useRescanPullRequest";
+import { useScanPullRequest } from "@/lib/hooks/pull-requests/useScanPullRequest";
 import type { Role } from "@/lib/types/auth.types";
-import type { PullRequestSummary } from "@/lib/types/pull-request.types";
+import type {
+  PullRequestState,
+  PullRequestSummary,
+} from "@/lib/types/pull-request.types";
 
 import AiBlockedNotice from "./AiBlockedNotice";
 
@@ -46,6 +51,9 @@ interface AiSummaryCardProps {
   settingsHref: string;
   // Current user's role in the org; undefined while it loads.
   role?: Role;
+  prState: PullRequestState;
+  // Finding counts come from the scan; without one there is nothing to count.
+  hasScan: boolean;
 }
 
 const AiSummaryCard = React.memo(
@@ -61,20 +69,21 @@ const AiSummaryCard = React.memo(
     deletions,
     settingsHref,
     role,
+    prState,
+    hasScan,
   }: AiSummaryCardProps) => {
     const status = summary?.aiStatus;
     const isInProgress = status === "queued" || status === "running";
     const isDone = status === "done" || status === "cached";
     const blockedView = useMemo(
-      () => getAiBlockedView(summary, role),
-      [summary, role],
+      () => getAiBlockedView(summary, role, prState),
+      [summary, role, prState],
     );
+    const isNoScan = blockedView?.code === AI_SUMMARY_NO_SCAN_CODE;
     const isStale = blockedView?.isStale ?? false;
     const riskStyle = summary?.riskLevel
       ? AI_SUMMARY_RISK_STYLE[summary.riskLevel]
       : null;
-
-    console.log(summary);
 
     const { handleRegenerate, isRegenerating } =
       useRegeneratePullRequestSummary(orgId, repoId, id);
@@ -88,6 +97,20 @@ const AiSummaryCard = React.memo(
       }
     }, [handleRegenerate]);
 
+    const { handleScanNow, isStartingScan } = useScanPullRequest(
+      orgId,
+      repoId,
+      id,
+    );
+
+    const onScanClick = useCallback(async () => {
+      try {
+        await handleScanNow();
+      } catch {
+        // Handled in useScanPullRequest (toast).
+      }
+    }, [handleScanNow]);
+
     return (
       <div className="flex flex-col gap-3 rounded-lg border border-primary-500/45 bg-surface-tinted px-5 py-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -96,9 +119,11 @@ const AiSummaryCard = React.memo(
             <span className="font-mono text-[13px] font-semibold text-primary-100">
               AI Summary
             </span>
-            <Badge tone={isStale ? "neutral" : "primary"} weight="normal">
-              {isStale ? AI_SUMMARY_STALE_STATE.badge : (summary?.model ?? "—")}
-            </Badge>
+            {(isStale || summary?.model) && (
+              <Badge tone={isStale ? "neutral" : "primary"} weight="normal">
+                {isStale ? AI_SUMMARY_STALE_STATE.badge : summary?.model}
+              </Badge>
+            )}
             {isDone && riskStyle && summary?.riskLevel && (
               <Badge palette={riskStyle}>
                 RISK · {AI_SUMMARY_RISK_LABEL[summary.riskLevel]}
@@ -161,9 +186,7 @@ const AiSummaryCard = React.memo(
         )}
 
         {isDone && summary?.summaryMd && (
-          <div className="flex flex-col gap-2 text-[13px] leading-relaxed text-primary-100 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_strong]:text-primary-50 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
-            <Markdown>{summary.summaryMd}</Markdown>
-          </div>
+          <Markdown tone="ai">{summary.summaryMd}</Markdown>
         )}
 
         {status === "failed" && (
@@ -178,17 +201,23 @@ const AiSummaryCard = React.memo(
             settingsHref={settingsHref}
             onRun={onRegenerateClick}
             isRunning={isRegenerateDisabled}
+            onScan={onScanClick}
+            isScanning={isStartingScan}
           />
         )}
 
-        {!blockedView && (
+        {(!blockedView || isNoScan) && (
           <div className="flex flex-wrap gap-2">
-            <Badge tone="red" size="md" weight="normal">
-              {criticalCount} critical
-            </Badge>
-            <Badge tone="orange" size="md" weight="normal">
-              {suggestionCount} suggestions
-            </Badge>
+            {hasScan && !blockedView && (
+              <>
+                <Badge tone="red" size="md" weight="normal">
+                  {criticalCount} critical
+                </Badge>
+                <Badge tone="orange" size="md" weight="normal">
+                  {suggestionCount} suggestions
+                </Badge>
+              </>
+            )}
             <Badge tone="neutral" size="md" weight="normal">
               {filesChanged} files · +{additions} −{deletions}
             </Badge>

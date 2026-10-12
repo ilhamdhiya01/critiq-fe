@@ -5,12 +5,11 @@ import classNames from "classnames";
 import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 
-import Badge from "@/components/ui/badge";
+import CriticalCount from "@/components/shared/critical-count";
+import ReviewDecisionBadge from "@/components/shared/review-decision-badge";
 import Icon from "@/components/ui/icon/Icon";
 import DataTable from "@/components/ui/table";
 import {
-  PR_GATE_STATUS_BADGE_STYLE,
-  PR_GATE_STATUS_LABEL,
   PULL_REQUEST_NUMBER_PREFIX,
   PULL_REQUEST_POLICY_LABEL,
   PULL_REQUEST_PROVIDER_ICON,
@@ -110,6 +109,12 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
                   >
                     {PULL_REQUEST_POLICY_LABEL[pr.effectivePolicy]}
                   </span>
+                  {pr.latestReview && (
+                    <ReviewDecisionBadge
+                      decision={pr.latestReview.decision}
+                      outdated={pr.latestReview.outdated}
+                    />
+                  )}
                 </div>
                 <span className="flex min-w-0 items-center gap-1.5 truncate text-[11px] text-text-secondary">
                   <Icon
@@ -136,34 +141,15 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
             );
           },
         }),
-        columnHelper.accessor("criticalCount", {
-          header: "Quality gate",
-          enableSorting: false,
-          cell: (info) => {
-            // New BE rows carry the gate result; older rows fall back to the
-            // raw critical count this column used to show.
-            const gate = info.row.original.qualityGate;
-            if (gate) {
-              return (
-                <Badge palette={PR_GATE_STATUS_BADGE_STYLE[gate.status]}>
-                  {PR_GATE_STATUS_LABEL[gate.status]}
-                </Badge>
-              );
-            }
-            const criticalCount = info.getValue();
-            return (
-              <span className="flex items-center gap-1.5 font-mono text-[12px]">
-                {criticalCount > 0 ? (
-                  <span className="flex items-center gap-1 font-semibold text-danger">
-                    <span>{criticalCount}</span>
-                    Critical
-                  </span>
-                ) : (
-                  "-"
-                )}
-              </span>
-            );
-          },
+        columnHelper.display({
+          id: "critical",
+          header: "Critical",
+          cell: (info) => (
+            <CriticalCount
+              latestScan={info.row.original.latestScan}
+              activeScan={info.row.original.activeScan}
+            />
+          ),
         }),
         columnHelper.accessor("state", {
           header: "Status",

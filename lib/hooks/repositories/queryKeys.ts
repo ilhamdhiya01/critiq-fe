@@ -10,6 +10,4 @@ export const repositoryKeys = {
     [...repositoryKeys.all, "repo-scans", orgId, repoId] as const,
   branches: (orgId: string, repoId: string, search: string) =>
     [...repositoryKeys.all, "branches", orgId, repoId, search] as const,
-  detail: (id: string) => [...repositoryKeys.all, "detail", id] as const,
-  scans: (id: string) => [...repositoryKeys.all, "scans", id] as const,
 };

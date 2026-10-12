@@ -1,33 +1,32 @@
-"use client";
-
 import classNames from "classnames";
-import React, { useCallback, useState } from "react";
+import React from "react";
 
 import Badge from "@/components/ui/badge";
 import Icon from "@/components/ui/icon/Icon";
 
-const ManualReviewConfirmation = React.memo(() => {
-  const [isConfirmed, setIsConfirmed] = useState(false);
+interface ManualReviewConfirmationProps {
+  checked: boolean;
+  onToggle: () => void;
+}
 
-  const handleToggle = useCallback(
-    () => setIsConfirmed((current) => !current),
-    [],
-  );
-
-  return (
+// Required for Approve under a Require both policy.
+const ManualReviewConfirmation = React.memo(
+  ({ checked, onToggle }: ManualReviewConfirmationProps) => (
     <div className="flex items-center gap-3.5 rounded-lg border border-border-subtle bg-surface px-5 py-3.5">
       <button
         type="button"
-        onClick={handleToggle}
-        aria-pressed={isConfirmed}
+        role="checkbox"
+        aria-checked={checked}
+        aria-label="Manual review confirmation"
+        onClick={onToggle}
         className={classNames(
           "flex h-[18px] w-[18px] shrink-0 cursor-pointer items-center justify-center rounded border transition-colors",
-          isConfirmed
+          checked
             ? "border-success bg-success"
             : "border-border-default bg-raised",
         )}
       >
-        {isConfirmed && (
+        {checked && (
           <Icon icon="TbCheck" size={12} className="text-neutral-950" />
         )}
       </button>
@@ -37,16 +36,16 @@ const ManualReviewConfirmation = React.memo(() => {
           Manual review confirmation
         </span>
         <span className="text-[11.5px] text-text-faint">
-          I have manually reviewed the full diff and the flagged issues below.
+          I have manually reviewed the full diff and the flagged issues above.
         </span>
       </div>
 
-      <Badge tone={isConfirmed ? "green" : "orange"}>
-        {isConfirmed ? "DONE" : "REQUIRED"}
+      <Badge tone={checked ? "green" : "orange"}>
+        {checked ? "DONE" : "REQUIRED"}
       </Badge>
     </div>
-  );
-});
+  ),
+);
 
 ManualReviewConfirmation.displayName = "ManualReviewConfirmation";
 

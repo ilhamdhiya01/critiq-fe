@@ -2,7 +2,11 @@ import classNames from "classnames";
 import React from "react";
 
 import Button from "@/components/ui/button";
-import Icon from "@/components/ui/icon/Icon";
+import Icon, { type IconName } from "@/components/ui/icon/Icon";
+import {
+  AI_SUMMARY_NO_SCAN_CODE,
+  AI_SUMMARY_NO_SCAN_STATE,
+} from "@/const/pull-request.constant";
 import type { AiBlockedView } from "@/lib/helpers/pull-request.helper";
 
 interface AiBlockedNoticeProps {
@@ -10,7 +14,15 @@ interface AiBlockedNoticeProps {
   settingsHref: string;
   onRun: () => void;
   isRunning: boolean;
+  onScan: () => void;
+  isScanning: boolean;
 }
+
+const getIcon = (view: AiBlockedView): IconName => {
+  if (view.isStale) return "TbCircleCheck";
+  if (view.code === AI_SUMMARY_NO_SCAN_CODE) return "TbInfoCircle";
+  return "TbAlertCircle";
+};
 
 const ICON_TONE = {
   indigo: "text-primary-300",
@@ -19,11 +31,18 @@ const ICON_TONE = {
 } as const;
 
 const AiBlockedNotice = React.memo(
-  ({ view, settingsHref, onRun, isRunning }: AiBlockedNoticeProps) => {
+  ({
+    view,
+    settingsHref,
+    onRun,
+    isRunning,
+    onScan,
+    isScanning,
+  }: AiBlockedNoticeProps) => {
     return (
       <div className="flex flex-wrap items-start gap-3 rounded-md border border-dashed border-primary-500/35 bg-primary-500/6 px-3.5 py-3">
         <Icon
-          icon={view.isStale ? "TbCircleCheck" : "TbAlertCircle"}
+          icon={getIcon(view)}
           size={16}
           className={classNames("mt-px flex-none", ICON_TONE[view.tone])}
         />
@@ -34,6 +53,9 @@ const AiBlockedNotice = React.memo(
           <span className="text-xs leading-normal text-text-nav">
             {view.body}
           </span>
+          {view.note && (
+            <span className="text-[11.5px] text-text-muted">{view.note}</span>
+          )}
           {view.roleNote && (
             <span className="text-[11.5px] text-text-faint">
               {view.roleNote}
@@ -52,6 +74,20 @@ const AiBlockedNotice = React.memo(
             className="font-mono whitespace-nowrap"
           >
             Run AI review
+          </Button>
+        )}
+        {view.action === "scan" && (
+          <Button
+            type="button"
+            variant="ghost-primary"
+            size="sm"
+            fullWidth={false}
+            onClick={onScan}
+            disabled={isScanning}
+            isLoading={isScanning}
+            className="font-mono whitespace-nowrap"
+          >
+            {AI_SUMMARY_NO_SCAN_STATE.action}
           </Button>
         )}
         {view.action === "settings" && (

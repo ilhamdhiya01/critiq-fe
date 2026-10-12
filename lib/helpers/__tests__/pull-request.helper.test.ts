@@ -120,4 +120,46 @@ describe("getAiBlockedView", () => {
     expect(view?.action).toBeNull();
     expect(view?.roleNote).toBeNull();
   });
+
+  describe("no_scan", () => {
+    const NO_SCAN = buildSummary({
+      scanId: null,
+      aiStatus: null,
+      error: {
+        code: "no_scan",
+        hint: "This pull request has not been scanned yet.",
+        stale: false,
+      },
+    });
+
+    it("checks error.code before aiStatus and offers Scan now on open PRs", () => {
+      const view = getAiBlockedView(NO_SCAN, "REVIEWER", "OPEN");
+
+      expect(view).toMatchObject({
+        code: "no_scan",
+        title: "Not scanned yet",
+        body: "This pull request has not been scanned yet.",
+        note: null,
+        action: "scan",
+        roleNote: null,
+      });
+    });
+
+    it("explains why merged/closed PRs have no scan and offers no action", () => {
+      for (const state of ["MERGED", "CLOSED"] as const) {
+        expect(getAiBlockedView(NO_SCAN, "ADMIN", state)).toMatchObject({
+          note: "Merged and closed pull requests are not scanned.",
+          action: null,
+          roleNote: null,
+        });
+      }
+    });
+
+    it("tells Viewers who can scan", () => {
+      expect(getAiBlockedView(NO_SCAN, "VIEWER", "OPEN")).toMatchObject({
+        action: null,
+        roleNote: "Ask an Admin or Reviewer to scan this pull request.",
+      });
+    });
+  });
 });

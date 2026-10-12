@@ -11,31 +11,6 @@ export type ScanTrigger = "WEBHOOK" | "MANUAL" | "RESCAN";
 export type FindingSource = "STATIC" | "AI";
 export type FindingSeverity = "CRITICAL" | "MAJOR" | "MINOR" | "INFO";
 
-export type QualityGateStatus = "passed" | "failed" | "pending";
-export type CiAggregate = "success" | "failure" | "pending" | "none";
-
-export type QualityGateReason =
-  | "not_scanned"
-  | "scan_failed"
-  | "scan_running"
-  | "critical_findings"
-  | "ci_failed"
-  | "ci_running"
-  | "ci_not_detected"
-  | "stale_scan";
-
-// Named PrQualityGate because repository.types.ts already exports a legacy
-// `QualityGate` union ("PASSED" | "FAILED") for the old Repository shape.
-export interface PrQualityGate {
-  status: QualityGateStatus;
-  reasons: QualityGateReason[];
-  ci: CiAggregate;
-  // Enabled tiers the scan never checked because they need an AI review and
-  // none ran (Manual only, no provider, diff too large, failed). Informational
-  // only — never blocks the gate.
-  uncheckedTiers: RuleTierId[];
-}
-
 export interface Finding {
   id: string;
   source: FindingSource;
@@ -65,8 +40,8 @@ export interface LatestScan {
   rulesetVersion: string;
   errorMessage: string | null;
   findings: Finding[];
-  // Rules-profile & AI-run snapshot shipped together with the quality gate.
-  // Optional on older BE versions.
+  // Rules-profile & AI-run snapshot of this scan. Optional on older BE
+  // versions.
   ruleTiers?: RuleTierId[];
   uncheckedTiers?: RuleTierId[];
   aiStatus?: AiSummaryStatus | null;
@@ -98,9 +73,45 @@ export interface PullRequest {
   latestScan: LatestScan | null;
   // A scan currently queued/running for this PR, if any.
   activeScan?: { id: string; status: ScanStatus } | null;
-  // Absent on responses from before the rules/profile rollout — keep the
-  // criticalCount-based rendering for those rows.
-  qualityGate?: PrQualityGate;
+  // Latest Approve / Request changes recorded in Critiq. Missing on older BE.
+  latestReview?: PullRequestReview | null;
+}
+
+export type ReviewDecision = "approve" | "request_changes";
+export type ReviewSyncStatus = "pending" | "synced" | "failed";
+export type ReviewSyncError =
+  | "head_changed"
+  | "insufficient_permission"
+  | "not_allowed"
+  | "provider_unreachable"
+  | "unknown";
+
+export interface PullRequestReview {
+  id: string;
+  decision: ReviewDecision;
+  body: string | null;
+  headSha: string;
+  // null when the reviewer is no longer a member.
+  reviewer: { id: string; name: string; avatarUrl: string | null } | null;
+  reviewerRole: "admin" | "reviewer";
+  effectivePolicy: "manual_only" | "allow_ai" | "require_both";
+  manualConfirmation: boolean;
+  // true once the PR has commits newer than `headSha`.
+  outdated: boolean;
+  // Delivery of the decision to GitHub/GitLab (done in the background).
+  sync: {
+    status: ReviewSyncStatus;
+    error: ReviewSyncError | null;
+    syncedAt: string | null;
+  };
+  createdAt: string;
+}
+
+export interface SubmitReviewInput {
+  decision: ReviewDecision;
+  headSha: string;
+  body?: string;
+  manualConfirmation?: boolean;
 }
 
 export interface PullRequestFile {
@@ -115,6 +126,38 @@ export interface PullRequestFile {
 
 export interface PullRequestDetail extends PullRequest {
   headSha: string | null;
+  // Whether Critiq may merge right now. Missing on older BE → no Merge button.
+  merge?: PullRequestMerge;
+}
+
+// Why a merge is not allowed, in the BE's priority order.
+export type MergeBlocker =
+  | "pull_not_open"
+  | "approval_required"
+  | "changes_requested"
+  | "scan_required"
+  | "critical_findings";
+
+export interface PullRequestMerge {
+  allowed: boolean;
+  blockers: MergeBlocker[];
+}
+
+export type MergeMethod = "merge" | "squash";
+
+export interface MergePullRequestInput {
+  headSha: string;
+  method: MergeMethod;
+  deleteSourceBranch?: boolean;
+  // Admin only: merge despite open critical findings (audited).
+  overrideCritical?: { reason: string };
+}
+
+export interface MergePullRequestResult {
+  state: "merged";
+  method: MergeMethod;
+  headSha: string;
+  mergedAt: string;
 }
 
 export interface PullRequestDiff {
@@ -148,12 +191,74 @@ export interface ParsedPullRequestDiff {
   truncated: boolean;
 }
 
+export type CommentOrigin = "critiq" | "github" | "gitlab";
+export type CommentSyncStatus = "pending" | "synced" | "failed";
+export type CommentSyncError =
+  | "insufficient_permission"
+  | "invalid_position"
+  | "parent_not_synced"
+  | "provider_unreachable"
+  | "unknown";
+
 export interface PullRequestComment {
   id: string;
-  author: string;
+  origin: CommentOrigin;
+  author: {
+    // Critiq user name, or the provider username for provider comments.
+    name: string;
+    avatarUrl: string | null;
+    critiqUserId: string | null;
+    providerUsername: string | null;
+  };
   body: string;
   createdAt: string;
+  editedAt: string | null;
+  // Deleted on the provider side.
+  deleted: boolean;
+  // Delivery to the provider; null for comments that came from it.
+  sync: { status: CommentSyncStatus; error: CommentSyncError | null } | null;
 }
+
+export type CommentSide = "new" | "old";
+
+export interface CommentThread {
+  // Id of the root comment.
+  id: string;
+  kind: "general" | "inline";
+  path: string | null;
+  // Line number on `side` (inline only).
+  line: number | null;
+  side: CommentSide | null;
+  headSha: string | null;
+  // Inline: the PR head moved on, so the line may have shifted.
+  outdated: boolean;
+  // Root first, then replies oldest → newest.
+  comments: PullRequestComment[];
+}
+
+export interface InlineCommentPosition {
+  path: string;
+  line: number;
+  side: CommentSide;
+  headSha: string;
+}
+
+// Who/where comments are written — passed down the comment components.
+export interface CommentScope {
+  orgId: string;
+  repoId: string;
+  pullId: string;
+  // Commit inline comments are placed on; null until the BE knows it.
+  headSha: string | null;
+  providerName: string;
+  // Admin/Reviewer; Viewers only read.
+  canComment: boolean;
+}
+
+export type CreateCommentInput =
+  | { body: string }
+  | { body: string; inline: InlineCommentPosition }
+  | { body: string; parentId: string };
 
 export type AiSummaryStatus =
   | "queued"
@@ -184,8 +289,9 @@ export interface PullRequestSummaryErrorDetail {
 }
 
 export interface PullRequestSummary {
-  scanId: string;
-  aiStatus: AiSummaryStatus;
+  // Both null when the PR was never scanned (error.code "no_scan").
+  scanId: string | null;
+  aiStatus: AiSummaryStatus | null;
   summaryMd: string | null;
   riskLevel: AiSummaryRiskLevel | null;
   provider: string | null;

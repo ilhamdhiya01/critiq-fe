@@ -46,73 +46,84 @@ const renderList = () =>
     </QueryClientProvider>,
   );
 
-describe("PullRequestList — quality gate badge", () => {
+const scanWith = (criticalCount: number) =>
+  ({ criticalCount }) as unknown as PullRequest["latestScan"];
+
+describe("PullRequestList — critical column", () => {
   beforeEach(() => {
     vi.mocked(getPullRequests).mockReset();
   });
 
-  it("shows Lolos, Gagal, and Menunggu badges from qualityGate.status", async () => {
+  it("shows the latest scan's critical count and — when never scanned", async () => {
     vi.mocked(getPullRequests).mockResolvedValue({
       data: [
         {
           ...BASE_PR,
-          id: "pr_passed",
-          title: "Passed PR",
-          qualityGate: {
-            status: "passed",
-            reasons: [],
-            ci: "success",
-            uncheckedTiers: [],
-          },
+          id: "pr_scanned",
+          title: "Scanned PR",
+          latestScan: scanWith(3),
         },
-        {
-          ...BASE_PR,
-          id: "pr_failed",
-          title: "Failed PR",
-          qualityGate: {
-            status: "failed",
-            reasons: ["critical_findings"],
-            ci: "success",
-            uncheckedTiers: [],
-          },
-        },
-        {
-          ...BASE_PR,
-          id: "pr_pending",
-          title: "Pending PR",
-          qualityGate: {
-            status: "pending",
-            reasons: ["scan_running"],
-            ci: "pending",
-            uncheckedTiers: [],
-          },
-        },
+        { ...BASE_PR, id: "pr_new", title: "Unscanned PR", latestScan: null },
       ],
     });
     renderList();
 
-    expect(await screen.findByText("Lolos")).toBeInTheDocument();
-    expect(screen.getByText("Gagal")).toBeInTheDocument();
-    expect(screen.getByText("Menunggu")).toBeInTheDocument();
-
-    const row = screen.getByText("Passed PR").closest("tr") as HTMLElement;
-    expect(within(row).getByText("Lolos")).toBeInTheDocument();
-    expect(within(row).queryByText("Critical")).not.toBeInTheDocument();
+    expect(await screen.findByText("Critical")).toBeInTheDocument();
+    const scanned = screen.getByText("Scanned PR").closest("tr") as HTMLElement;
+    expect(within(scanned).getByText("3")).toHaveClass("text-danger-light");
+    const unscanned = screen
+      .getByText("Unscanned PR")
+      .closest("tr") as HTMLElement;
+    expect(within(unscanned).getByText("—")).toBeInTheDocument();
   });
 
-  it("falls back to the critical count when qualityGate is missing", async () => {
+  it("ignores a qualityGate still sent by an older BE", async () => {
     vi.mocked(getPullRequests).mockResolvedValue({
-      data: [{ ...BASE_PR, criticalCount: 2 }],
+      data: [
+        {
+          ...BASE_PR,
+          latestScan: scanWith(0),
+          qualityGate: { status: "failed", reasons: [], ci: "failure" },
+        } as PullRequest,
+      ],
     });
     renderList();
 
-    const row = (
-      await screen.findByText("Rate limiter for public GraphQL gateway")
-    ).closest("tr") as HTMLElement;
-    expect(within(row).getByText("2")).toBeInTheDocument();
-    expect(within(row).getByText(/Critical/)).toBeInTheDocument();
-    expect(within(row).queryByText("Lolos")).not.toBeInTheDocument();
-    expect(within(row).queryByText("Gagal")).not.toBeInTheDocument();
-    expect(within(row).queryByText("Menunggu")).not.toBeInTheDocument();
+    await screen.findByText("Rate limiter for public GraphQL gateway");
+    for (const text of ["Quality gate", "Lolos", "Gagal", "Menunggu"]) {
+      expect(screen.queryByText(text)).not.toBeInTheDocument();
+    }
+    expect(screen.queryByText(/CI:/)).not.toBeInTheDocument();
+  });
+
+  it("shows the latest review decision, dimmed once outdated", async () => {
+    vi.mocked(getPullRequests).mockResolvedValue({
+      data: [
+        {
+          ...BASE_PR,
+          id: "pr_approved",
+          title: "Approved PR",
+          latestReview: { decision: "approve", outdated: false },
+        },
+        {
+          ...BASE_PR,
+          id: "pr_changes",
+          title: "Changes PR",
+          latestReview: { decision: "request_changes", outdated: true },
+        },
+      ] as unknown as PullRequest[],
+    });
+    renderList();
+
+    const approved = (await screen.findByText("Approved PR")).closest(
+      "tr",
+    ) as HTMLElement;
+    expect(within(approved).getByText("Approved")).not.toHaveClass(
+      "opacity-50",
+    );
+    const changes = screen.getByText("Changes PR").closest("tr") as HTMLElement;
+    expect(within(changes).getByText("Changes requested")).toHaveClass(
+      "opacity-50",
+    );
   });
 });

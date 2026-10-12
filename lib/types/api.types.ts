@@ -13,4 +13,8 @@ export interface ApiFieldError {
 export interface ErrorResponse {
   errors?: ApiFieldError[];
   message?: string;
+  // Provider explanation, e.g. merge `not_mergeable`.
+  detail?: string;
+  // Merge blockers returned with a 422.
+  blockers?: string[];
 }

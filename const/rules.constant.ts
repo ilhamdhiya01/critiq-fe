@@ -46,17 +46,16 @@ export const RULE_TIER_META: Record<RuleTierId, RuleTierMeta> = {
       "Injeksi SQL/shell, TLS tidak aman, pengecekan auth yang hilang, dan konfigurasi berisiko.",
     icon: "TbShieldCheck",
   },
-  ci: {
-    title: "CI gagal",
-    description:
-      "Status pipeline dan checks dari GitHub atau GitLab. Quality gate menunggu CI yang berjalan dan gagal saat CI merah.",
-    icon: "TbListCheck",
-  },
 };
 
 export const RULE_ENGINE_LABEL: Record<RuleTierEngine, string> = {
   static: "Static",
   ai: "AI",
   "static+ai": "Static + AI",
-  ci: "CI",
 };
+
+export const RULE_TIER_IDS = Object.keys(RULE_TIER_META) as RuleTierId[];
+
+// Older BE versions may still send tiers that were removed (e.g. "ci").
+export const isKnownRuleTier = (id: string): id is RuleTierId =>
+  id in RULE_TIER_META;

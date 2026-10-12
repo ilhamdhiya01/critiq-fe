@@ -9,7 +9,7 @@ import type { DiffLine, DiffLineFlag } from "@/lib/types/pull-request.types";
 
 const diffLineRow = tv({
   slots: {
-    row: "group grid cursor-pointer grid-cols-[46px_46px_18px_minmax(0,1fr)_26px]",
+    row: "group grid grid-cols-[46px_46px_18px_minmax(0,1fr)_26px]",
     lineNumber: "pr-2.5 text-right",
     marker: "text-center",
     code: "wrap-anywhere whitespace-pre-wrap",
@@ -49,10 +49,15 @@ const diffLineRow = tv({
         row: "bg-surface-active",
       },
     },
+    // Only Admin/Reviewer can open a comment form on a line.
+    isSelectable: {
+      true: { row: "cursor-pointer" },
+    },
   },
   defaultVariants: {
     flag: "none",
     isActive: false,
+    isSelectable: false,
   },
 });
 
@@ -73,6 +78,9 @@ interface DiffLineRowProps {
   elementId?: string;
   /** Briefly true right after being jumped to, to draw the eye. */
   isHighlighted?: boolean;
+  /** Comment threads anchored to this line. */
+  commentCount?: number;
+  isSelectable?: boolean;
 }
 
 const DiffLineRow = React.memo(
@@ -84,6 +92,8 @@ const DiffLineRow = React.memo(
     flag,
     elementId,
     isHighlighted = false,
+    commentCount = 0,
+    isSelectable = false,
   }: DiffLineRowProps) => {
     if (line.type === "hunk") {
       return (
@@ -95,6 +105,7 @@ const DiffLineRow = React.memo(
       type: line.type,
       flag: flag?.severity ?? "none",
       isActive,
+      isSelectable,
     });
 
     return (
@@ -105,7 +116,7 @@ const DiffLineRow = React.memo(
           // the background, and a ring reads on top of every row variant.
           "ring-1 ring-primary-400 ring-inset": isHighlighted,
         })}
-        onClick={() => onSelect(index)}
+        onClick={isSelectable ? () => onSelect(index) : undefined}
       >
         <span className={lineNumber()}>{line.oldLineNumber ?? ""}</span>
         <span className={lineNumber()}>{line.newLineNumber ?? ""}</span>
@@ -133,7 +144,15 @@ const DiffLineRow = React.memo(
                 )}
               />
             </span>
-          ) : (
+          ) : commentCount > 0 ? (
+            <span
+              title={`${commentCount} comment thread${commentCount > 1 ? "s" : ""}`}
+              className="flex items-center gap-0.5 text-[10px] text-primary-300"
+            >
+              <Icon icon="TbMessage" size={12} />
+              {commentCount > 1 && commentCount}
+            </span>
+          ) : isSelectable ? (
             <Icon
               icon={isActive ? "TbMessage" : "TbPlus"}
               size={12}
@@ -143,7 +162,7 @@ const DiffLineRow = React.memo(
                   : "text-text-muted opacity-0 transition-opacity group-hover:opacity-100"
               }
             />
-          )}
+          ) : null}
         </span>
       </div>
     );
