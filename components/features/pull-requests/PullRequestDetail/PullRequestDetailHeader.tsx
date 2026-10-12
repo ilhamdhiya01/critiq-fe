@@ -11,15 +11,21 @@ import {
   PULL_REQUEST_STATUS_BADGE_STYLE,
   PULL_REQUEST_STATUS_MAP,
 } from "@/const/pull-request.constant";
+import { PROVIDER_NAME } from "@/const/repository.constant";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
-import { PullRequestDetail } from "@/lib/types/pull-request.types";
+import type { Role } from "@/lib/types/auth.types";
+import type { PullRequestDetail } from "@/lib/types/pull-request.types";
+
+import LatestReviewStatus from "./LatestReviewStatus";
 
 interface PullRequestDetailHeaderProps {
   detail: PullRequestDetail;
+  orgId: string;
+  role?: Role;
 }
 
 const PullRequestDetailHeader = React.memo(
-  ({ detail }: PullRequestDetailHeaderProps) => {
+  ({ detail, orgId, role }: PullRequestDetailHeaderProps) => {
     const status = PULL_REQUEST_STATUS_MAP[detail.state];
     const statusStyle = PULL_REQUEST_STATUS_BADGE_STYLE[detail.state];
     const policyStyle = PULL_REQUEST_POLICY_STYLE[detail.effectivePolicy];
@@ -66,6 +72,17 @@ const PullRequestDetailHeader = React.memo(
             dibuka {formatRelativeTime(detail.createdAt)}
           </span>
         </div>
+
+        {detail.latestReview && (
+          <LatestReviewStatus
+            orgId={orgId}
+            repoId={detail.repositoryId}
+            pullId={detail.id}
+            review={detail.latestReview}
+            providerName={PROVIDER_NAME[detail.provider]}
+            canRetry={role === "ADMIN" || role === "REVIEWER"}
+          />
+        )}
       </div>
     );
   },

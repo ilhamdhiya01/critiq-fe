@@ -1,17 +1,19 @@
-import type { BadgePalette } from "@/components/ui/badge/Badge";
 import type { IconName } from "@/components/ui/icon/Icon";
+import type { SegmentedOption } from "@/components/ui/segmented-control";
 import type {
   AiSummaryBlockedStatus,
   AiSummaryRiskLevel,
   AiSummaryStatus,
-  CiAggregate,
+  CommentSyncError,
   EffectivePolicy,
   FindingSeverity,
   FindingSource,
+  MergeBlocker,
+  MergeMethod,
   PullRequest,
   PullRequestState,
-  QualityGateReason,
-  QualityGateStatus,
+  ReviewDecision,
+  ReviewSyncError,
 } from "@/lib/types/pull-request.types";
 
 export const PULL_REQUEST_STATUS_MAP: Record<
@@ -182,7 +184,7 @@ export const AI_SUMMARY_BLOCKED_STATE: Record<
   },
   skipped_manual_mode: {
     title: "AI assistance is off",
-    body: "Manual review — the model is not called for this PR. Rule findings are still listed below.",
+    body: "Manual review — the model is not called for this PR. Flagged issues are still listed below.",
     tone: "neutral",
     hasSettingsAction: false,
   },
@@ -202,10 +204,22 @@ export const REVIEW_MODE_COPY = {
     `Branch policy for → ${targetBranch} uses AI-Assisted review — Manual mode is disabled for this PR.`,
   // Branch policy is manual-only: the BE never calls the model.
   policyManualNotice:
-    "Manual review — AI assistance is off; the model is not called for this PR. Rule findings are still listed below.",
-  // The reviewer picked Manual: AI may have run, its output is just hidden.
+    "Manual review — AI assistance is off; the model is not called for this PR. Flagged issues are still listed below.",
+  // The reviewer picked Manual: only the AI summary is hidden.
   chosenManualNotice:
-    "Manual review — AI results are hidden while you review on your own. Rule findings are still listed below.",
+    "Manual review — the AI summary is hidden while you review on your own. All flagged issues are still listed below.",
+} as const;
+
+// The PR was never scanned (`error.code === "no_scan"`), e.g. it was already
+// merged when Critiq first saw it. There are no findings to count.
+export const AI_SUMMARY_NO_SCAN_CODE = "no_scan";
+
+export const AI_SUMMARY_NO_SCAN_STATE = {
+  title: "Not scanned yet",
+  fallbackBody: "This pull request has not been scanned yet.",
+  closedNote: "Merged and closed pull requests are not scanned.",
+  action: "Scan now",
+  viewerNote: "Ask an Admin or Reviewer to scan this pull request.",
 } as const;
 
 // The scan was blocked, but the org's AI setup is complete now (`error.stale`).
@@ -218,7 +232,7 @@ export const AI_SUMMARY_STALE_STATE = {
 } as const;
 
 export const isAiSummaryBlocked = (
-  status: AiSummaryStatus | undefined,
+  status: AiSummaryStatus | null | undefined,
 ): status is AiSummaryBlockedStatus =>
   !!status && status in AI_SUMMARY_BLOCKED_STATE;
 
@@ -255,76 +269,153 @@ const FINDING_CATEGORY_ICON: Record<string, IconName> = {
   secret: "TbShieldLock",
 };
 
-export const PR_GATE_STATUS_LABEL: Record<QualityGateStatus, string> = {
-  passed: "Lolos",
-  failed: "Gagal",
-  pending: "Menunggu",
-};
-
-export const PR_GATE_STATUS_BADGE_STYLE: Record<
-  QualityGateStatus,
-  BadgePalette
-> = {
-  passed: {
-    text: "text-success-light",
-    bg: "bg-success/10",
-    border: "border-success/40",
-  },
-  failed: {
-    text: "text-danger-light",
-    bg: "bg-danger/10",
-    border: "border-danger/40",
-  },
-  pending: {
-    text: "text-warning-light",
-    bg: "bg-warning/10",
-    border: "border-warning/40",
-  },
-};
-
-export const PR_GATE_REASON_LABEL: Record<QualityGateReason, string> = {
-  not_scanned: "Belum ada hasil scan",
-  scan_failed: "Scan terakhir gagal",
-  scan_running: "Scan sedang berjalan",
-  critical_findings: "Ada temuan Critical aktif",
-  ci_failed: "CI gagal",
-  ci_running: "CI masih berjalan",
-  ci_not_detected: "CI tidak terdeteksi",
-  stale_scan: "Hasil scan untuk commit lama",
-};
-
-export const PR_GATE_CI_LABEL: Record<CiAggregate, string> = {
-  success: "CI: hijau",
-  failure: "CI: merah",
-  pending: "CI: berjalan",
-  none: "CI: tidak ada",
-};
-
-export const PR_GATE_CI_BADGE_STYLE: Record<CiAggregate, BadgePalette> = {
-  success: {
-    text: "text-success-light",
-    bg: "bg-success/10",
-    border: "border-success/40",
-  },
-  failure: {
-    text: "text-danger-light",
-    bg: "bg-danger/10",
-    border: "border-danger/40",
-  },
-  pending: {
-    text: "text-warning-light",
-    bg: "bg-warning/10",
-    border: "border-warning/40",
-  },
-  none: {
-    text: "text-text-secondary",
-    bg: "bg-raised",
-    border: "border-border-default",
-  },
-};
-
 // Diffs with at least this many files get a floating "back to top" button.
 export const SCROLL_TO_TOP_MIN_DIFF_FILES = 10;
 
 export const getFindingIcon = (ruleId: string): IconName =>
   FINDING_CATEGORY_ICON[ruleId.split(".")[0]] ?? "TbAlertTriangle";
+
+export const REVIEW_BODY_MAX = 2000;
+
+export const REVIEW_DECISION_LABEL: Record<ReviewDecision, string> = {
+  approve: "Approved",
+  request_changes: "Changes requested",
+};
+
+export const REVIEW_OUTDATED_LABEL = "Outdated — new commits since this review";
+
+// Error codes from POST …/review (`{ message: <code> }`).
+export const REVIEW_ERROR_MESSAGE: Record<string, string> = {
+  head_changed:
+    "This pull request got new commits since you opened it. The page was refreshed — check the latest changes and review again.",
+  pull_not_open: "This pull request is no longer open.",
+  body_required: "Add a reason when requesting changes.",
+  manual_confirmation_required: "Confirm the manual review before approving.",
+  ai_analysis_required:
+    "The AI analysis for this commit hasn't finished yet. Approve is available once it's done.",
+  scan_required: "This commit hasn't finished scanning yet.",
+  forbidden: "Only Admins and Reviewers can review pull requests.",
+};
+
+// Shown in place of the button for my latest decision on this commit.
+export const MY_REVIEW_STATUS: Record<ReviewDecision, string> = {
+  approve: "You approved this commit",
+  request_changes: "You requested changes on this commit",
+};
+
+// 409 already_reviewed — e.g. the same decision sent from a second tab.
+export const REVIEW_ALREADY_MESSAGE: Record<ReviewDecision, string> = {
+  approve: "You already approved this commit.",
+  request_changes: "You already requested changes on this commit.",
+};
+
+export const REVIEW_APPROVE_BLOCKED_REASON = {
+  confirmation: "Confirm the manual review above.",
+  aiAnalysis: "Waiting for the AI analysis of this commit to finish.",
+} as const;
+
+export const getReviewSyncErrorMessage = (
+  error: ReviewSyncError | null,
+  provider: string,
+): string => {
+  switch (error) {
+    case "insufficient_permission":
+      return `Critiq doesn't have permission to review on ${provider}. An Admin must grant Pull requests: write (GitHub App) or use a token that can approve (GitLab).`;
+    case "not_allowed":
+      return `${provider} refused the approval (e.g. the token owner is the MR author or not an eligible approver).`;
+    case "head_changed":
+      return "A new commit arrived before the review was sent.";
+    default:
+      return `Couldn't reach ${provider} — retry.`;
+  }
+};
+
+export const COMMENT_BODY_MAX = 10000;
+
+// Poll fast while a comment is on its way to the provider; otherwise slowly
+// so comments written on GitHub/GitLab still show up.
+export const COMMENTS_POLL_PENDING_MS = 5000;
+export const COMMENTS_POLL_IDLE_MS = 30000;
+
+export const COMMENT_ERROR_MESSAGE: Record<string, string> = {
+  head_changed:
+    "This pull request got new commits — the diff was refreshed. Comment on the latest lines.",
+  invalid_parent: "That thread no longer exists on this pull request.",
+  forbidden: "Only Admins and Reviewers can comment.",
+};
+
+export const getCommentSyncErrorMessage = (
+  error: CommentSyncError | null,
+  provider: string,
+): string => {
+  switch (error) {
+    case "insufficient_permission":
+      return `Critiq can't comment on ${provider} (missing permission).`;
+    case "invalid_position":
+      return `${provider} couldn't place this comment on that line (the line is no longer in the diff).`;
+    case "parent_not_synced":
+      return `The thread this replies to isn't on ${provider} yet.`;
+    default:
+      return `Couldn't reach ${provider} — retry.`;
+  }
+};
+
+export const MERGE_METHOD_OPTIONS: SegmentedOption<MergeMethod>[] = [
+  { value: "merge", label: "Merge commit", tone: "primary" },
+  { value: "squash", label: "Squash", tone: "primary" },
+];
+
+export const MERGE_OVERRIDE_REASON_MAX = 500;
+
+// pull_not_open hides the button, so it has no reason line.
+export const getMergeBlockerReason = (
+  blocker: Exclude<MergeBlocker, "pull_not_open">,
+  criticalCount: number,
+): string => {
+  switch (blocker) {
+    case "approval_required":
+      return "Needs an approval on the latest commit";
+    case "changes_requested":
+      return "Changes were requested on the latest commit";
+    case "scan_required":
+      return "Waiting for the scan of the latest commit";
+    case "critical_findings":
+      return criticalCount === 1
+        ? "1 critical finding must be resolved"
+        : `${criticalCount} critical findings must be resolved`;
+  }
+};
+
+const MERGE_BLOCKER_CODES = new Set<string>([
+  "pull_not_open",
+  "approval_required",
+  "changes_requested",
+  "scan_required",
+  "critical_findings",
+]);
+
+export const isMergeBlockerCode = (code: string): code is MergeBlocker =>
+  MERGE_BLOCKER_CODES.has(code);
+
+// Errors from POST …/merge. `not_mergeable` shows the provider's `detail`.
+export const getMergeErrorMessage = (
+  code: string,
+  provider: string,
+): string | null => {
+  if (code === "head_changed") {
+    return "This pull request got new commits — the page was refreshed. Check the latest changes before merging.";
+  }
+  if (isMergeBlockerCode(code)) {
+    return "This pull request can't be merged right now — the page was refreshed with the current state.";
+  }
+  switch (code) {
+    case "override_requires_admin":
+      return "Only Admins can merge with open critical findings.";
+    case "insufficient_permission":
+      return `Critiq doesn't have permission to merge on ${provider}. An Admin must grant it in ${provider}.`;
+    case "provider_unreachable":
+      return `Couldn't reach ${provider} — try again.`;
+    default:
+      return null;
+  }
+};

@@ -1,21 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { RULE_TIER_META } from "@/const/rules.constant";
 import { toast } from "@/lib/toast";
 import type { ApiResponse } from "@/lib/types/api.types";
 import type { OrgRules, UpdateRuleTierInput } from "@/lib/types/rules.types";
 import { updateRuleTier } from "@/services/rules.service";
 
 import { rulesKeys } from "./queryKeys";
-
-const TIER_NAME: Record<UpdateRuleTierInput["tier"], string> = {
-  secrets: "Secrets",
-  crash: "Bug penyebab crash",
-  breaking_change: "Breaking change",
-  error_handling: "Error handling",
-  performance: "N+1 & performa",
-  security: "Kerentanan keamanan",
-  ci: "CI gagal",
-};
 
 export const useUpdateOrgRules = (orgId: string | undefined) => {
   const queryClient = useQueryClient();
@@ -48,7 +39,7 @@ export const useUpdateOrgRules = (orgId: string | undefined) => {
     onSuccess: (response, input) => {
       queryClient.setQueryData(key, response);
       toast.success(
-        `${TIER_NAME[input.tier]} ${input.enabled ? "diaktifkan" : "dinonaktifkan"}. Scan berikutnya memakai profil baru.`,
+        `${RULE_TIER_META[input.tier].title} ${input.enabled ? "diaktifkan" : "dinonaktifkan"}. Scan berikutnya memakai profil baru.`,
       );
     },
     onError: (error, _input, context) => {

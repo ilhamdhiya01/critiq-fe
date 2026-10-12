@@ -10,12 +10,15 @@ import {
   REVIEW_MODE_COPY,
   SCROLL_TO_TOP_MIN_DIFF_FILES,
 } from "@/const/pull-request.constant";
+import { PROVIDER_NAME } from "@/const/repository.constant";
 import { getErrorCode } from "@/lib/helpers/integration.helper";
 import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
 import { usePullRequestDetail } from "@/lib/hooks/pull-requests/usePullRequestDetail";
 import { usePullRequestDetailDiff } from "@/lib/hooks/pull-requests/usePullRequestDetailDiff";
 import { usePullRequestSummary } from "@/lib/hooks/pull-requests/usePullRequestSummary";
 import type {
+  CommentScope,
+  Finding,
   ParsedPullRequestFile,
   ReviewMode,
 } from "@/lib/types/pull-request.types";
@@ -27,16 +30,19 @@ import BranchPolicyBanner from "./BranchPolicyBanner";
 import DiffErrorState from "./DiffErrorState";
 import FlaggedIssues from "./FlaggedIssues";
 import ManualModeNotice from "./ManualModeNotice";
-import ManualReviewConfirmation from "./ManualReviewConfirmation";
+import OutdatedComments from "./OutdatedComments";
 import PullRequestDetailHeader from "./PullRequestDetailHeader";
 import PullRequestDetailSkeleton from "./PullRequestDetailSkeleton";
 import PullRequestDiff from "./PullRequestDiff";
 import PullRequestDiscussion from "./PullRequestDiscussion";
-import QualityGateBanner from "./QualityGateBanner";
+import ReviewHistory from "./ReviewHistory";
 import ReviewModeToggle from "./ReviewModeToggle";
+import ReviewSection from "./ReviewSection";
+import UncheckedTiersNotice from "./UncheckedTiersNotice";
 
 // Stable empty list so memoised children do not re-render when the diff failed.
 const NO_DIFF_FILES: ParsedPullRequestFile[] = [];
+const NO_FINDINGS: Finding[] = [];
 
 interface PullRequestDetailProps {
   orgId?: string;
@@ -81,13 +87,9 @@ const PullRequestDetail = React.memo(
       policy === "MANUAL_ONLY" ? "manual" : policy === "ALLOW_AI" ? "ai" : null;
     const reviewMode: ReviewMode = lockedMode ?? chosenMode;
 
-    // Manual review shows rule findings only, as in the mockup.
-    const findings = useMemo(() => {
-      const all = data?.latestScan?.findings ?? [];
-      return reviewMode === "manual"
-        ? all.filter((finding) => finding.source !== "AI")
-        : all;
-    }, [data?.latestScan?.findings, reviewMode]);
+    // One list for both tabs: the review mode only hides the AI summary,
+    // never the flagged issues (static and AI alike).
+    const findings = data?.latestScan?.findings ?? NO_FINDINGS;
 
     // The diff-viewer gutter flags Critical (red) and Major (orange) lines —
     // Minor/Info findings exist in the type but have no gutter marker.
@@ -109,6 +111,22 @@ const PullRequestDetail = React.memo(
             finding.severity === "MAJOR" || finding.severity === "MINOR",
         ).length,
       [findings],
+    );
+
+    const role = membership?.role;
+    const provider = data?.provider;
+    const headSha = data?.headSha ?? null;
+    // One stable object for every comment component (memoised children).
+    const commentScope = useMemo<CommentScope>(
+      () => ({
+        orgId: orgId ?? "",
+        repoId,
+        pullId: id,
+        headSha,
+        providerName: provider ? PROVIDER_NAME[provider] : "",
+        canComment: role === "ADMIN" || role === "REVIEWER",
+      }),
+      [orgId, repoId, id, headSha, provider, role],
     );
 
     const { additions, deletions } = useMemo(
@@ -148,14 +166,18 @@ const PullRequestDetail = React.memo(
           label="Kembali ke Pull Requests"
         />
 
-        <PullRequestDetailHeader detail={data} />
+        <PullRequestDetailHeader
+          detail={data}
+          orgId={orgId ?? ""}
+          role={membership?.role}
+        />
 
-        {data.qualityGate && (
-          <QualityGateBanner
-            gate={data.qualityGate}
-            rulesHref={ROUTES.rules(slug)}
-          />
-        )}
+        <UncheckedTiersNotice
+          tiers={data.latestScan?.uncheckedTiers}
+          aiStatus={data.latestScan?.aiStatus}
+          rulesHref={ROUTES.rules(slug)}
+          settingsHref={ROUTES.settings(slug)}
+        />
 
         <ReviewModeToggle
           mode={reviewMode}
@@ -191,10 +213,10 @@ const PullRequestDetail = React.memo(
             deletions={deletions}
             settingsHref={ROUTES.settings(slug)}
             role={membership?.role}
+            prState={data.state}
+            hasScan={!!data.latestScan}
           />
         )}
-
-        {requiresBoth && <ManualReviewConfirmation />}
 
         <FlaggedIssues
           findings={findings}
@@ -209,10 +231,23 @@ const PullRequestDetail = React.memo(
             files={diff.files}
             truncated={diff.truncated}
             findings={flaggableFindingsForDiff}
+            scope={commentScope}
           />
         )}
 
-        <PullRequestDiscussion />
+        <OutdatedComments scope={commentScope} />
+
+        <ReviewSection
+          key={data.headSha ?? "no-head"}
+          orgId={orgId ?? ""}
+          detail={data}
+          summaryAiStatus={summary?.aiStatus}
+          role={membership?.role}
+        />
+
+        <ReviewHistory orgId={orgId ?? ""} repoId={repoId} pullId={id} />
+
+        <PullRequestDiscussion scope={commentScope} />
 
         {diffFiles.length >= SCROLL_TO_TOP_MIN_DIFF_FILES && <ScrollToTop />}
       </div>

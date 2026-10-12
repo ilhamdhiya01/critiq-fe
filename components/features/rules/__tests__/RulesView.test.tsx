@@ -48,10 +48,9 @@ const RULES: OrgRules = {
     TIER("error_handling"),
     { ...TIER("performance", false), engine: "ai", requiresAi: true },
     TIER("security"),
-    { ...TIER("ci"), engine: "ci" },
   ],
-  enabledCount: 6,
-  totalCount: 7,
+  enabledCount: 5,
+  totalCount: 6,
   updatedAt: "2026-10-12T03:00:00Z",
   updatedBy: "user_1",
 };
@@ -80,14 +79,40 @@ describe("RulesView", { timeout: 15_000 }, () => {
     renderView();
     expect(await screen.findByText("Secrets")).toBeTruthy();
     expect(screen.getByText("Kerentanan keamanan")).toBeTruthy();
-    expect(screen.getByText("6 dari 7 kategori aktif")).toBeTruthy();
+    expect(screen.getByText("5 dari 6 kategori aktif")).toBeTruthy();
+    expect(screen.queryByText("CI gagal")).toBeNull();
     // The AI-only tiers carry the "Perlu AI" badge.
     expect(screen.getAllByText("Perlu AI")).toHaveLength(2);
     expect(screen.getAllByText("Static + AI")).toHaveLength(4);
-    expect(screen.getAllByRole("switch")).toHaveLength(7);
+    expect(screen.getAllByRole("switch")).toHaveLength(6);
     expect(
       screen.getByRole("switch", { name: /N\+1 & performa nonaktif/i }),
     ).toBeTruthy();
+  });
+
+  it("drops the removed CI tier when an older BE still sends it", async () => {
+    vi.mocked(getOrgRules).mockResolvedValue({
+      data: {
+        ...RULES,
+        tiers: [
+          ...RULES.tiers,
+          {
+            ...TIER("secrets"),
+            id: "ci",
+            engine: "ci",
+          } as unknown as OrgRules["tiers"][number],
+        ],
+        enabledCount: 6,
+        totalCount: 7,
+      },
+    });
+    renderView();
+
+    expect(await screen.findByText("Secrets")).toBeTruthy();
+    expect(screen.queryByText("CI gagal")).toBeNull();
+    expect(screen.getAllByRole("switch")).toHaveLength(6);
+    // Counted from the tiers shown, not the BE's totals.
+    expect(screen.getByText("5 dari 6 kategori aktif")).toBeTruthy();
   });
 
   it("lets an Admin toggle a tier", async () => {
