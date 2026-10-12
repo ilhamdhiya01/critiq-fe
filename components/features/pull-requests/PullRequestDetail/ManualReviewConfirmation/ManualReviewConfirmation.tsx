@@ -6,24 +6,28 @@ import Icon from "@/components/ui/icon/Icon";
 
 interface ManualReviewConfirmationProps {
   checked: boolean;
+  // Already recorded with my approval of this commit — read-only.
+  isLocked?: boolean;
   onToggle: () => void;
 }
 
 // Required for Approve under a Require both policy.
 const ManualReviewConfirmation = React.memo(
-  ({ checked, onToggle }: ManualReviewConfirmationProps) => (
+  ({ checked, isLocked = false, onToggle }: ManualReviewConfirmationProps) => (
     <div className="flex items-center gap-3.5 rounded-lg border border-border-subtle bg-surface px-5 py-3.5">
       <button
         type="button"
         role="checkbox"
         aria-checked={checked}
+        aria-disabled={isLocked || undefined}
         aria-label="Manual review confirmation"
-        onClick={onToggle}
+        onClick={isLocked ? undefined : onToggle}
         className={classNames(
-          "flex h-[18px] w-[18px] shrink-0 cursor-pointer items-center justify-center rounded border transition-colors",
+          "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border transition-colors",
           checked
             ? "border-success bg-success"
             : "border-border-default bg-raised",
+          isLocked ? "cursor-default opacity-70" : "cursor-pointer",
         )}
       >
         {checked && (
@@ -36,7 +40,9 @@ const ManualReviewConfirmation = React.memo(
           Manual review confirmation
         </span>
         <span className="text-[11.5px] text-text-faint">
-          I have manually reviewed the full diff and the flagged issues above.
+          {isLocked
+            ? "Recorded with your approval of this commit."
+            : "I have manually reviewed the full diff and the flagged issues above."}
         </span>
       </div>
 
