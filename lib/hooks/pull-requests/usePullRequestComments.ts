@@ -5,6 +5,7 @@ import {
   COMMENTS_POLL_PENDING_MS,
 } from "@/const/pull-request.constant";
 import { getInlineThreadKey } from "@/lib/helpers/pull-request.helper";
+import { useLivePollInterval } from "@/lib/hooks/useLivePollInterval";
 import type { ApiResponse } from "@/lib/types/api.types";
 import type { CommentThread } from "@/lib/types/pull-request.types";
 import { getPullRequestComments } from "@/services/pull-requests.service";
@@ -51,6 +52,7 @@ export const usePullRequestComments = (
   repoId: string,
   id: string,
 ) => {
+  const poll = useLivePollInterval();
   return useQuery({
     queryKey: pullRequestKeys.comments(orgId, repoId, id),
     queryFn: () => getPullRequestComments(orgId, repoId, id),
@@ -58,7 +60,7 @@ export const usePullRequestComments = (
     enabled: !!orgId && !!repoId && !!id,
     refetchInterval: (query) =>
       hasPendingSync(query.state.data?.data?.threads)
-        ? COMMENTS_POLL_PENDING_MS
-        : COMMENTS_POLL_IDLE_MS,
+        ? poll.active(COMMENTS_POLL_PENDING_MS)
+        : poll.idle(COMMENTS_POLL_IDLE_MS),
   });
 };

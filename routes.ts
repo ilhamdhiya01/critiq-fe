@@ -33,6 +33,8 @@ export const API_OAUTH_LOGIN = (provider: "github" | "gitlab") =>
 // Organizations
 export const API_ORG = `${API_BASE_URL}/orgs`;
 export const API_ME_ORG = `${API_BASE_URL}/me/orgs`;
+// SSE stream of "data changed" hints for one org (see RealtimeProvider).
+export const API_ORG_EVENTS = (orgId: string) => `${API_ORG}/${orgId}/events`;
 
 // Repositories
 export const API_CONNECT_REPOS = (ordId: string) => `${API_ORG}/${ordId}/repos`;
