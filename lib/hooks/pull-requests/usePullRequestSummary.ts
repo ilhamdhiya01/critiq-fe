@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useLivePollInterval } from "@/lib/hooks/useLivePollInterval";
 import type { ApiResponse } from "@/lib/types/api.types";
 import type { PullRequestSummary } from "@/lib/types/pull-request.types";
 import { getPullRequestSummary } from "@/services/pull-requests.service";
@@ -17,6 +18,7 @@ export const usePullRequestSummary = (
   repoId: string,
   id: string,
 ) => {
+  const poll = useLivePollInterval();
   const queryClient = useQueryClient();
   const queryKey = pullRequestKeys.summary(orgId, repoId, id);
 
@@ -43,6 +45,8 @@ export const usePullRequestSummary = (
     select: (response) => response.data,
     enabled: !!orgId && !!repoId && !!id,
     refetchInterval: (query) =>
-      isInProgress(query.state.data?.data.aiStatus) ? POLL_INTERVAL_MS : false,
+      isInProgress(query.state.data?.data.aiStatus)
+        ? poll.active(POLL_INTERVAL_MS)
+        : false,
   });
 };

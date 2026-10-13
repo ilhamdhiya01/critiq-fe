@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { REPO_SCAN_POLL_INTERVAL_MS } from "@/const/repository.constant";
 import { pullRequestKeys } from "@/lib/hooks/pull-requests/queryKeys";
+import { useLivePollInterval } from "@/lib/hooks/useLivePollInterval";
 import type { ApiResponse } from "@/lib/types/api.types";
 import type { PullRequest } from "@/lib/types/pull-request.types";
 import { getRepoPulls } from "@/services/repositories.service";
@@ -12,6 +13,7 @@ const hasActiveScan = (pulls: PullRequest[] | undefined) =>
   !!pulls?.some((pull) => !!pull.activeScan);
 
 export const useRepoPulls = (orgId: string, repoId: string) => {
+  const poll = useLivePollInterval();
   const queryClient = useQueryClient();
   const queryKey = repositoryKeys.pulls(orgId, repoId);
 
@@ -54,7 +56,7 @@ export const useRepoPulls = (orgId: string, repoId: string) => {
     enabled: !!orgId && !!repoId,
     refetchInterval: (query) =>
       hasActiveScan(query.state.data?.data)
-        ? REPO_SCAN_POLL_INTERVAL_MS
+        ? poll.active(REPO_SCAN_POLL_INTERVAL_MS)
         : false,
   });
 };
