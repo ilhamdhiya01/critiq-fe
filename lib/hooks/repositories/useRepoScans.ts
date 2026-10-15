@@ -5,11 +5,13 @@ import {
   ACTIVE_REPO_SCAN_STATUSES,
   REPO_SCAN_POLL_INTERVAL_MS,
 } from "@/const/repository.constant";
+import { useLivePollInterval } from "@/lib/hooks/useLivePollInterval";
 import { getRepoScans } from "@/services/repositories.service";
 
 import { repositoryKeys } from "./queryKeys";
 
 export const useRepoScans = (orgId: string, repoId: string) => {
+  const poll = useLivePollInterval();
   const query = useQuery({
     queryKey: repositoryKeys.repoScans(orgId, repoId),
     queryFn: () => getRepoScans(orgId, repoId),
@@ -21,7 +23,7 @@ export const useRepoScans = (orgId: string, repoId: string) => {
       query.state.data?.data?.some((scan) =>
         ACTIVE_REPO_SCAN_STATUSES.has(scan.status),
       )
-        ? REPO_SCAN_POLL_INTERVAL_MS
+        ? poll.active(REPO_SCAN_POLL_INTERVAL_MS)
         : false,
   });
 
