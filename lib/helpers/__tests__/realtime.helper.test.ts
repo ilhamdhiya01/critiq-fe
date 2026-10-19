@@ -18,6 +18,7 @@ const REPO_PULLS = ["repositories", "pulls", "org_1", "repo_1"];
 const REPO_SCANS = ["repositories", "repo-scans", "org_1", "repo_1"];
 const PR_LIST = ["pull-requests", "list", "org_1"];
 const REPO_ORG = ["repositories", "org", "org_1"];
+const DASHBOARD = ["dashboard", "org_1"];
 
 describe("getEventInvalidations", () => {
   it("scan.updated while running refreshes the PR and repo views only", () => {
@@ -34,6 +35,21 @@ describe("getEventInvalidations", () => {
         "org_1",
       ),
     ).toEqual([DETAIL, SUMMARY, REPO_PULLS, REPO_SCANS, PR_LIST]);
+  });
+
+  it("scan.updated while running leaves the dashboard alone", () => {
+    const keys = getEventInvalidations(
+      {
+        ...BASE,
+        ...PR,
+        type: "scan.updated",
+        scanId: "s1",
+        status: "queued",
+        aiStatus: "queued",
+      },
+      "org_1",
+    );
+    expect(keys).not.toContainEqual(DASHBOARD);
   });
 
   it.each([
@@ -56,7 +72,7 @@ describe("getEventInvalidations", () => {
         },
         "org_1",
       );
-      expect(keys).toEqual(expect.arrayContaining([DIFF, REPO_ORG]));
+      expect(keys).toEqual(expect.arrayContaining([DIFF, REPO_ORG, DASHBOARD]));
     },
   );
 
@@ -72,7 +88,7 @@ describe("getEventInvalidations", () => {
         },
         "org_1",
       ),
-    ).toEqual([DETAIL, REPO_PULLS, PR_LIST, REPO_ORG]);
+    ).toEqual([DETAIL, REPO_PULLS, PR_LIST, REPO_ORG, DASHBOARD]);
   });
 
   it("pull.updated with a new head refreshes diff, summary, reviews, comments", () => {
@@ -92,6 +108,7 @@ describe("getEventInvalidations", () => {
       REPO_PULLS,
       PR_LIST,
       REPO_ORG,
+      DASHBOARD,
       DIFF,
       SUMMARY,
       REVIEWS,
@@ -111,7 +128,7 @@ describe("getEventInvalidations", () => {
         },
         "org_1",
       ),
-    ).toEqual([REVIEWS, DETAIL]);
+    ).toEqual([REVIEWS, DETAIL, DASHBOARD]);
     expect(
       getEventInvalidations(
         {
@@ -164,6 +181,7 @@ describe("getEventInvalidations", () => {
       REPO_ORG,
       ["repositories", "list"],
       ["repositories", "scan-config", "org_1", "repo_1"],
+      DASHBOARD,
     ]);
   });
 
@@ -205,6 +223,7 @@ describe("getEventInvalidations", () => {
       ["integrations"],
       ["rules"],
       ["ai-settings"],
+      ["dashboard"],
     ]);
   });
 });
