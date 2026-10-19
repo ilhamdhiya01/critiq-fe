@@ -1,6 +1,7 @@
 import type { QueryKey } from "@tanstack/react-query";
 
 import { REALTIME_SAFETY_POLL_MS } from "@/const/realtime.constant";
+import { activityKeys } from "@/lib/hooks/activity/queryKeys";
 import { aiSettingsKeys } from "@/lib/hooks/ai-settings/queryKeys";
 import { dashboardKeys } from "@/lib/hooks/dashboard/queryKeys";
 import {
@@ -78,6 +79,7 @@ export const getEventInvalidations = (
         pullRequestKeys.reviews(orgId, typed.repoId, typed.pullId),
         pullRequestKeys.detail(orgId, typed.repoId, typed.pullId),
         dashboardKeys.org(orgId),
+        activityKeys.org(orgId),
       ];
 
     case "comment.updated":
@@ -131,6 +133,7 @@ export const RECONNECT_INVALIDATIONS: QueryKey[] = [
   rulesKeys.all,
   aiSettingsKeys.all,
   dashboardKeys.all,
+  activityKeys.all,
 ];
 
 // "active": polling while something is in flight (scan, AI, sync). With the

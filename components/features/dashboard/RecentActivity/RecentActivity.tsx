@@ -15,14 +15,14 @@ import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import { sortableFeatures } from "@/lib/helpers/table.helper";
 import { useDashboardRecentReviews } from "@/lib/hooks/dashboard/useDashboardRecentReviews";
 import { useRepoProviders } from "@/lib/hooks/repositories/useRepoProviders";
-import type { DashboardRecentReview } from "@/lib/types/dashboard.types";
+import type { ReviewActivityItem } from "@/lib/types/activity.types";
 import { ROUTES } from "@/routes";
 
 const LIMIT = 5;
-const EMPTY_REVIEWS: DashboardRecentReview[] = [];
+const EMPTY_REVIEWS: ReviewActivityItem[] = [];
 const columnHelper = createColumnHelper<
   typeof sortableFeatures,
-  DashboardRecentReview
+  ReviewActivityItem
 >();
 
 interface RecentActivityProps {
@@ -128,7 +128,7 @@ const RecentActivity = React.memo(({ orgId }: RecentActivityProps) => {
   });
 
   const handleRowClick = useCallback(
-    (review: DashboardRecentReview) =>
+    (review: ReviewActivityItem) =>
       router.push(
         ROUTES.pullRequestDetail(slug, review.pull.id, review.pull.repoId),
       ),

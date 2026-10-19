@@ -175,6 +175,7 @@ describe("RealtimeProvider", () => {
       ["rules"],
       ["ai-settings"],
       ["dashboard"],
+      ["activity"],
     ]);
   });
 
