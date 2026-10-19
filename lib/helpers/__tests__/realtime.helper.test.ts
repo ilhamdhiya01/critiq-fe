@@ -19,6 +19,7 @@ const REPO_SCANS = ["repositories", "repo-scans", "org_1", "repo_1"];
 const PR_LIST = ["pull-requests", "list", "org_1"];
 const REPO_ORG = ["repositories", "org", "org_1"];
 const DASHBOARD = ["dashboard", "org_1"];
+const ACTIVITY = ["activity", "org_1"];
 
 describe("getEventInvalidations", () => {
   it("scan.updated while running refreshes the PR and repo views only", () => {
@@ -128,7 +129,7 @@ describe("getEventInvalidations", () => {
         },
         "org_1",
       ),
-    ).toEqual([REVIEWS, DETAIL, DASHBOARD]);
+    ).toEqual([REVIEWS, DETAIL, DASHBOARD, ACTIVITY]);
     expect(
       getEventInvalidations(
         {
@@ -224,6 +225,7 @@ describe("getEventInvalidations", () => {
       ["rules"],
       ["ai-settings"],
       ["dashboard"],
+      ["activity"],
     ]);
   });
 });

@@ -1,8 +1,8 @@
 import axiosInstance from "@/lib/axios";
+import type { ReviewActivityItem } from "@/lib/types/activity.types";
 import type { ApiResponse } from "@/lib/types/api.types";
 import type {
   DashboardCriticalIssue,
-  DashboardRecentReview,
   DashboardSummary,
 } from "@/lib/types/dashboard.types";
 import {
@@ -39,7 +39,7 @@ export const getDashboardCriticalIssues = async (
 export const getDashboardRecentReviews = async (
   orgId: string,
   limit: number,
-): Promise<ApiResponse<DashboardRecentReview[]>> => {
+): Promise<ApiResponse<ReviewActivityItem[]>> => {
   try {
     const res = await axiosInstance.get(API_DASHBOARD_RECENT_REVIEWS(orgId), {
       params: { limit },

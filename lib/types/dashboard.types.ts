@@ -1,4 +1,5 @@
-import type { FindingSource, ReviewDecision } from "./pull-request.types";
+import type { PullRef } from "./activity.types";
+import type { FindingSource } from "./pull-request.types";
 
 export interface DashboardSummary {
   openCritical: { count: number; pullCount: number };
@@ -17,14 +18,6 @@ export interface DashboardSummary {
   };
 }
 
-export interface DashboardPullRef {
-  id: string;
-  number: string;
-  title: string;
-  repoId: string;
-  repoPath: string;
-}
-
 export interface DashboardCriticalIssue {
   findingId: string;
   title: string;
@@ -32,16 +25,5 @@ export interface DashboardCriticalIssue {
   filePath: string;
   lineStart: number;
   firstSeenAt: string;
-  pull: DashboardPullRef;
-}
-
-export interface DashboardRecentReview {
-  id: string;
-  decision: ReviewDecision;
-  aiAssisted: boolean;
-  sync: { status: "pending" | "synced" | "failed" };
-  // null when the reviewer's account was deleted.
-  reviewer: { id: string; name: string; avatarUrl: string | null } | null;
-  pull: DashboardPullRef;
-  createdAt: string;
+  pull: PullRef;
 }
