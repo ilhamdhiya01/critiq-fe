@@ -2,6 +2,7 @@ import type { QueryKey } from "@tanstack/react-query";
 
 import { REALTIME_SAFETY_POLL_MS } from "@/const/realtime.constant";
 import { aiSettingsKeys } from "@/lib/hooks/ai-settings/queryKeys";
+import { dashboardKeys } from "@/lib/hooks/dashboard/queryKeys";
 import {
   integrationKeys,
   membershipWithOrgKeys,
@@ -46,6 +47,7 @@ export const getEventInvalidations = (
         keys.push(
           pullRequestKeys.diff(orgId, repoId, pullId),
           repositoryKeys.org(orgId),
+          dashboardKeys.org(orgId),
         );
       }
       return keys;
@@ -58,6 +60,7 @@ export const getEventInvalidations = (
         repositoryKeys.pulls(orgId, repoId),
         pullRequestKeys.list(orgId),
         repositoryKeys.org(orgId),
+        dashboardKeys.org(orgId),
       ];
       if (headChanged) {
         keys.push(
@@ -74,6 +77,7 @@ export const getEventInvalidations = (
       return [
         pullRequestKeys.reviews(orgId, typed.repoId, typed.pullId),
         pullRequestKeys.detail(orgId, typed.repoId, typed.pullId),
+        dashboardKeys.org(orgId),
       ];
 
     case "comment.updated":
@@ -94,6 +98,7 @@ export const getEventInvalidations = (
         repositoryKeys.org(orgId),
         repositoryKeys.lists(),
         repositoryKeys.scanConfig(orgId, typed.repoId),
+        dashboardKeys.org(orgId),
       ];
 
     case "settings.updated":
@@ -125,6 +130,7 @@ export const RECONNECT_INVALIDATIONS: QueryKey[] = [
   integrationKeys.all,
   rulesKeys.all,
   aiSettingsKeys.all,
+  dashboardKeys.all,
 ];
 
 // "active": polling while something is in flight (scan, AI, sync). With the

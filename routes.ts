@@ -36,6 +36,14 @@ export const API_ME_ORG = `${API_BASE_URL}/me/orgs`;
 // SSE stream of "data changed" hints for one org (see RealtimeProvider).
 export const API_ORG_EVENTS = (orgId: string) => `${API_ORG}/${orgId}/events`;
 
+// Dashboard
+export const API_DASHBOARD_SUMMARY = (orgId: string) =>
+  `${API_ORG}/${orgId}/dashboard/summary`;
+export const API_DASHBOARD_CRITICAL_ISSUES = (orgId: string) =>
+  `${API_ORG}/${orgId}/dashboard/critical-issues`;
+export const API_DASHBOARD_RECENT_REVIEWS = (orgId: string) =>
+  `${API_ORG}/${orgId}/dashboard/recent-reviews`;
+
 // Repositories
 export const API_CONNECT_REPOS = (ordId: string) => `${API_ORG}/${ordId}/repos`;
 export const API_ORG_REPO = (orgId: string, repoId: string) =>

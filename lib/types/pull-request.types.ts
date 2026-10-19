@@ -96,6 +96,8 @@ export interface PullRequestReview {
   reviewerRole: "admin" | "reviewer";
   effectivePolicy: "manual_only" | "allow_ai" | "require_both";
   manualConfirmation: boolean;
+  // The decision was made in AI-Assisted mode. Missing on older BE.
+  aiAssisted?: boolean;
   // true once the PR has commits newer than `headSha`.
   outdated: boolean;
   // Delivery of the decision to GitHub/GitLab (done in the background).

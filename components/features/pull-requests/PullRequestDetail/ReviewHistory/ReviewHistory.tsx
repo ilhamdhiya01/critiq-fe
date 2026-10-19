@@ -58,6 +58,11 @@ const ReviewHistory = React.memo(
                     decision={review.decision}
                     outdated={review.outdated}
                   />
+                  {review.aiAssisted && (
+                    <Badge tone="primary" weight="normal">
+                      AI-Assisted
+                    </Badge>
+                  )}
                   <Badge
                     tone={SYNC_LABEL[review.sync.status].tone}
                     weight="normal"
