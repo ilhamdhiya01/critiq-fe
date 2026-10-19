@@ -8,6 +8,7 @@ import { useConnectRepositories } from "@/lib/hooks/integrations/useConnectRepos
 import { useCreateOrganization } from "@/lib/hooks/integrations/useCreateOrganization";
 import { useMembershipWithOrg } from "@/lib/hooks/integrations/useMembershipWithOrg";
 import { useRepoSelection } from "@/lib/hooks/repositories/useRepoSelection";
+import { usePendingInviteRedirect } from "@/lib/hooks/usePendingInviteRedirect";
 import type { DecodedToken } from "@/lib/types/auth.types";
 import type { BranchPolicy } from "@/lib/types/repository.types";
 
@@ -52,6 +53,8 @@ interface OnboardingWizardProps {
 const OnboardingWizard = React.memo(
   ({ decodedToken }: OnboardingWizardProps) => {
     const router = useRouter();
+    // Signed in from an invite link: accept it before creating a new org.
+    const isGoingToInvite = usePendingInviteRedirect();
     const searchParams = useSearchParams();
     const queryOrgId = searchParams.get("orgId");
     const queryStep = searchParams.get("step");
@@ -192,6 +195,8 @@ const OnboardingWizard = React.memo(
         isConnectingRepos,
       ],
     );
+
+    if (isGoingToInvite) return null;
 
     return (
       <div className="flex flex-col gap-8">

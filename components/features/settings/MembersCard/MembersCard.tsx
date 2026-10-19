@@ -1,270 +1,213 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import React, { useCallback, useState } from "react";
 
-import Avatar from "@/components/ui/avatar";
-import Badge from "@/components/ui/badge";
+import SectionMessage from "@/components/shared/section-message";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
-import Input from "@/components/ui/input";
-import SegmentedControl, {
-  type SegmentedOption,
-} from "@/components/ui/segmented-control";
+import Modal from "@/components/ui/modal";
+import Skeleton from "@/components/ui/skeleton";
+import { MEMBERS_ADMIN_ONLY_NOTE } from "@/const/member.constant";
+import { useChangeMemberRole } from "@/lib/hooks/members/useChangeMemberRole";
+import { useInviteMember } from "@/lib/hooks/members/useInviteMember";
+import { useMembers } from "@/lib/hooks/members/useMembers";
+import { useRemoveMember } from "@/lib/hooks/members/useRemoveMember";
+import { useRevokeInvite } from "@/lib/hooks/members/useRevokeInvite";
+import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import type { MemberRole, OrgMember } from "@/lib/types/member.types";
 
-type MemberRole = "ADMIN" | "REVIEWER" | "VIEWER";
+import InviteForm from "./InviteForm";
+import InviteLinkModal from "./InviteLinkModal";
+import InviteRow from "./InviteRow";
+import MemberRow from "./MemberRow";
 
-interface Member {
-  id: string;
-  name: string;
-  avatarColor: string;
-  role: MemberRole;
-  isPending: boolean;
-  isCurrentUser: boolean;
+interface MembersCardProps {
+  orgId?: string;
 }
 
-const ROLE_OPTIONS: { value: MemberRole; description: string }[] = [
-  { value: "ADMIN", description: "Kelola organisasi, anggota, dan integrasi." },
-  { value: "REVIEWER", description: "Review dan approve pull request." },
-  { value: "VIEWER", description: "Lihat pull request dan hasil scan saja." },
-];
+const MembersCard = React.memo(({ orgId = "" }: MembersCardProps) => {
+  const { slug } = useParams<{ slug: string }>();
+  const { membership } = useOrgBySlug(slug);
+  // Every write is Admin-only; the BE refuses the rest with 403 anyway.
+  const isAdmin = membership?.role === "ADMIN";
 
-const ROLE_SEGMENTS: SegmentedOption<MemberRole>[] = ROLE_OPTIONS.map(
-  (option) => ({
-    value: option.value,
-    label: option.value,
-    title: option.description,
-    tone: "primary",
-  }),
-);
+  const { data, isLoading, isError } = useMembers(orgId);
+  const {
+    handleInvite,
+    handleResend,
+    isInviting,
+    isResending,
+    resendingId,
+    inviteError,
+    inviteResult,
+    clearResult,
+    clearError,
+  } = useInviteMember(orgId);
+  const { handleRevoke, revokingId } = useRevokeInvite(orgId);
+  const { handleChangeRole } = useChangeMemberRole(orgId);
+  const { handleRemove, isRemoving } = useRemoveMember(orgId);
 
-const INITIAL_MEMBERS: Member[] = [
-  {
-    id: "1",
-    name: "Alex Winter",
-    avatarColor: "bg-info/25 text-info-light",
-    role: "ADMIN",
-    isPending: false,
-    isCurrentUser: true,
-  },
-  {
-    id: "2",
-    name: "Maya Okonkwo",
-    avatarColor: "bg-primary-800/40 text-primary-200",
-    role: "REVIEWER",
-    isPending: false,
-    isCurrentUser: false,
-  },
-  {
-    id: "3",
-    name: "Dan Herrera",
-    avatarColor: "bg-primary-500/20 text-primary-300",
-    role: "REVIEWER",
-    isPending: false,
-    isCurrentUser: false,
-  },
-  {
-    id: "4",
-    name: "Priya Natarajan",
-    avatarColor: "bg-success/20 text-success-light",
-    role: "REVIEWER",
-    isPending: false,
-    isCurrentUser: false,
-  },
-  {
-    id: "5",
-    name: "Tom Alvey",
-    avatarColor: "bg-warning/20 text-warning-light",
-    role: "VIEWER",
-    isPending: false,
-    isCurrentUser: false,
-  },
-];
-
-interface RoleDropdownProps {
-  member: Member;
-  isOpen: boolean;
-  onToggle: () => void;
-  onSelect: (role: MemberRole) => void;
-}
-
-const RoleDropdown = React.memo(
-  ({ member, isOpen, onToggle, onSelect }: RoleDropdownProps) => {
-    const handleSelect = useCallback(
-      (role: MemberRole) => {
-        onSelect(role);
-      },
-      [onSelect],
-    );
-
-    return (
-      <div className="relative">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          fullWidth={false}
-          onClick={onToggle}
-          className="gap-1.5 bg-raised px-2.5 py-1 font-mono text-[11px] hover:bg-raised-alt"
-        >
-          {member.role}
-          <Icon icon="TbChevronDown" size={12} />
-        </Button>
-
-        {isOpen && (
-          <div className="absolute top-full right-0 z-10 mt-1.5 w-56 rounded-lg border border-border-default bg-raised-alt py-1.5 shadow-lg">
-            {ROLE_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => handleSelect(option.value)}
-                className="flex w-full flex-col gap-0.5 px-3 py-2 text-left hover:bg-surface-hover"
-              >
-                <span className="flex items-center gap-1.5 font-mono text-[11.5px] text-neutral-100">
-                  {member.role === option.value && (
-                    <Icon icon="TbCheck" size={12} className="text-success" />
-                  )}
-                  {option.value}
-                </span>
-                <span className="text-[10.5px] text-text-faint">
-                  {option.description}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  },
-);
-
-RoleDropdown.displayName = "RoleDropdown";
-
-const MembersCard = React.memo(() => {
-  const [members, setMembers] = useState<Member[]>(INITIAL_MEMBERS);
-  const [openMemberId, setOpenMemberId] = useState<string | null>(null);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<MemberRole>("REVIEWER");
+  const [memberToRemove, setMemberToRemove] = useState<OrgMember | null>(null);
 
-  const handleToggleInvite = useCallback(
-    () => setIsInviteOpen((current) => !current),
+  const toggleInvite = () => {
+    setIsInviteOpen((current) => !current);
+    clearError();
+  };
+  const closeInvite = useCallback(() => setIsInviteOpen(false), []);
+
+  const onChangeRole = useCallback(
+    (userId: string, role: MemberRole) => handleChangeRole({ userId, role }),
+    [handleChangeRole],
+  );
+  const onRequestRemove = useCallback(
+    (member: OrgMember) => setMemberToRemove(member),
     [],
   );
+  const onResendRow = useCallback(
+    (inviteId: string) => {
+      handleResend(inviteId).catch(() => undefined);
+    },
+    [handleResend],
+  );
+  const onRevokeRow = useCallback(
+    (inviteId: string) => handleRevoke(inviteId),
+    [handleRevoke],
+  );
 
-  const handleToggleDropdown = useCallback((memberId: string) => {
-    setOpenMemberId((current) => (current === memberId ? null : memberId));
-  }, []);
+  const confirmRemove = async () => {
+    if (!memberToRemove) return;
+    try {
+      await handleRemove(memberToRemove);
+    } finally {
+      setMemberToRemove(null);
+    }
+  };
 
-  const handleSelectRole = useCallback((memberId: string, role: MemberRole) => {
-    setMembers((current) =>
-      current.map((member) =>
-        member.id === memberId ? { ...member, role } : member,
-      ),
+  const renderBody = () => {
+    if (isError) {
+      return (
+        <SectionMessage tone="danger">
+          Couldn&apos;t load members.
+        </SectionMessage>
+      );
+    }
+    if (isLoading || !data) {
+      return (
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 3 }, (_, index) => (
+            <Skeleton key={index} className="h-9 rounded-md" />
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col divide-y divide-border-row">
+        {data.members.map((member) => (
+          <MemberRow
+            key={member.userId}
+            member={member}
+            isAdmin={isAdmin}
+            onChangeRole={onChangeRole}
+            onRequestRemove={onRequestRemove}
+          />
+        ))}
+        {isAdmin &&
+          data.invites?.map((invite) => (
+            <InviteRow
+              key={invite.id}
+              invite={invite}
+              isResending={resendingId === invite.id}
+              isRevoking={revokingId === invite.id}
+              onResend={onResendRow}
+              onRevoke={onRevokeRow}
+            />
+          ))}
+      </div>
     );
-    setOpenMemberId(null);
-  }, []);
-
-  const handleSendInvite = useCallback(() => {
-    if (!inviteEmail.trim()) return;
-    setMembers((current) => [
-      ...current,
-      {
-        id: `${Date.now()}`,
-        name: inviteEmail.trim(),
-        avatarColor: "bg-raised-alt text-text-secondary",
-        role: inviteRole,
-        isPending: true,
-        isCurrentUser: false,
-      },
-    ]);
-    setInviteEmail("");
-    setInviteRole("REVIEWER");
-    setIsInviteOpen(false);
-  }, [inviteEmail, inviteRole]);
+  };
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface p-5">
       <div className="flex items-center justify-between">
         <span className="font-mono text-[13px] font-semibold text-text-strong">
-          Members ({members.length})
+          Members{data ? ` (${data.members.length})` : ""}
         </span>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          fullWidth={false}
-          onClick={handleToggleInvite}
-          icon={<Icon icon="TbUserPlus" size={13} />}
-          className="gap-1.5 font-mono"
-        >
-          Invite member
-        </Button>
-      </div>
-
-      {isInviteOpen && (
-        <div className="flex flex-col gap-3 rounded-md border border-border-default bg-raised p-3.5">
-          <Input
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-            placeholder="nama@perusahaan.com"
-            className="font-mono text-[12.5px]"
-          />
-          <SegmentedControl
-            size="sm"
-            fullWidth
-            options={ROLE_SEGMENTS}
-            value={inviteRole}
-            onChange={setInviteRole}
-            ariaLabel="Role anggota yang diundang"
-          />
+        {isAdmin && (
           <Button
-            variant="primary"
+            type="button"
+            variant="secondary"
             size="sm"
             fullWidth={false}
-            onClick={handleSendInvite}
-            disabled={!inviteEmail.trim()}
+            onClick={toggleInvite}
+            aria-expanded={isInviteOpen}
+            icon={<Icon icon="TbUserPlus" size={13} />}
+            className="gap-1.5 font-mono"
           >
-            Send invite
+            Invite member
           </Button>
-        </div>
-      )}
-
-      <div className="flex flex-col divide-y divide-border-row">
-        {members.map((member) => (
-          <div key={member.id} className="flex items-center gap-3 py-2.5">
-            <Avatar
-              name={member.name}
-              size="md"
-              colorClass={member.avatarColor}
-              className="font-mono"
-            />
-            <span className="flex-1 truncate text-[12.5px] text-neutral-100">
-              {member.name}
-            </span>
-            {member.isPending && (
-              <Badge tone="neutral" weight="normal">
-                INVITED
-              </Badge>
-            )}
-            {member.isCurrentUser ? (
-              <Badge tone="neutral" size="md" weight="normal">
-                {member.role}
-              </Badge>
-            ) : (
-              <RoleDropdown
-                member={member}
-                isOpen={openMemberId === member.id}
-                onToggle={() => handleToggleDropdown(member.id)}
-                onSelect={(role) => handleSelectRole(member.id, role)}
-              />
-            )}
-          </div>
-        ))}
+        )}
       </div>
 
-      <p className="text-[11.5px] text-text-faint">
-        Only Admins can invite members or change roles in this organization.
-      </p>
+      {isAdmin && isInviteOpen && (
+        <InviteForm
+          invites={data?.invites ?? null}
+          onInvite={handleInvite}
+          onResend={handleResend}
+          isSubmitting={isInviting || isResending}
+          error={inviteError}
+          onDone={closeInvite}
+        />
+      )}
+
+      {renderBody()}
+
+      {!isAdmin && (
+        <p className="text-[11.5px] text-text-faint">
+          {MEMBERS_ADMIN_ONLY_NOTE}
+        </p>
+      )}
+
+      <InviteLinkModal result={inviteResult} onClose={clearResult} />
+
+      <Modal
+        isOpen={!!memberToRemove}
+        title={memberToRemove?.isYou ? "Leave organization?" : "Remove member?"}
+        onClose={() => setMemberToRemove(null)}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              fullWidth={false}
+              onClick={() => setMemberToRemove(null)}
+              disabled={isRemoving}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              fullWidth={false}
+              onClick={confirmRemove}
+              isLoading={isRemoving}
+              disabled={isRemoving}
+            >
+              {memberToRemove?.isYou ? "Leave" : "Remove"}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-[13px] leading-normal text-text-nav">
+          {memberToRemove?.isYou
+            ? "You'll lose access to this organization right away."
+            : `${memberToRemove?.name ?? "This member"} will lose access to this organization right away.`}
+        </p>
+      </Modal>
     </div>
   );
 });

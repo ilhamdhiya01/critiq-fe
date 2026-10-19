@@ -209,6 +209,12 @@ describe("getEventInvalidations", () => {
         "org_1",
       ),
     ).toEqual([["memberships"]]);
+    expect(
+      getEventInvalidations(
+        { ...BASE, type: "settings.updated", area: "members" },
+        "org_1",
+      ),
+    ).toEqual([["members", "org_1"]]);
   });
 
   it("ignores event types it doesn't know", () => {
@@ -226,6 +232,7 @@ describe("getEventInvalidations", () => {
       ["ai-settings"],
       ["dashboard"],
       ["activity"],
+      ["members"],
     ]);
   });
 });

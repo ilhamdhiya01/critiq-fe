@@ -8,6 +8,7 @@ export const ROUTES = {
   LOGIN: "/login",
   REGISTER: "/register",
   SETUP: "/setup",
+  invite: (token: string) => `/invite/${token}`,
 
   dashboard: (slug: string) => `/${slug}`,
   pullRequests: (slug: string) => `/${slug}/pull-requests`,
@@ -27,6 +28,8 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 // Auth
 export const API_AUTH = `${API_BASE_URL}/auth`;
 export const API_AUTH_ME = `${API_AUTH}/me`;
+// The session cookie is httpOnly — only the BE can clear it.
+export const API_AUTH_LOGOUT = `${API_AUTH}/logout`;
 export const API_OAUTH_LOGIN = (provider: "github" | "gitlab") =>
   `${API_AUTH}/${provider}`;
 
@@ -35,6 +38,22 @@ export const API_ORG = `${API_BASE_URL}/orgs`;
 export const API_ME_ORG = `${API_BASE_URL}/me/orgs`;
 // SSE stream of "data changed" hints for one org (see RealtimeProvider).
 export const API_ORG_EVENTS = (orgId: string) => `${API_ORG}/${orgId}/events`;
+
+// Members & invites (org-scoped, Admin-only writes)
+export const API_ORG_MEMBERS = (orgId: string) => `${API_ORG}/${orgId}/members`;
+export const API_ORG_MEMBER = (orgId: string, userId: string) =>
+  `${API_ORG_MEMBERS(orgId)}/${userId}`;
+export const API_ORG_INVITES = (orgId: string) =>
+  `${API_ORG_MEMBERS(orgId)}/invites`;
+export const API_ORG_INVITE = (orgId: string, id: string) =>
+  `${API_ORG_INVITES(orgId)}/${id}`;
+export const API_ORG_INVITE_RESEND = (orgId: string, id: string) =>
+  `${API_ORG_INVITE(orgId, id)}/resend`;
+
+// Invite acceptance (global; the preview is public)
+export const API_INVITE = (token: string) => `${API_BASE_URL}/invites/${token}`;
+export const API_INVITE_ACCEPT = (token: string) =>
+  `${API_INVITE(token)}/accept`;
 
 // Activity (review decisions across the org, cursor paginated)
 export const API_ORG_ACTIVITY = (orgId: string) =>
@@ -149,3 +168,14 @@ export const authRoutes = [ROUTES.LOGIN, ROUTES.REGISTER] as const;
 // is private unless it appears here. A new public page must be added to this
 // list, which fails safe (a forgotten page is guarded, not exposed).
 export const publicRoutes = [...authRoutes] as const;
+
+// Dynamic public pages, matched like authRoutes (`[param]` = one segment).
+// The invite page must open without a session (and without an org).
+export const publicRoutePatterns = ["/invite/[token]"] as const;
+
+const toRoutePattern = (route: string) =>
+  new RegExp(`^${route.replace(/\[.*?\]/g, "[^/]+")}$`);
+
+export const isPublicPath = (path: string): boolean =>
+  publicRoutes.some((route) => route === path) ||
+  publicRoutePatterns.some((route) => toRoutePattern(route).test(path));
