@@ -57,7 +57,7 @@ export interface RepoUpdatedEvent extends RealtimeEventBase {
 
 export interface SettingsUpdatedEvent extends RealtimeEventBase {
   type: "settings.updated";
-  area: "ai" | "rules" | "organization";
+  area: "ai" | "rules" | "organization" | "members";
 }
 
 // Events carry no display data — only which data changed.

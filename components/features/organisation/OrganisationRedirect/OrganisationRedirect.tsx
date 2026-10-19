@@ -8,6 +8,7 @@ import Logo from "@/components/shared/logo";
 import StateStatus from "@/components/shared/state-status";
 import Button from "@/components/ui/button";
 import { membershipWithOrgKeys } from "@/lib/hooks/integrations/queryKeys";
+import { usePendingInviteRedirect } from "@/lib/hooks/usePendingInviteRedirect";
 import { ROUTES } from "@/routes";
 import { getMembershipWithOrg } from "@/services/membership-with-org.service";
 
@@ -25,6 +26,8 @@ interface OrganisationRedirectProps {
 const OrganisationRedirect = React.memo(
   ({ activeOrgId }: OrganisationRedirectProps) => {
     const router = useRouter();
+    // A pending invite (started before login) wins over the usual landing.
+    const isGoingToInvite = usePendingInviteRedirect();
 
     // Anti-flash window (matches the "App boot" mockup): a resolve that
     // finishes within 300ms never shows the loading UI at all.
@@ -49,8 +52,12 @@ const OrganisationRedirect = React.memo(
         ?.organization ?? memberships?.[0]?.organization;
 
     useEffect(() => {
-      if (organisation) router.replace(ROUTES.dashboard(organisation.slug));
-    }, [organisation, router]);
+      if (organisation && !isGoingToInvite) {
+        router.replace(ROUTES.dashboard(organisation.slug));
+      }
+    }, [organisation, router, isGoingToInvite]);
+
+    if (isGoingToInvite) return null;
 
     if (isPending || organisation) {
       if (!showBoot) return null;
