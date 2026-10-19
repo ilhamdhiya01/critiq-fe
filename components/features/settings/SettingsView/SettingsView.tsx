@@ -19,7 +19,7 @@ const SettingsView = React.memo(({ orgId }: SettingsViewProps) => {
       <AiProviderCard orgId={orgId} />
       <IntegrationsCard orgId={orgId} />
       <NotificationsCard />
-      <MembersCard />
+      <MembersCard orgId={orgId} />
     </div>
   );
 });

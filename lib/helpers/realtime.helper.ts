@@ -1,11 +1,14 @@
 import type { QueryKey } from "@tanstack/react-query";
 
 import { REALTIME_SAFETY_POLL_MS } from "@/const/realtime.constant";
+import { activityKeys } from "@/lib/hooks/activity/queryKeys";
 import { aiSettingsKeys } from "@/lib/hooks/ai-settings/queryKeys";
+import { dashboardKeys } from "@/lib/hooks/dashboard/queryKeys";
 import {
   integrationKeys,
   membershipWithOrgKeys,
 } from "@/lib/hooks/integrations/queryKeys";
+import { membersKeys } from "@/lib/hooks/members/queryKeys";
 import { pullRequestKeys } from "@/lib/hooks/pull-requests/queryKeys";
 import { repositoryKeys } from "@/lib/hooks/repositories/queryKeys";
 import { rulesKeys } from "@/lib/hooks/rules/queryKeys";
@@ -46,6 +49,7 @@ export const getEventInvalidations = (
         keys.push(
           pullRequestKeys.diff(orgId, repoId, pullId),
           repositoryKeys.org(orgId),
+          dashboardKeys.org(orgId),
         );
       }
       return keys;
@@ -58,6 +62,7 @@ export const getEventInvalidations = (
         repositoryKeys.pulls(orgId, repoId),
         pullRequestKeys.list(orgId),
         repositoryKeys.org(orgId),
+        dashboardKeys.org(orgId),
       ];
       if (headChanged) {
         keys.push(
@@ -74,6 +79,8 @@ export const getEventInvalidations = (
       return [
         pullRequestKeys.reviews(orgId, typed.repoId, typed.pullId),
         pullRequestKeys.detail(orgId, typed.repoId, typed.pullId),
+        dashboardKeys.org(orgId),
+        activityKeys.org(orgId),
       ];
 
     case "comment.updated":
@@ -94,6 +101,7 @@ export const getEventInvalidations = (
         repositoryKeys.org(orgId),
         repositoryKeys.lists(),
         repositoryKeys.scanConfig(orgId, typed.repoId),
+        dashboardKeys.org(orgId),
       ];
 
     case "settings.updated":
@@ -108,6 +116,8 @@ export const getEventInvalidations = (
           return [rulesKeys.org(orgId)];
         case "organization":
           return [membershipWithOrgKeys.all];
+        case "members":
+          return [membersKeys.org(orgId)];
         default:
           return [];
       }
@@ -125,6 +135,9 @@ export const RECONNECT_INVALIDATIONS: QueryKey[] = [
   integrationKeys.all,
   rulesKeys.all,
   aiSettingsKeys.all,
+  dashboardKeys.all,
+  activityKeys.all,
+  membersKeys.all,
 ];
 
 // "active": polling while something is in flight (scan, AI, sync). With the

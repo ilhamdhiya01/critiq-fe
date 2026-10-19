@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 
 import CriticalCount from "@/components/shared/critical-count";
+import FilterChip from "@/components/shared/filter-chip";
 import ReviewDecisionBadge from "@/components/shared/review-decision-badge";
 import Icon from "@/components/ui/icon/Icon";
 import DataTable from "@/components/ui/table";
@@ -24,7 +25,6 @@ import type {
 } from "@/lib/types/pull-request.types";
 import { ROUTES } from "@/routes";
 
-import FilterChip from "../FilterChip";
 import PullRequestEmptyState from "./PullRequestEmptyState";
 import PullRequestListSkeleton from "./PullRequestListSkeleton";
 

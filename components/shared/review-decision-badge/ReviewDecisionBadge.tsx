@@ -18,7 +18,7 @@ interface ReviewDecisionBadgeProps {
 const ReviewDecisionBadge = React.memo(
   ({ decision, outdated = false, className }: ReviewDecisionBadgeProps) => (
     <Badge
-      tone={decision === "approve" ? "green" : "red"}
+      tone={decision === "approve" ? "green" : "orange"}
       title={outdated ? REVIEW_OUTDATED_LABEL : undefined}
       className={classNames({ "opacity-50": outdated }, className)}
     >
