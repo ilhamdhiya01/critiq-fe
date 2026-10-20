@@ -3,14 +3,11 @@
 import React, { useCallback, useEffect, useRef } from "react";
 
 import Badge from "@/components/ui/badge";
-import Icon from "@/components/ui/icon/Icon";
 import {
   FINDING_SEVERITY_STYLE,
   FINDING_SOURCE_LABEL,
   FINDING_SOURCE_STYLE,
-  getFindingIcon,
 } from "@/const/pull-request.constant";
-import { getDiffLineElementId } from "@/lib/helpers/diff.helper";
 import type { Finding } from "@/lib/types/pull-request.types";
 import { useDiffJumpStore } from "@/stores/useDiffJumpStore";
 
@@ -35,13 +32,9 @@ const FindingItem = React.memo(({ finding, canJump }: FindingItemProps) => {
     };
   }, []);
 
+  // The diff is virtualised (the row may not be rendered yet), so it scrolls
+  // itself to the target; this only sets it.
   const handleJump = useCallback(() => {
-    const element = document.getElementById(
-      getDiffLineElementId(finding.filePath, finding.lineStart),
-    );
-    if (!element) return;
-
-    element.scrollIntoView({ behavior: "smooth", block: "center" });
     setTarget({ filePath: finding.filePath, line: finding.lineStart });
 
     // Restart the fade on every jump, so clicking a second finding does not

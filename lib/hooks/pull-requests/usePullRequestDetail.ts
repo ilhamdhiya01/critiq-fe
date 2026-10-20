@@ -1,12 +1,18 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { REPO_SCAN_POLL_INTERVAL_MS } from "@/const/repository.constant";
+import { sortReviewers } from "@/lib/helpers/pull-request.helper";
 import { useLivePollInterval } from "@/lib/hooks/useLivePollInterval";
 import type { ApiResponse } from "@/lib/types/api.types";
 import type { PullRequestDetail } from "@/lib/types/pull-request.types";
 import { getPullRequestDetail } from "@/services/pull-requests.service";
 
 import { pullRequestKeys } from "./queryKeys";
+
+const selectDetail = (response: ApiResponse<PullRequestDetail>) => ({
+  ...response.data,
+  reviewers: sortReviewers(response.data.reviewers ?? []),
+});
 
 export const usePullRequestDetail = (
   orgId: string,
@@ -37,14 +43,14 @@ export const usePullRequestDetail = (
 
       return response;
     },
-    select: (response) => response.data,
+    select: selectDetail,
     enabled: !!orgId && !!repoId && !!id,
-    // Poll while a scan runs or the latest review is still syncing to the
-    // provider.
+    // Poll while a scan runs or a review is still syncing to the provider.
     refetchInterval: (query) => {
       const detail = query.state.data?.data;
       return detail?.activeScan ||
-        detail?.latestReview?.sync.status === "pending"
+        detail?.latestReview?.sync.status === "pending" ||
+        detail?.reviewers?.some((entry) => entry.sync.status === "pending")
         ? poll.active(REPO_SCAN_POLL_INTERVAL_MS)
         : false;
     },

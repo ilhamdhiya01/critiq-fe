@@ -32,12 +32,27 @@ export const useRetryReviewSync = (
       queryClient.setQueryData<ApiResponse<PullRequestDetail>>(
         pullRequestKeys.detail(orgId, repoId, id),
         (current) =>
-          current?.data.latestReview?.id === response.data.id
-            ? {
-                ...current,
-                data: { ...current.data, latestReview: response.data },
-              }
-            : current,
+          current && {
+            ...current,
+            data: {
+              ...current.data,
+              latestReview:
+                current.data.latestReview?.id === response.data.id
+                  ? response.data
+                  : current.data.latestReview,
+              reviewers: current.data.reviewers?.map((entry) =>
+                entry.reviewId === response.data.id
+                  ? {
+                      ...entry,
+                      sync: {
+                        status: response.data.sync.status,
+                        error: response.data.sync.error,
+                      },
+                    }
+                  : entry,
+              ),
+            },
+          },
       );
       queryClient.invalidateQueries({
         queryKey: pullRequestKeys.reviews(orgId, repoId, id),
@@ -56,5 +71,7 @@ export const useRetryReviewSync = (
   return {
     handleRetrySync: mutation.mutate,
     isRetrying: mutation.isPending,
+    // Which row's Retry is spinning.
+    retryingReviewId: mutation.isPending ? mutation.variables : undefined,
   };
 };

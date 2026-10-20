@@ -14,9 +14,14 @@ import {
 import { PROVIDER_NAME } from "@/const/repository.constant";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import type { Role } from "@/lib/types/auth.types";
-import type { PullRequestDetail } from "@/lib/types/pull-request.types";
+import type {
+  PullRequestDetail,
+  PullRequestReviewer,
+} from "@/lib/types/pull-request.types";
 
-import LatestReviewStatus from "./LatestReviewStatus";
+import ReviewersSummary from "./ReviewersSummary";
+
+const NO_REVIEWERS: PullRequestReviewer[] = [];
 
 interface PullRequestDetailHeaderProps {
   detail: PullRequestDetail;
@@ -73,16 +78,14 @@ const PullRequestDetailHeader = React.memo(
           </span>
         </div>
 
-        {detail.latestReview && (
-          <LatestReviewStatus
-            orgId={orgId}
-            repoId={detail.repositoryId}
-            pullId={detail.id}
-            review={detail.latestReview}
-            providerName={PROVIDER_NAME[detail.provider]}
-            canRetry={role === "ADMIN" || role === "REVIEWER"}
-          />
-        )}
+        <ReviewersSummary
+          orgId={orgId}
+          repoId={detail.repositoryId}
+          pullId={detail.id}
+          reviewers={detail.reviewers ?? NO_REVIEWERS}
+          providerName={PROVIDER_NAME[detail.provider]}
+          canRetry={role === "ADMIN" || role === "REVIEWER"}
+        />
       </div>
     );
   },

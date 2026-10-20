@@ -12,6 +12,7 @@ import type {
   CommentSide,
   DiffLine,
   PullRequestReview,
+  PullRequestReviewer,
   PullRequestState,
   PullRequestSummary,
 } from "@/lib/types/pull-request.types";
@@ -201,3 +202,61 @@ export const getDiffLinePosition = (
   }
   return null;
 };
+
+// Decisions on the current commit first, then outdated ones; newest first
+// within each group.
+export const sortReviewers = (
+  reviewers: readonly PullRequestReviewer[],
+): PullRequestReviewer[] =>
+  [...reviewers].sort(
+    (a, b) =>
+      Number(a.outdated) - Number(b.outdated) ||
+      Date.parse(b.createdAt) - Date.parse(a.createdAt),
+  );
+
+export interface ReviewersOverview {
+  // Decisions on the current commit, in display order.
+  current: PullRequestReviewer[];
+  approvals: number;
+  changeRequests: number;
+  outdated: number;
+}
+
+// Counts for the one-line summary. Outdated decisions are only counted.
+export const getReviewersOverview = (
+  reviewers: readonly PullRequestReviewer[],
+): ReviewersOverview => {
+  const current = reviewers.filter((entry) => !entry.outdated);
+  const approvals = current.filter(
+    (entry) => entry.decision === "approve",
+  ).length;
+  return {
+    current,
+    approvals,
+    changeRequests: current.length - approvals,
+    outdated: reviewers.length - current.length,
+  };
+};
+
+// A decision just submitted replaces that reviewer's entry and goes on top
+// (it's on the current commit).
+export const upsertReviewer = (
+  reviewers: readonly PullRequestReviewer[] | undefined,
+  review: PullRequestReview,
+): PullRequestReviewer[] => [
+  {
+    reviewId: review.id,
+    reviewer: review.reviewer,
+    decision: review.decision,
+    headSha: review.headSha,
+    outdated: review.outdated,
+    aiAssisted: review.aiAssisted ?? false,
+    sync: { status: review.sync.status, error: review.sync.error },
+    createdAt: review.createdAt,
+  },
+  ...(reviewers ?? []).filter(
+    (entry) =>
+      entry.reviewId !== review.id &&
+      (!review.reviewer || entry.reviewer?.id !== review.reviewer.id),
+  ),
+];

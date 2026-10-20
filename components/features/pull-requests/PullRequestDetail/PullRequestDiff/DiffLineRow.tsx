@@ -74,8 +74,6 @@ interface DiffLineRowProps {
   isActive: boolean;
   onSelect: (index: number) => void;
   flag?: DiffLineFlag;
-  /** Set on lines a finding can link to, so the card can scroll here. */
-  elementId?: string;
   /** Briefly true right after being jumped to, to draw the eye. */
   isHighlighted?: boolean;
   /** Comment threads anchored to this line. */
@@ -90,7 +88,6 @@ const DiffLineRow = React.memo(
     isActive,
     onSelect,
     flag,
-    elementId,
     isHighlighted = false,
     commentCount = 0,
     isSelectable = false,
@@ -110,7 +107,6 @@ const DiffLineRow = React.memo(
 
     return (
       <div
-        id={elementId}
         className={classNames(row(), {
           // Ring rather than background: the flagged-line tint already owns
           // the background, and a ring reads on top of every row variant.
