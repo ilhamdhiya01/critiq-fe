@@ -177,6 +177,7 @@ describe("RealtimeProvider", () => {
       ["dashboard"],
       ["activity"],
       ["members"],
+      ["insights"],
     ]);
   });
 

@@ -8,6 +8,7 @@ import {
   REVIEW_ERROR_MESSAGE,
 } from "@/const/pull-request.constant";
 import { getErrorCode } from "@/lib/helpers/integration.helper";
+import { upsertReviewer } from "@/lib/helpers/pull-request.helper";
 import { repositoryKeys } from "@/lib/hooks/repositories/queryKeys";
 import { toast } from "@/lib/toast";
 import type { ApiResponse, ErrorResponse } from "@/lib/types/api.types";
@@ -44,7 +45,11 @@ export const useSubmitReview = (orgId: string, repoId: string, id: string) => {
         (current) =>
           current && {
             ...current,
-            data: { ...current.data, latestReview: response.data },
+            data: {
+              ...current.data,
+              latestReview: response.data,
+              reviewers: upsertReviewer(current.data.reviewers, response.data),
+            },
           },
       );
       // Newest first: my decision shows in the panel before the refetch.

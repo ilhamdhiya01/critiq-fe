@@ -20,6 +20,7 @@ const PR_LIST = ["pull-requests", "list", "org_1"];
 const REPO_ORG = ["repositories", "org", "org_1"];
 const DASHBOARD = ["dashboard", "org_1"];
 const ACTIVITY = ["activity", "org_1"];
+const INSIGHTS = ["insights", "org_1"];
 
 describe("getEventInvalidations", () => {
   it("scan.updated while running refreshes the PR and repo views only", () => {
@@ -51,6 +52,7 @@ describe("getEventInvalidations", () => {
       "org_1",
     );
     expect(keys).not.toContainEqual(DASHBOARD);
+    expect(keys).not.toContainEqual(INSIGHTS);
   });
 
   it.each([
@@ -73,7 +75,9 @@ describe("getEventInvalidations", () => {
         },
         "org_1",
       );
-      expect(keys).toEqual(expect.arrayContaining([DIFF, REPO_ORG, DASHBOARD]));
+      expect(keys).toEqual(
+        expect.arrayContaining([DIFF, REPO_ORG, DASHBOARD, INSIGHTS]),
+      );
     },
   );
 
@@ -233,6 +237,7 @@ describe("getEventInvalidations", () => {
       ["dashboard"],
       ["activity"],
       ["members"],
+      ["insights"],
     ]);
   });
 });

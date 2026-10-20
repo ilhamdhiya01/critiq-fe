@@ -59,6 +59,9 @@ export const API_INVITE_ACCEPT = (token: string) =>
 export const API_ORG_ACTIVITY = (orgId: string) =>
   `${API_ORG}/${orgId}/activity`;
 
+// Insights (trends over the last weeks)
+export const API_INSIGHTS = (orgId: string) => `${API_ORG}/${orgId}/insights`;
+
 // Dashboard
 export const API_DASHBOARD_SUMMARY = (orgId: string) =>
   `${API_ORG}/${orgId}/dashboard/summary`;

@@ -4,6 +4,7 @@ import { REALTIME_SAFETY_POLL_MS } from "@/const/realtime.constant";
 import { activityKeys } from "@/lib/hooks/activity/queryKeys";
 import { aiSettingsKeys } from "@/lib/hooks/ai-settings/queryKeys";
 import { dashboardKeys } from "@/lib/hooks/dashboard/queryKeys";
+import { insightsKeys } from "@/lib/hooks/insights/queryKeys";
 import {
   integrationKeys,
   membershipWithOrgKeys,
@@ -50,6 +51,7 @@ export const getEventInvalidations = (
           pullRequestKeys.diff(orgId, repoId, pullId),
           repositoryKeys.org(orgId),
           dashboardKeys.org(orgId),
+          insightsKeys.org(orgId),
         );
       }
       return keys;
@@ -138,6 +140,7 @@ export const RECONNECT_INVALIDATIONS: QueryKey[] = [
   dashboardKeys.all,
   activityKeys.all,
   membersKeys.all,
+  insightsKeys.all,
 ];
 
 // "active": polling while something is in flight (scan, AI, sync). With the

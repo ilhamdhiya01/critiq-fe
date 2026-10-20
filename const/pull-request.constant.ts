@@ -284,6 +284,10 @@ export const REVIEW_DECISION_LABEL: Record<ReviewDecision, string> = {
 
 export const REVIEW_OUTDATED_LABEL = "Outdated — new commits since this review";
 
+// Reviewers list on the PR detail.
+export const REVIEWER_OUTDATED_TOOLTIP = "Reviewed an older commit";
+export const DELETED_REVIEWER_NAME = "Deleted user";
+
 // Error codes from POST …/review (`{ message: <code> }`).
 export const REVIEW_ERROR_MESSAGE: Record<string, string> = {
   head_changed:
