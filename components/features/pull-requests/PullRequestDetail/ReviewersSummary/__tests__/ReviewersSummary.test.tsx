@@ -66,8 +66,8 @@ describe("ReviewersSummary", () => {
       entry("Tom", { outdated: true }),
     ]);
 
-    expect(screen.getByText("✓ 2 approvals")).toBeInTheDocument();
-    expect(screen.getByText("✗ 1 changes requested")).toBeInTheDocument();
+    expect(screen.getByText("2 approvals")).toBeInTheDocument();
+    expect(screen.getByText("1 changes requested")).toBeInTheDocument();
     expect(screen.getByText("1 outdated")).toHaveAttribute(
       "title",
       "Reviewed an older commit",
@@ -87,7 +87,7 @@ describe("ReviewersSummary", () => {
   it("uses the singular and drops a zero count", () => {
     renderSummary([entry("Ilham")]);
 
-    expect(screen.getByText("✓ 1 approval")).toBeInTheDocument();
+    expect(screen.getByText("1 approval")).toBeInTheDocument();
     expect(screen.queryByText(/changes requested/)).not.toBeInTheDocument();
     expect(screen.queryByText(/outdated/)).not.toBeInTheDocument();
   });

@@ -1,12 +1,13 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import BackLink from "@/components/shared/back-link";
 import ScrollToTop from "@/components/shared/scroll-to-top";
 import StateStatus from "@/components/shared/state-status";
 import {
+  PR_REVIEW_SECTION_ID,
   REVIEW_MODE_COPY,
   SCROLL_TO_TOP_MIN_DIFF_FILES,
 } from "@/const/pull-request.constant";
@@ -35,6 +36,7 @@ import PullRequestDetailHeader from "./PullRequestDetailHeader";
 import PullRequestDetailSkeleton from "./PullRequestDetailSkeleton";
 import PullRequestDiff from "./PullRequestDiff";
 import PullRequestDiscussion from "./PullRequestDiscussion";
+import PullRequestStickyBar from "./PullRequestStickyBar";
 import ReviewHistory from "./ReviewHistory";
 import ReviewModeToggle from "./ReviewModeToggle";
 import ReviewSection from "./ReviewSection";
@@ -71,6 +73,9 @@ const PullRequestDetail = React.memo(
 
     const { data: summary, isLoading: isLoadingSummary } =
       usePullRequestSummary(orgId ?? "", repoId, id);
+
+    // The compact sticky bar shows once this has scrolled out of view.
+    const headerRef = useRef<HTMLDivElement>(null);
 
     // Only used when the policy opens both tabs (REQUIRE_BOTH). Not
     // persisted — the BE has no per-PR mode yet.
@@ -162,16 +167,26 @@ const PullRequestDetail = React.memo(
 
     return (
       <div className="flex flex-col gap-4">
+        <PullRequestStickyBar
+          targetRef={headerRef}
+          detail={data}
+          additions={additions}
+          deletions={deletions}
+          role={membership?.role}
+        />
+
         <BackLink
           href={ROUTES.pullRequests(slug)}
           label="Kembali ke Pull Requests"
         />
 
-        <PullRequestDetailHeader
-          detail={data}
-          orgId={orgId ?? ""}
-          role={membership?.role}
-        />
+        <div ref={headerRef}>
+          <PullRequestDetailHeader
+            detail={data}
+            orgId={orgId ?? ""}
+            role={membership?.role}
+          />
+        </div>
 
         <UncheckedTiersNotice
           tiers={data.latestScan?.uncheckedTiers}
@@ -238,13 +253,19 @@ const PullRequestDetail = React.memo(
 
         <OutdatedComments scope={commentScope} />
 
-        <ReviewSection
-          key={data.headSha ?? "no-head"}
-          orgId={orgId ?? ""}
-          detail={data}
-          summaryAiStatus={summary?.aiStatus}
-          role={membership?.role}
-        />
+        {/* Clears the sticky bar when its "Review" button jumps here. */}
+        <div
+          id={PR_REVIEW_SECTION_ID}
+          className="flex scroll-mt-20 flex-col gap-4 empty:hidden"
+        >
+          <ReviewSection
+            key={data.headSha ?? "no-head"}
+            orgId={orgId ?? ""}
+            detail={data}
+            summaryAiStatus={summary?.aiStatus}
+            role={membership?.role}
+          />
+        </div>
 
         <ReviewHistory orgId={orgId ?? ""} repoId={repoId} pullId={id} />
 

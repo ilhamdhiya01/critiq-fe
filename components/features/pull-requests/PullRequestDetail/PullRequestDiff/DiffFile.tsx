@@ -84,16 +84,18 @@ const DiffFile = React.memo(
 
     return (
       <div>
+        {/* Sticks flush under the PR sticky bar until the next file (top-9:
+            see PullRequestStickyBar). */}
         <div
           className={classNames(
-            "flex items-center justify-between border-b border-border-subtle px-5 py-3",
-            { "border-t bg-sunken": !isFirst },
+            "sticky top-9 z-20 flex items-center justify-between gap-4 border-b border-border-subtle px-5 py-3",
+            { "bg-surface": isFirst, "border-t bg-sunken": !isFirst },
           )}
         >
-          <span className="font-mono text-[12.5px] font-semibold text-text-strong">
+          <span className="min-w-0 truncate font-mono text-[12.5px] font-semibold text-text-strong">
             {displayPath}
           </span>
-          <span className="font-mono text-[11px] text-text-faint">
+          <span className="shrink-0 font-mono text-[11px] text-text-faint">
             UNIFIED · +{file.addedCount} −{file.removedCount}
             {isFirst && canStartThread && " · KLIK BARIS UNTUK KOMENTAR"}
           </span>

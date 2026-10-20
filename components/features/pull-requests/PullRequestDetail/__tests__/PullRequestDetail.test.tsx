@@ -140,8 +140,9 @@ describe("PullRequestDetail", { timeout: 15_000 }, () => {
       </QueryClientProvider>,
     );
 
+    // Also in the (hidden) sticky bar.
     expect(
-      screen.getByText(/Fix decorator syntax for Injectable/),
+      screen.getAllByText(/Fix decorator syntax for Injectable/)[0],
     ).toBeInTheDocument();
     for (const text of [
       "Quality gate",

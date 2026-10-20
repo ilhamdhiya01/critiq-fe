@@ -42,7 +42,9 @@ const PullRequestDiff = React.memo(
     }
 
     return (
-      <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
+      // overflow-clip (not hidden) keeps the rounded corners without breaking
+      // the sticky file headers.
+      <div className="overflow-clip rounded-lg border border-border-subtle bg-surface">
         {files.map((file, index) => (
           <DiffFile
             key={file.path}

@@ -284,6 +284,16 @@ export const REVIEW_DECISION_LABEL: Record<ReviewDecision, string> = {
 
 export const REVIEW_OUTDATED_LABEL = "Outdated — new commits since this review";
 
+// Sticky bar meta line, GitHub style: "{author} wants to merge into …".
+export const PULL_REQUEST_MERGE_VERB: Record<PullRequestState, string> = {
+  OPEN: "wants to merge into",
+  MERGED: "merged into",
+  CLOSED: "wanted to merge into",
+};
+
+// Anchor the sticky bar's "Review" button scrolls to.
+export const PR_REVIEW_SECTION_ID = "pr-review";
+
 // Reviewers list on the PR detail.
 export const REVIEWER_OUTDATED_TOOLTIP = "Reviewed an older commit";
 export const DELETED_REVIEWER_NAME = "Deleted user";
