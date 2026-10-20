@@ -17,6 +17,7 @@ const badge = tv({
       orange: "border-warning/40 bg-warning/10 text-warning-light",
       red: "border-danger/40 bg-danger/10 text-danger-light",
       primary: "border-primary-500/45 bg-primary-500/12 text-primary-300",
+      info: "border-info/40 bg-info/12 text-info-light",
       gitlab: "border-vendor-gitlab/50 bg-vendor-gitlab/15 text-vendor-gitlab",
       // Colours come from `palette` (the *_STYLE maps in const/).
       custom: "",

@@ -1,12 +1,22 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import React from "react";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import React, { useEffect } from "react";
 
 import StateStatus from "@/components/shared/state-status";
 import Notice from "@/components/ui/notice";
 import Skeleton from "@/components/ui/skeleton";
-import { RULE_TIER_IDS } from "@/const/rules.constant";
+import {
+  getRuleTierElementId,
+  isKnownRuleTier,
+  RULE_TIER_HIGHLIGHT_MS,
+  RULE_TIER_IDS,
+} from "@/const/rules.constant";
 import { formatDateTime } from "@/lib/helpers/date.helper";
 import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
 import { useOrgRules } from "@/lib/hooks/rules/useOrgRules";
@@ -26,6 +36,26 @@ const RulesView = React.memo(({ orgId }: RulesViewProps) => {
 
   const { data: rules, isLoading, isError } = useOrgRules(orgId);
   const { updateTier, pendingTier } = useUpdateOrgRules(orgId);
+
+  // Opened from global search (?tier=…): scroll to that tier and highlight it
+  // briefly, then drop the param so the same search can highlight it again.
+  const router = useRouter();
+  const pathname = usePathname();
+  const tierParam = useSearchParams().get("tier");
+  const highlightedTier =
+    tierParam && isKnownRuleTier(tierParam) ? tierParam : null;
+
+  useEffect(() => {
+    if (!rules || !highlightedTier) return;
+    document
+      .getElementById(getRuleTierElementId(highlightedTier))
+      ?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    const timer = window.setTimeout(
+      () => router.replace(pathname, { scroll: false }),
+      RULE_TIER_HIGHLIGHT_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [rules, highlightedTier, router, pathname]);
 
   const handleToggle = React.useCallback(
     (tier: RuleTier, enabled: boolean) =>
@@ -60,6 +90,7 @@ const RulesView = React.memo(({ orgId }: RulesViewProps) => {
             tier={tier}
             canEdit={isAdmin}
             pending={pendingTier === tier.id}
+            isHighlighted={highlightedTier === tier.id}
             onToggle={handleToggle}
           />
         ))}

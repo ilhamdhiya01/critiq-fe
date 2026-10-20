@@ -1,9 +1,14 @@
+import classNames from "classnames";
 import React from "react";
 
 import Badge from "@/components/ui/badge";
 import Icon from "@/components/ui/icon/Icon";
 import Switch from "@/components/ui/switch";
-import { RULE_ENGINE_LABEL, RULE_TIER_META } from "@/const/rules.constant";
+import {
+  getRuleTierElementId,
+  RULE_ENGINE_LABEL,
+  RULE_TIER_META,
+} from "@/const/rules.constant";
 import type { RuleTier } from "@/lib/types/rules.types";
 
 interface RuleTierRowProps {
@@ -12,10 +17,18 @@ interface RuleTierRowProps {
   canEdit: boolean;
   pending: boolean;
   onToggle: (tier: RuleTier, enabled: boolean) => void;
+  // Briefly true when opened from global search.
+  isHighlighted?: boolean;
 }
 
 const RuleTierRow = React.memo(
-  ({ tier, canEdit, pending, onToggle }: RuleTierRowProps) => {
+  ({
+    tier,
+    canEdit,
+    pending,
+    onToggle,
+    isHighlighted = false,
+  }: RuleTierRowProps) => {
     const meta = RULE_TIER_META[tier.id];
 
     const handleToggle = React.useCallback(
@@ -24,7 +37,14 @@ const RuleTierRow = React.memo(
     );
 
     return (
-      <div className="flex items-start justify-between gap-4 py-3.5">
+      <div
+        id={getRuleTierElementId(tier.id)}
+        data-highlighted={isHighlighted || undefined}
+        className={classNames(
+          "-mx-3 flex scroll-mt-20 items-start justify-between gap-4 rounded-md px-3 py-3.5 transition-colors duration-500 motion-reduce:transition-none",
+          { "bg-primary-500/10 ring-1 ring-primary-500/40": isHighlighted },
+        )}
+      >
         <div className="flex items-start gap-3">
           <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border-default bg-raised text-text-secondary">
             <Icon icon={meta.icon} size={15} />

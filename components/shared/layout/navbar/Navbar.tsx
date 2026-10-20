@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useMemo } from "react";
 
 import DropdownMenu from "@/components/shared/dropdown-menu";
+import GlobalSearch from "@/components/shared/global-search";
 import Avatar from "@/components/ui/avatar";
 import Icon from "@/components/ui/icon/Icon";
 import { useLogout } from "@/lib/hooks/auth/useLogout";
@@ -14,8 +15,8 @@ interface NavbarProps {
   title: string;
 }
 
-// Search and notifications are presentational for now — they render at the
-// mockup's fidelity but carry no behaviour yet. The profile menu signs out.
+// Notifications are presentational for now. Search opens the ⌘K palette; the
+// profile menu signs out.
 const Navbar = React.memo(({ title }: NavbarProps) => {
   const router = useRouter();
   const { data: user } = useUser();
@@ -47,19 +48,7 @@ const Navbar = React.memo(({ title }: NavbarProps) => {
 
       <div className="flex-1" />
 
-      <div className="flex w-70 items-center gap-2 rounded-[7px] border border-border-default bg-raised px-3 py-1.5">
-        <Icon
-          icon="TbSearch"
-          size={14}
-          className="shrink-0 stroke-[1.8] text-text-muted"
-        />
-        <span className="flex-1 truncate text-[12.5px] text-text-placeholder">
-          Search repos, PRs, rules…
-        </span>
-        <span className="shrink-0 rounded border border-border-default px-1.5 font-mono text-[10px] text-text-placeholder">
-          ⌘K
-        </span>
-      </div>
+      <GlobalSearch />
 
       <span className="relative flex text-text-nav">
         <Icon icon="TbBell" size={18} className="stroke-[1.5]" />

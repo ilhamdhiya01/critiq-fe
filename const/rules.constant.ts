@@ -54,6 +54,11 @@ export const RULE_ENGINE_LABEL: Record<RuleTierEngine, string> = {
   "static+ai": "Static + AI",
 };
 
+// How long a tier opened from search (?tier=) stays highlighted.
+export const RULE_TIER_HIGHLIGHT_MS = 2000;
+
+export const getRuleTierElementId = (tier: string) => `rule-tier-${tier}`;
+
 export const RULE_TIER_IDS = Object.keys(RULE_TIER_META) as RuleTierId[];
 
 // Older BE versions may still send tiers that were removed (e.g. "ci").

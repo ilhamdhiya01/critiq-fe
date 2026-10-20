@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,8 +17,15 @@ import RulesView from "../RulesView";
 
 let currentRole: Role = "ADMIN";
 
+let tierParam: string | null = null;
+const replace = vi.fn();
+
 vi.mock("next/navigation", () => ({
   useParams: () => ({ slug: "acme" }),
+  useRouter: () => ({ replace }),
+  usePathname: () => "/acme/rules",
+  useSearchParams: () =>
+    new URLSearchParams(tierParam ? { tier: tierParam } : {}),
 }));
 
 vi.mock("@/lib/hooks/organisation/useOrgBySlug", () => ({
@@ -160,5 +173,50 @@ describe("RulesView", { timeout: 15_000 }, () => {
     expect(
       await screen.findByText("Gagal memuat quality profile"),
     ).toBeTruthy();
+  });
+
+  it("scrolls to and briefly highlights the tier opened from search", async () => {
+    vi.mocked(getOrgRules).mockResolvedValue({ data: RULES });
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    tierParam = "breaking_change";
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    try {
+      renderView();
+
+      await waitFor(() =>
+        expect(
+          document.getElementById("rule-tier-breaking_change"),
+        ).toHaveAttribute("data-highlighted"),
+      );
+      expect(scrollIntoView).toHaveBeenCalledWith(
+        expect.objectContaining({ block: "center" }),
+      );
+      expect(document.getElementById("rule-tier-secrets")).not.toHaveAttribute(
+        "data-highlighted",
+      );
+
+      // The param is dropped afterwards so the same search highlights again.
+      act(() => vi.advanceTimersByTime(2000));
+      expect(replace).toHaveBeenCalledWith("/acme/rules", { scroll: false });
+    } finally {
+      vi.useRealTimers();
+      tierParam = null;
+    }
+  });
+
+  it("ignores an unknown tier param", async () => {
+    vi.mocked(getOrgRules).mockResolvedValue({ data: RULES });
+    tierParam = "ci";
+
+    try {
+      renderView();
+      await screen.findByText("Secrets");
+
+      expect(document.querySelector("[data-highlighted]")).toBeNull();
+    } finally {
+      tierParam = null;
+    }
   });
 });

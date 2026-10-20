@@ -11,6 +11,12 @@ const replace = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, push: vi.fn() }),
+  useParams: () => ({ slug: "acme" }),
+}));
+
+// The navbar's search reads the active org.
+vi.mock("@/lib/hooks/organisation/useOrgBySlug", () => ({
+  useOrgBySlug: () => ({ orgId: "org_1" }),
 }));
 
 vi.mock("@/lib/toast", () => ({

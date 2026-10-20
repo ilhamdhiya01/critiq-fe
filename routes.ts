@@ -59,6 +59,9 @@ export const API_INVITE_ACCEPT = (token: string) =>
 export const API_ORG_ACTIVITY = (orgId: string) =>
   `${API_ORG}/${orgId}/activity`;
 
+// Global search (⌘K): repos, PRs and rules
+export const API_ORG_SEARCH = (orgId: string) => `${API_ORG}/${orgId}/search`;
+
 // Insights (trends over the last weeks)
 export const API_INSIGHTS = (orgId: string) => `${API_ORG}/${orgId}/insights`;
 
