@@ -13,7 +13,7 @@ import React, {
   useState,
 } from "react";
 
-import StateStatus from "@/components/shared/state-status";
+import EmptyState from "@/components/shared/empty-state";
 import {
   buildDiffList,
   type DiffListItem,
@@ -234,7 +234,13 @@ const PullRequestDiff = React.memo(
     }, [jumpTarget, list, virtualizer]);
 
     if (files.length === 0) {
-      return <StateStatus title="Tidak ada perubahan file" />;
+      return (
+        <EmptyState
+          size="page"
+          icon="TbFileDiff"
+          title="Tidak ada perubahan file"
+        />
+      );
     }
 
     // Pinned header overlay: the file whose header has scrolled under the

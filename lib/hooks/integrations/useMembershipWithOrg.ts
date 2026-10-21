@@ -7,7 +7,9 @@ import { useOnboardingStore } from "@/stores/onboarding/useOnboardingStore";
 
 import { membershipWithOrgKeys } from "./queryKeys";
 
-export const useMembershipWithOrg = (activeOrgId: string) => {
+// Fills the wizard with the org being set up (`orgId`; skip it with
+// `undefined` when starting a new one).
+export const useMembershipWithOrg = (orgId: string | undefined) => {
   const { setOrganisationSaved, setOrganisationName } = useOnboardingStore(
     useShallow((state) => ({
       setOrganisationName: state.setOrganisationName,
@@ -21,9 +23,9 @@ export const useMembershipWithOrg = (activeOrgId: string) => {
     retry: false,
   });
 
-  const activeOrganization = response?.data.find(
-    (item) => item.organizationId === activeOrgId,
-  );
+  const activeOrganization = orgId
+    ? response?.data.find((item) => item.organizationId === orgId)
+    : undefined;
 
   useEffect(() => {
     if (activeOrganization) {
@@ -31,6 +33,7 @@ export const useMembershipWithOrg = (activeOrgId: string) => {
       setOrganisationSaved({
         id: activeOrganization.organizationId,
         name: activeOrganization.organization.name,
+        slug: activeOrganization.organization.slug,
       });
     }
   }, [activeOrganization, setOrganisationName, setOrganisationSaved]);

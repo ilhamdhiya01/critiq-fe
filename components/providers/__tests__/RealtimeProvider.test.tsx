@@ -4,18 +4,11 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useRealtimeStatus } from "@/lib/hooks/useRealtimeStatus";
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 
 import RealtimeProvider from "../RealtimeProvider";
 
 let currentOrgId: string | undefined = "org_1";
-
-vi.mock("next/navigation", () => ({
-  useParams: () => ({ slug: "acme" }),
-}));
-
-vi.mock("@/lib/hooks/organisation/useOrgBySlug", () => ({
-  useOrgBySlug: () => ({ orgId: currentOrgId }),
-}));
 
 type Listener = (event: { data: string }) => void;
 
@@ -67,9 +60,11 @@ const StatusProbe = () => <span>{useRealtimeStatus()}</span>;
 
 const tree = (client: QueryClient) => (
   <QueryClientProvider client={client}>
-    <RealtimeProvider>
-      <StatusProbe />
-    </RealtimeProvider>
+    <ActiveOrgTestProvider orgId={currentOrgId}>
+      <RealtimeProvider>
+        <StatusProbe />
+      </RealtimeProvider>
+    </ActiveOrgTestProvider>
   </QueryClientProvider>
 );
 

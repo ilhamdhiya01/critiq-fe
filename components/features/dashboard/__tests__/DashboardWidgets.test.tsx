@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import type { DashboardSummary } from "@/lib/types/dashboard.types";
 import {
   getDashboardCriticalIssues,
@@ -58,7 +59,7 @@ const renderWidget = (widget: React.ReactElement) =>
         new QueryClient({ defaultOptions: { queries: { retry: false } } })
       }
     >
-      {widget}
+      <ActiveOrgTestProvider orgId="org_1">{widget}</ActiveOrgTestProvider>
     </QueryClientProvider>,
   );
 
@@ -83,7 +84,7 @@ describe("Dashboard widgets", { timeout: 15_000 }, () => {
   describe("SummaryCards", () => {
     it("shows the three KPIs with their hints", async () => {
       vi.mocked(getDashboardSummary).mockResolvedValue({ data: SUMMARY });
-      renderWidget(<SummaryCards orgId="org_1" />);
+      renderWidget(<SummaryCards />);
 
       expect(await screen.findByText("4.6 h")).toBeInTheDocument();
       expect(screen.getByText("↓ 38 min")).toHaveClass("text-success-light");
@@ -100,7 +101,7 @@ describe("Dashboard widgets", { timeout: 15_000 }, () => {
           reviewTurnaround: { avgHours: null, previousAvgHours: 2 },
         },
       });
-      renderWidget(<SummaryCards orgId="org_1" />);
+      renderWidget(<SummaryCards />);
 
       expect(await screen.findByText("—")).toBeInTheDocument();
       expect(screen.queryByText(/vs last week/)).not.toBeInTheDocument();
@@ -111,7 +112,7 @@ describe("Dashboard widgets", { timeout: 15_000 }, () => {
   describe("CriticalIssues", () => {
     it("shows an empty state", async () => {
       vi.mocked(getDashboardCriticalIssues).mockResolvedValue({ data: [] });
-      renderWidget(<CriticalIssues orgId="org_1" />);
+      renderWidget(<CriticalIssues />);
 
       expect(
         await screen.findByText("No critical issues in open PRs"),
@@ -133,7 +134,7 @@ describe("Dashboard widgets", { timeout: 15_000 }, () => {
           },
         ],
       });
-      renderWidget(<CriticalIssues orgId="org_1" />);
+      renderWidget(<CriticalIssues />);
 
       const title = await screen.findByText("Hard-coded JWT fallback secret");
       expect(title.closest("a")).toHaveAttribute(
@@ -153,7 +154,7 @@ describe("Dashboard widgets", { timeout: 15_000 }, () => {
   describe("RecentActivity", () => {
     it("shows an empty state", async () => {
       vi.mocked(getDashboardRecentReviews).mockResolvedValue({ data: [] });
-      renderWidget(<RecentActivity orgId="org_1" />);
+      renderWidget(<RecentActivity />);
 
       expect(await screen.findByText("No reviews yet")).toBeInTheDocument();
     });
@@ -181,7 +182,7 @@ describe("Dashboard widgets", { timeout: 15_000 }, () => {
           },
         ],
       });
-      renderWidget(<RecentActivity orgId="org_1" />);
+      renderWidget(<RecentActivity />);
 
       expect(await screen.findByText("Deleted user")).toBeInTheDocument();
       expect(screen.getByText("Priya Natarajan")).toBeInTheDocument();
@@ -196,7 +197,7 @@ describe("Dashboard widgets", { timeout: 15_000 }, () => {
   describe("ReviewStats", () => {
     it("splits AI-assisted vs manual", async () => {
       vi.mocked(getDashboardSummary).mockResolvedValue({ data: SUMMARY });
-      renderWidget(<ReviewStats orgId="org_1" />);
+      renderWidget(<ReviewStats />);
 
       expect(await screen.findByText("442")).toBeInTheDocument();
       expect(screen.getByText("AI-assisted · 284 (64%)")).toBeInTheDocument();
@@ -216,7 +217,7 @@ describe("Dashboard widgets", { timeout: 15_000 }, () => {
           },
         },
       });
-      renderWidget(<ReviewStats orgId="org_1" />);
+      renderWidget(<ReviewStats />);
 
       expect(
         await screen.findByRole("img", { name: "No reviews yet" }),

@@ -19,6 +19,7 @@ import {
   type InsightsTrend,
 } from "@/lib/helpers/insights.helper";
 import { useInsights } from "@/lib/hooks/insights/useInsights";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 
 const renderTrend = (trend: InsightsTrend | null) => {
   if (!trend) return null;
@@ -43,71 +44,66 @@ const renderTrend = (trend: InsightsTrend | null) => {
   );
 };
 
-interface InsightsSummaryCardsProps {
-  orgId?: string;
-}
+const InsightsSummaryCards = React.memo(() => {
+  const orgId = useActiveOrgId();
+  const { data, isLoading, isError } = useInsights(orgId);
 
-const InsightsSummaryCards = React.memo(
-  ({ orgId }: InsightsSummaryCardsProps) => {
-    const { data, isLoading, isError } = useInsights(orgId);
-
-    if (isError) {
-      return (
-        <div className="rounded-lg border border-border-subtle bg-surface">
-          <SectionMessage tone="danger">
-            Couldn&apos;t load insights.
-          </SectionMessage>
-        </div>
-      );
-    }
-
-    if (isLoading || !data) {
-      return (
-        <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
-          {Array.from({ length: 3 }, (_, index) => (
-            <Skeleton key={index} className="h-24 rounded-lg" />
-          ))}
-        </div>
-      );
-    }
-
-    const { criticalFound, criticalResolved, meanTimeToResolveHours } = data;
-
+  if (isError) {
     return (
-      <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
-        <StatCard
-          label="Critical issues found · last 30 days"
-          value={criticalFound.last30d}
-          hint={renderTrend(
-            getPercentTrend(criticalFound.last30d, criticalFound.previous30d),
-          )}
-        />
-        <StatCard
-          label="Critical resolved · last 30 days"
-          tooltip={RESOLVED_TOOLTIP}
-          value={criticalResolved.last30d}
-          hint={renderTrend(
-            getResolvedTrend(
-              criticalResolved.last30d,
-              criticalResolved.previous30d,
-            ),
-          )}
-        />
-        <StatCard
-          label="Mean time to resolve"
-          tooltip={MTTR_TOOLTIP}
-          value={formatMttr(meanTimeToResolveHours.last30d)}
-          hint={renderTrend(
-            getMttrTrend(
-              meanTimeToResolveHours.last30d,
-              meanTimeToResolveHours.previous30d,
-            ),
-          )}
-        />
+      <div className="rounded-lg border border-border-subtle bg-surface">
+        <SectionMessage tone="danger">
+          Couldn&apos;t load insights.
+        </SectionMessage>
       </div>
     );
-  },
-);
+  }
+
+  if (isLoading || !data) {
+    return (
+      <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
+        {Array.from({ length: 3 }, (_, index) => (
+          <Skeleton key={index} className="h-24 rounded-lg" />
+        ))}
+      </div>
+    );
+  }
+
+  const { criticalFound, criticalResolved, meanTimeToResolveHours } = data;
+
+  return (
+    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
+      <StatCard
+        label="Critical issues found · last 30 days"
+        value={criticalFound.last30d}
+        hint={renderTrend(
+          getPercentTrend(criticalFound.last30d, criticalFound.previous30d),
+        )}
+      />
+      <StatCard
+        label="Critical resolved · last 30 days"
+        tooltip={RESOLVED_TOOLTIP}
+        value={criticalResolved.last30d}
+        hint={renderTrend(
+          getResolvedTrend(
+            criticalResolved.last30d,
+            criticalResolved.previous30d,
+          ),
+        )}
+      />
+      <StatCard
+        label="Mean time to resolve"
+        tooltip={MTTR_TOOLTIP}
+        value={formatMttr(meanTimeToResolveHours.last30d)}
+        hint={renderTrend(
+          getMttrTrend(
+            meanTimeToResolveHours.last30d,
+            meanTimeToResolveHours.previous30d,
+          ),
+        )}
+      />
+    </div>
+  );
+});
 
 InsightsSummaryCards.displayName = "InsightsSummaryCards";
 

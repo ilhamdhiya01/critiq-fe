@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import type { InsightsData } from "@/lib/types/insights.types";
 import { getInsights } from "@/services/insights.service";
 
@@ -42,7 +43,9 @@ const renderView = () =>
         new QueryClient({ defaultOptions: { queries: { retry: false } } })
       }
     >
-      <InsightsView orgId="org_1" />
+      <ActiveOrgTestProvider orgId="org_1">
+        <InsightsView />
+      </ActiveOrgTestProvider>
     </QueryClientProvider>,
   );
 
@@ -194,7 +197,9 @@ describe("InsightsView", { timeout: 15_000 }, () => {
       await screen.findByText("No critical issues in this period"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("No critical findings in the last 30 days."),
+      screen.getByRole("heading", {
+        name: "No critical findings in the last 30 days",
+      }),
     ).toBeInTheDocument();
     expect(card("Critical resolved · last 30 days")).not.toHaveTextContent(
       "vs previous",

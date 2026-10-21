@@ -4,6 +4,7 @@ import { createColumnHelper, useTable } from "@tanstack/react-table";
 import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useMemo } from "react";
 
+import EmptyState from "@/components/shared/empty-state";
 import ReviewDecisionBadge from "@/components/shared/review-decision-badge";
 import SectionCard from "@/components/shared/section-card";
 import SectionMessage from "@/components/shared/section-message";
@@ -14,6 +15,7 @@ import { formatPullRef } from "@/lib/helpers/dashboard.helper";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import { sortableFeatures } from "@/lib/helpers/table.helper";
 import { useDashboardRecentReviews } from "@/lib/hooks/dashboard/useDashboardRecentReviews";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 import { useRepoProviders } from "@/lib/hooks/repositories/useRepoProviders";
 import type { ReviewActivityItem } from "@/lib/types/activity.types";
 import { ROUTES } from "@/routes";
@@ -25,11 +27,17 @@ const columnHelper = createColumnHelper<
   ReviewActivityItem
 >();
 
-interface RecentActivityProps {
-  orgId?: string;
-}
+// Module level: one stable element for the memoised table.
+const NO_REVIEWS = (
+  <EmptyState
+    icon="TbClock"
+    title="No reviews yet"
+    description="The latest approvals and change requests show up here."
+  />
+);
 
-const RecentActivity = React.memo(({ orgId }: RecentActivityProps) => {
+const RecentActivity = React.memo(() => {
+  const orgId = useActiveOrgId();
   const router = useRouter();
   const { slug } = useParams<{ slug: string }>();
   const providers = useRepoProviders(orgId);
@@ -97,7 +105,7 @@ const RecentActivity = React.memo(({ orgId }: RecentActivityProps) => {
             return (
               <span
                 title={pull.title}
-                className="block truncate font-mono text-[12px] text-info-light"
+                className="block truncate font-mono text-[12px] text-primary-300"
               >
                 {formatPullRef(
                   providers.get(pull.repoId),
@@ -151,7 +159,7 @@ const RecentActivity = React.memo(({ orgId }: RecentActivityProps) => {
           table={table}
           columnCount={columns.length}
           onRowClick={handleRowClick}
-          emptyMessage="No reviews yet"
+          emptyMessage={NO_REVIEWS}
         />
       )}
     </SectionCard>

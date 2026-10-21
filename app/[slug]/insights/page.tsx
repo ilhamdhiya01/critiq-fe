@@ -1,13 +1,10 @@
 import { Insights } from "@/components/features/insights";
 import DashboardLayout from "@/components/shared/layout";
-import { getUserFromToken } from "@/lib/helpers";
 
-const InsightsPage = async () => {
-  const userData = await getUserFromToken();
-
+const InsightsPage = () => {
   return (
     <DashboardLayout title="Insights">
-      <Insights.InsightsView orgId={userData?.activeOrgId ?? undefined} />
+      <Insights.InsightsView />
     </DashboardLayout>
   );
 };

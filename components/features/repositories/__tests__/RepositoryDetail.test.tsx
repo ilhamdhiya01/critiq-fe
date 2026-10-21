@@ -10,6 +10,7 @@ import { AxiosError, type AxiosResponse } from "axios";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import type { Role } from "@/lib/types/auth.types";
 import type { OrgRepository } from "@/lib/types/repository.types";
 import {
@@ -29,10 +30,6 @@ const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
   useParams: () => ({ slug: "acme" }),
   useRouter: () => ({ push: mockPush }),
-}));
-
-vi.mock("@/lib/hooks/organisation/useOrgBySlug", () => ({
-  useOrgBySlug: () => ({ membership: { role: currentRole } }),
 }));
 
 vi.mock("@/lib/toast", () => ({
@@ -87,7 +84,9 @@ const renderDetail = () =>
         new QueryClient({ defaultOptions: { queries: { retry: false } } })
       }
     >
-      <RepositoryDetail orgId="org_1" repoId="repo_1" />
+      <ActiveOrgTestProvider orgId="org_1" role={currentRole}>
+        <RepositoryDetail repoId="repo_1" />
+      </ActiveOrgTestProvider>
     </QueryClientProvider>,
   );
 

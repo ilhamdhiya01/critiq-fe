@@ -42,7 +42,8 @@ const ToastCard = ({
       "bg-success": variant === "success",
       "bg-danger": variant === "error",
       "bg-warning": variant === "warning",
-      "bg-info": variant === "info" || variant === "loading",
+      // Information uses the brand accent, like Notice's "note".
+      "bg-primary-400": variant === "info" || variant === "loading",
     },
   );
 
@@ -52,7 +53,7 @@ const ToastCard = ({
       "border-success/30 bg-success/10 text-success": variant === "success",
       "border-danger/30 bg-danger/10 text-danger": variant === "error",
       "border-warning/30 bg-warning/10 text-warning": variant === "warning",
-      "border-info/30 bg-info/10 text-info":
+      "border-primary-500/30 bg-primary-500/10 text-primary-300":
         variant === "info" || variant === "loading",
     },
   );

@@ -19,12 +19,11 @@ export const proxy = async (request: NextRequest) => {
     return new RegExp(`^${pattern}$`).test(path);
   });
 
-  if (isLoggedIn && userData.onboardingCompleted) {
-    if (path === ROUTES.SETUP) {
-      return NextResponse.redirect(new URL(ROUTES.ROOT, url));
-    }
-  }
-
+  // `onboardingCompleted` in the token only describes the org that was active
+  // when it was issued, so it never drives routing: /setup and
+  // /organizations/new stay open to create or finish any org. Per-org status
+  // comes from GET /me/orgs (see ActiveOrgProvider).
+  // No org at all yet → the first-run wizard.
   if (
     isLoggedIn &&
     isPrivateRoute &&

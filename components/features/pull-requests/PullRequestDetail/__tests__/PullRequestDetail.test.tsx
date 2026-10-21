@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import type {
   Finding,
   PullRequestDetail as PullRequestDetailData,
@@ -65,10 +66,6 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-vi.mock("@/lib/hooks/organisation/useOrgBySlug", () => ({
-  useOrgBySlug: () => ({ membership: { role: "ADMIN" } }),
-}));
-
 vi.mock("@/lib/hooks/pull-requests/usePullRequestDetail", () => ({
   usePullRequestDetail: () => ({
     data: currentDetail,
@@ -93,7 +90,9 @@ vi.mock("@/lib/hooks/pull-requests/usePullRequestSummary", () => ({
 const renderDetail = () =>
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <PullRequestDetail orgId="org_1" repoId="repo_1" id="pr_1" />
+      <ActiveOrgTestProvider orgId="org_1" role="ADMIN">
+        <PullRequestDetail repoId="repo_1" id="pr_1" />
+      </ActiveOrgTestProvider>
     </QueryClientProvider>,
   );
 
@@ -136,7 +135,9 @@ describe("PullRequestDetail", { timeout: 15_000 }, () => {
   it("never renders the removed quality gate, even if an older BE sends it", () => {
     render(
       <QueryClientProvider client={new QueryClient()}>
-        <PullRequestDetail orgId="org_1" repoId="repo_1" id="pr_1" />
+        <ActiveOrgTestProvider orgId="org_1" role="ADMIN">
+          <PullRequestDetail repoId="repo_1" id="pr_1" />
+        </ActiveOrgTestProvider>
       </QueryClientProvider>,
     );
 

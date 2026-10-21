@@ -134,7 +134,7 @@ const AddBranchControl = React.memo(
               type="button"
               onClick={() => setIsExpanded((current) => !current)}
               aria-expanded={isExpanded}
-              className="cursor-pointer rounded-full px-2 py-1 font-mono text-[11.5px] text-info-light hover:underline"
+              className="cursor-pointer rounded-full px-2 py-1 font-mono text-[11.5px] text-primary-300 hover:underline"
             >
               {isExpanded
                 ? "Show less"

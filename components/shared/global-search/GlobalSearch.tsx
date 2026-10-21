@@ -20,7 +20,7 @@ import {
   filterSearchPages,
   isSearchableQuery,
 } from "@/lib/helpers/search.helper";
-import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 import { useGlobalSearch } from "@/lib/hooks/search/useGlobalSearch";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useDismissable } from "@/lib/hooks/useDismissable";
@@ -37,7 +37,7 @@ const SearchDropdown = dynamic(() => import("./SearchDropdown"), {
 const GlobalSearch = React.memo(() => {
   const params = useParams<{ slug: string }>();
   const slug = params.slug ?? "";
-  const { orgId } = useOrgBySlug(slug);
+  const orgId = useActiveOrgId();
   const router = useRouter();
 
   const [isOpen, setIsOpen] = useState(false);

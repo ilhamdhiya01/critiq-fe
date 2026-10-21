@@ -1,8 +1,13 @@
+import ActiveOrgProvider from "@/components/providers/ActiveOrgProvider";
 import RealtimeProvider from "@/components/providers/RealtimeProvider";
 
-// Every org page shares one realtime stream for the active org.
+// The org comes from the slug; every org page shares one realtime stream.
 const OrgLayout = ({ children }: { children: React.ReactNode }) => {
-  return <RealtimeProvider>{children}</RealtimeProvider>;
+  return (
+    <ActiveOrgProvider>
+      <RealtimeProvider>{children}</RealtimeProvider>
+    </ActiveOrgProvider>
+  );
 };
 
 export default OrgLayout;

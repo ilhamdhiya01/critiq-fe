@@ -5,6 +5,7 @@ import classNames from "classnames";
 import { useRouter } from "next/navigation";
 import React, { useMemo } from "react";
 
+import EmptyState from "@/components/shared/empty-state";
 import SectionCard from "@/components/shared/section-card";
 import SectionMessage from "@/components/shared/section-message";
 import Badge from "@/components/ui/badge";
@@ -85,7 +86,7 @@ const columns = columnHelper.columns([
       return (
         <span
           title={pull.title}
-          className="font-mono text-[11.5px] text-info-light"
+          className="font-mono text-[11.5px] text-primary-300"
         >
           #{pull.number}
         </span>
@@ -128,7 +129,11 @@ const RepoScanHistory = React.memo(
             <Skeleton className="h-4 w-3/4 rounded" />
           </div>
         ) : !scans || scans.length === 0 ? (
-          <SectionMessage>No scans yet.</SectionMessage>
+          <EmptyState
+            icon="TbHistory"
+            title="No scans yet"
+            description="A scan runs whenever a pull request on this repository is opened or updated."
+          />
         ) : (
           <DataTable
             table={table}

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState } from "react";
 
+import ConnectRepositoriesAction from "@/components/shared/connect-repositories-action";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
@@ -18,7 +19,6 @@ import { useCheckGitLabHealth } from "@/lib/hooks/integrations/useCheckGitLabHea
 import { useDisconnectGitlab } from "@/lib/hooks/integrations/useDisconnectGitlab";
 import type { Integration } from "@/lib/types/integration.types";
 
-import ConnectRepositoriesAction from "./ConnectRepositoriesAction";
 import GitLabConnectModal from "./GitLabConnectModal";
 import NoReposHint from "./NoReposHint";
 

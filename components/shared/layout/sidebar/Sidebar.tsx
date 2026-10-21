@@ -1,31 +1,28 @@
 "use client";
 
 import classNames from "classnames";
+import { useParams } from "next/navigation";
 import React from "react";
 
 import Logo from "@/components/shared/logo";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
+import { useMemberships } from "@/lib/hooks/organisation/useMemberships";
+import type { MembershipWithOrg } from "@/lib/types/membership.type";
 import { useSidebarStore } from "@/stores/useSidebarStore";
 
 import OrgSwitcher from "./OrgSwitcher";
 import SidebarNav from "./SidebarNav";
 
-// Placeholder until the org/membership endpoints land; the switcher's shape
-// already matches what `useMembershipWithOrg` returns.
-const ORGANISATIONS = [
-  {
-    id: "cititex",
-    name: "Cititex Engineering",
-    slug: "cititex-engineering",
-    role: "ADMIN",
-  },
-] as const;
+// Stable empty list while memberships load (OrgSwitcher is memoised).
+const NO_MEMBERSHIPS: MembershipWithOrg[] = [];
 
 const Sidebar = React.memo(() => {
   // Narrow selectors: this component re-renders only when these change.
   const isCollapsed = useSidebarStore((state) => state.isCollapsed);
   const toggleCollapsed = useSidebarStore((state) => state.toggleCollapsed);
+  const params = useParams<{ slug?: string }>();
+  const { data: memberships } = useMemberships();
 
   return (
     <aside
@@ -50,8 +47,8 @@ const Sidebar = React.memo(() => {
         className={classNames({ "pb-3": !isCollapsed, "pb-2": isCollapsed })}
       >
         <OrgSwitcher
-          organisations={ORGANISATIONS}
-          activeOrgId={ORGANISATIONS[0].id}
+          memberships={memberships ?? NO_MEMBERSHIPS}
+          activeSlug={params?.slug ?? ""}
           isCollapsed={isCollapsed}
         />
       </div>

@@ -158,7 +158,7 @@ const RepoRow = React.memo(
               {settingsHref && (
                 <Link
                   href={settingsHref}
-                  className="text-[11px] whitespace-nowrap text-info-light hover:underline"
+                  className="text-[11px] whitespace-nowrap text-primary-300 hover:underline"
                 >
                   Edit settings
                 </Link>

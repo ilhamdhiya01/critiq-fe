@@ -1,5 +1,7 @@
 import React from "react";
 
+import OrgSetupBanner from "@/components/shared/org-setup-banner";
+
 import Navbar from "./navbar";
 import Sidebar from "./sidebar";
 
@@ -19,6 +21,7 @@ const DashboardLayout = React.memo(
         <div className="flex min-w-0 flex-1 flex-col">
           <Navbar title={title} />
           <main className="container mx-auto min-h-0 flex-1 overflow-y-auto p-6">
+            <OrgSetupBanner />
             {children}
           </main>
         </div>

@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect } from "react";
 
 import StateStatus from "@/components/shared/state-status";
@@ -18,20 +13,19 @@ import {
   RULE_TIER_IDS,
 } from "@/const/rules.constant";
 import { formatDateTime } from "@/lib/helpers/date.helper";
-import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import {
+  useActiveMembership,
+  useActiveOrgId,
+} from "@/lib/hooks/organisation/useActiveOrg";
 import { useOrgRules } from "@/lib/hooks/rules/useOrgRules";
 import { useUpdateOrgRules } from "@/lib/hooks/rules/useUpdateOrgRules";
 import type { RuleTier } from "@/lib/types/rules.types";
 
 import RuleTierRow from "../RuleTierRow";
 
-interface RulesViewProps {
-  orgId?: string;
-}
-
-const RulesView = React.memo(({ orgId }: RulesViewProps) => {
-  const params = useParams<{ slug: string }>();
-  const { membership } = useOrgBySlug(params.slug);
+const RulesView = React.memo(() => {
+  const orgId = useActiveOrgId();
+  const membership = useActiveMembership();
   const isAdmin = membership?.role === "ADMIN";
 
   const { data: rules, isLoading, isError } = useOrgRules(orgId);
@@ -113,7 +107,7 @@ const RulesView = React.memo(({ orgId }: RulesViewProps) => {
         </div>
 
         {!isAdmin && (
-          <Notice tone="info" icon="TbInfoCircle">
+          <Notice tone="note" icon="TbInfoCircle">
             Hanya Admin yang bisa mengubah quality profile.
           </Notice>
         )}

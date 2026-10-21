@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import { getOrgRepositories } from "@/services/repositories.service";
 
 import RepositoryList from "../RepositoryList";
@@ -47,7 +48,9 @@ describe("RepositoryList", { timeout: 15_000 }, () => {
 
     render(
       <QueryClientProvider client={new QueryClient()}>
-        <RepositoryList orgId="org_1" />
+        <ActiveOrgTestProvider orgId="org_1">
+          <RepositoryList />
+        </ActiveOrgTestProvider>
       </QueryClientProvider>,
     );
 

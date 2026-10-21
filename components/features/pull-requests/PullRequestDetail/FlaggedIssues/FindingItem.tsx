@@ -74,7 +74,7 @@ const FindingItem = React.memo(({ finding, canJump }: FindingItemProps) => {
               type="button"
               onClick={handleJump}
               title="Lihat baris ini di diff"
-              className="cursor-pointer font-mono font-normal text-info-light underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400"
+              className="cursor-pointer font-mono font-normal text-primary-300 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400"
             >
               {finding.filePath}:{finding.lineStart}
             </button>

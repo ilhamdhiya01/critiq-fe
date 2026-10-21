@@ -32,11 +32,17 @@ export const GITHUB_ACCESS_REMOVED_MESSAGE =
 export const GITHUB_UNREACHABLE_MESSAGE =
   "Couldn't reach GitHub — nothing was removed. Try again.";
 
+// The Admin isn't an owner of the GitHub org they picked: GitHub sent an
+// install request to the owner instead of installing the App.
+export const GITHUB_PENDING_APPROVAL_MESSAGE =
+  "A GitHub organization owner must approve the installation request (GitHub → Settings → GitHub Apps → Pending requests)";
+
 export const GITHUB_RETURN_TOAST = {
   connected: { variant: "success", message: "GitHub connected" },
   pending_approval: {
     variant: "info",
-    message: "Waiting for approval from the GitHub org owner",
+    message:
+      "Request sent. A GitHub organization owner needs to approve the Critiq app. Then click Connect GitHub again.",
   },
   error: { variant: "error", message: "Failed to connect GitHub, try again" },
   updated: {

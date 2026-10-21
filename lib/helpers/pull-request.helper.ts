@@ -122,7 +122,7 @@ export const getAiBlockedView = (
 };
 
 export interface UncheckedTiersNotice {
-  tone: "warning" | "info";
+  tone: "warning" | "note";
   // Sentence after the tier list, e.g. "… sedang diperiksa AI review."
   body: string;
   link: { label: string; target: "rules" | "settings" } | null;

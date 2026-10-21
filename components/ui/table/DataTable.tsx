@@ -107,7 +107,12 @@ const DataTable = <TData extends RowData>({
           <tr>
             <td
               colSpan={columnCount}
-              className="px-4.5 py-10 text-center text-[12.5px] text-text-secondary"
+              // A node (e.g. EmptyState) brings its own spacing and type.
+              className={
+                typeof emptyMessage === "string"
+                  ? "px-4.5 py-10 text-center text-[12.5px] text-text-secondary"
+                  : "p-0"
+              }
             >
               {emptyMessage}
             </td>

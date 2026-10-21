@@ -1,6 +1,5 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import React, { useCallback, useState } from "react";
 
 import SectionMessage from "@/components/shared/section-message";
@@ -14,7 +13,7 @@ import { useInviteMember } from "@/lib/hooks/members/useInviteMember";
 import { useMembers } from "@/lib/hooks/members/useMembers";
 import { useRemoveMember } from "@/lib/hooks/members/useRemoveMember";
 import { useRevokeInvite } from "@/lib/hooks/members/useRevokeInvite";
-import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import { useActiveMembership } from "@/lib/hooks/organisation/useActiveOrg";
 import type { MemberRole, OrgMember } from "@/lib/types/member.types";
 
 import InviteForm from "./InviteForm";
@@ -27,8 +26,7 @@ interface MembersCardProps {
 }
 
 const MembersCard = React.memo(({ orgId = "" }: MembersCardProps) => {
-  const { slug } = useParams<{ slug: string }>();
-  const { membership } = useOrgBySlug(slug);
+  const membership = useActiveMembership();
   // Every write is Admin-only; the BE refuses the rest with 403 anyway.
   const isAdmin = membership?.role === "ADMIN";
 

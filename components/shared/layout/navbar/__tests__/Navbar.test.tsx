@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import { getUser, logout } from "@/services/auth.service";
 
 import Navbar from "../Navbar";
@@ -12,11 +13,6 @@ const replace = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, push: vi.fn() }),
   useParams: () => ({ slug: "acme" }),
-}));
-
-// The navbar's search reads the active org.
-vi.mock("@/lib/hooks/organisation/useOrgBySlug", () => ({
-  useOrgBySlug: () => ({ orgId: "org_1" }),
 }));
 
 vi.mock("@/lib/toast", () => ({
@@ -48,7 +44,9 @@ describe("Navbar sign out", () => {
     const clear = vi.spyOn(client, "clear");
     render(
       <QueryClientProvider client={client}>
-        <Navbar title="Dashboard" />
+        <ActiveOrgTestProvider orgId="org_1">
+          <Navbar title="Dashboard" />
+        </ActiveOrgTestProvider>
       </QueryClientProvider>,
     );
 

@@ -13,7 +13,10 @@ import {
 } from "@/const/pull-request.constant";
 import { PROVIDER_NAME } from "@/const/repository.constant";
 import { getErrorCode } from "@/lib/helpers/integration.helper";
-import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import {
+  useActiveMembership,
+  useActiveOrgId,
+} from "@/lib/hooks/organisation/useActiveOrg";
 import { usePullRequestDetail } from "@/lib/hooks/pull-requests/usePullRequestDetail";
 import { usePullRequestDetailDiff } from "@/lib/hooks/pull-requests/usePullRequestDetailDiff";
 import { usePullRequestSummary } from "@/lib/hooks/pull-requests/usePullRequestSummary";
@@ -47,16 +50,16 @@ const NO_DIFF_FILES: ParsedPullRequestFile[] = [];
 const NO_FINDINGS: Finding[] = [];
 
 interface PullRequestDetailProps {
-  orgId?: string;
   repoId: string;
   id: string;
 }
 
 const PullRequestDetail = React.memo(
-  ({ id, repoId, orgId }: PullRequestDetailProps) => {
+  ({ id, repoId }: PullRequestDetailProps) => {
+    const orgId = useActiveOrgId();
     const params = useParams<{ slug: string }>();
     const slug = params.slug;
-    const { membership } = useOrgBySlug(slug);
+    const membership = useActiveMembership();
 
     const { data, isLoading, isError } = usePullRequestDetail(
       orgId ?? "",

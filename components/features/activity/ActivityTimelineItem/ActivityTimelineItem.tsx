@@ -70,14 +70,14 @@ const ActivityTimelineItem = React.memo(
             <Link
               href={prHref}
               title={item.pull.title}
-              className="font-mono text-info-light hover:underline"
+              className="font-mono text-primary-300 hover:underline"
             >
               {PULL_REQUEST_NUMBER_PREFIX[provider ?? "GITHUB"]}
               {item.pull.number}
             </Link>{" "}
             <span
               title={item.pull.repoPath}
-              className="font-mono text-info-light"
+              className="font-mono text-primary-300"
             >
               · {repoName(item.pull.repoPath)}
             </span>

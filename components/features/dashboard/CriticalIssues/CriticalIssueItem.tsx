@@ -29,7 +29,7 @@ const CriticalIssueItem = React.memo(
           <span className="truncate text-[12.5px] text-text-strong">
             {issue.title}
           </span>
-          <span className="truncate font-mono text-[11.5px] text-info-light">
+          <span className="truncate font-mono text-[11.5px] text-primary-300">
             {formatPullRef(provider, issue.pull.number, issue.pull.repoPath)}
           </span>
         </span>

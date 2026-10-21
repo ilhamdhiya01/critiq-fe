@@ -3,6 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import type { PullRequest } from "@/lib/types/pull-request.types";
 import { getPullRequests } from "@/services/pull-requests.service";
 
@@ -42,7 +43,9 @@ const renderList = () =>
         new QueryClient({ defaultOptions: { queries: { retry: false } } })
       }
     >
-      <PullRequestList orgId="org_1" />
+      <ActiveOrgTestProvider orgId="org_1">
+        <PullRequestList />
+      </ActiveOrgTestProvider>
     </QueryClientProvider>,
   );
 

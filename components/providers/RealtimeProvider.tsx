@@ -1,7 +1,6 @@
 "use client";
 
 import { type QueryKey, useQueryClient } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 import {
@@ -16,7 +15,7 @@ import {
 } from "@/lib/helpers/realtime.helper";
 import { userKeys } from "@/lib/hooks/auth/queryKeys";
 import { membershipWithOrgKeys } from "@/lib/hooks/integrations/queryKeys";
-import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 import { RealtimeStatusContext } from "@/lib/hooks/useRealtimeStatus";
 import type {
   RealtimeRevokeReason,
@@ -37,8 +36,8 @@ const parseData = (event: Event): unknown => {
 // One SSE stream per tab, for the active org only. Events only say which
 // data changed; the matching queries are invalidated and refetched over REST.
 const RealtimeProvider = ({ children }: { children: React.ReactNode }) => {
-  const params = useParams<{ slug: string }>();
-  const { orgId } = useOrgBySlug(params.slug);
+  // Inside ActiveOrgProvider: the org of the URL slug.
+  const orgId = useActiveOrgId();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<RealtimeStatus>("unavailable");
 

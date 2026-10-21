@@ -1,10 +1,9 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import React from "react";
 
 import Badge from "@/components/ui/badge";
-import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import { useActiveOrg } from "@/lib/hooks/organisation/useActiveOrg";
 
 import OrganizationCardSkeleton from "./OrganizationCardSkeleton";
 
@@ -17,8 +16,7 @@ const getOrgInitials = (name: string): string =>
     .join("");
 
 const OrganizationCard = React.memo(() => {
-  const params = useParams<{ slug: string }>();
-  const { membership, isLoading, isError } = useOrgBySlug(params.slug);
+  const { membership, isLoading, isError } = useActiveOrg();
 
   const renderBody = () => {
     if (isError) {

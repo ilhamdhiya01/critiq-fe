@@ -8,6 +8,7 @@ import {
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import type { GlobalSearchResult } from "@/lib/types/search.types";
 import { getGlobalSearch } from "@/services/search.service";
 
@@ -18,10 +19,6 @@ const push = vi.fn();
 vi.mock("next/navigation", () => ({
   useParams: () => ({ slug: "acme" }),
   useRouter: () => ({ push }),
-}));
-
-vi.mock("@/lib/hooks/organisation/useOrgBySlug", () => ({
-  useOrgBySlug: () => ({ orgId: "org_1" }),
 }));
 
 vi.mock("@/services/search.service", () => ({
@@ -67,8 +64,10 @@ const RESULT: GlobalSearchResult = {
 const renderSearch = () =>
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <GlobalSearch />
-      <p>Outside</p>
+      <ActiveOrgTestProvider orgId="org_1">
+        <GlobalSearch />
+        <p>Outside</p>
+      </ActiveOrgTestProvider>
     </QueryClientProvider>,
   );
 

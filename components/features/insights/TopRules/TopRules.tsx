@@ -3,6 +3,7 @@
 import classNames from "classnames";
 import React, { useMemo } from "react";
 
+import EmptyState from "@/components/shared/empty-state";
 import SectionCard from "@/components/shared/section-card";
 import SectionMessage from "@/components/shared/section-message";
 import Badge from "@/components/ui/badge";
@@ -14,12 +15,10 @@ import {
 import { FINDING_SOURCE_STYLE } from "@/const/pull-request.constant";
 import { getBarPercents } from "@/lib/helpers/insights.helper";
 import { useInsights } from "@/lib/hooks/insights/useInsights";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 
-interface TopRulesProps {
-  orgId?: string;
-}
-
-const TopRules = React.memo(({ orgId }: TopRulesProps) => {
+const TopRules = React.memo(() => {
+  const orgId = useActiveOrgId();
   const { data, isLoading, isError } = useInsights(orgId);
   const topRules = data?.topRules;
 
@@ -47,9 +46,11 @@ const TopRules = React.memo(({ orgId }: TopRulesProps) => {
     }
     if (topRules.length === 0) {
       return (
-        <SectionMessage>
-          No critical findings in the last 30 days.
-        </SectionMessage>
+        <EmptyState
+          icon="TbShieldCheck"
+          title="No critical findings in the last 30 days"
+          description="Rules that flag critical issues are ranked here."
+        />
       );
     }
 

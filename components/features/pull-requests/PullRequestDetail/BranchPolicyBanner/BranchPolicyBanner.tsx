@@ -8,7 +8,7 @@ interface BranchPolicyBannerProps {
 
 const BranchPolicyBanner = React.memo(
   ({ targetBranch }: BranchPolicyBannerProps) => (
-    <Notice icon="TbLock" role="note">
+    <Notice tone="note" icon="TbLock" role="note">
       Branch policy for → {targetBranch}: Require Both — the AI analysis below
       and your manual review confirmation must both complete before Approve is
       enabled.

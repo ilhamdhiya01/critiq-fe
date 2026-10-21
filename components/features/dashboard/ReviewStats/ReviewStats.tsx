@@ -10,16 +10,14 @@ import {
   getReviewSplit,
 } from "@/lib/helpers/dashboard.helper";
 import { useDashboardSummary } from "@/lib/hooks/dashboard/useDashboardSummary";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 
 const LABEL =
   "font-mono text-[10.5px] tracking-[.06em] text-text-muted uppercase";
 
-interface ReviewStatsProps {
-  orgId?: string;
-}
-
 // Shares the summary query with the KPI cards.
-const ReviewStats = React.memo(({ orgId }: ReviewStatsProps) => {
+const ReviewStats = React.memo(() => {
+  const orgId = useActiveOrgId();
   const { data: summary, isLoading, isError } = useDashboardSummary(orgId);
 
   const renderBody = () => {

@@ -11,12 +11,10 @@ import {
   getTurnaroundTrend,
 } from "@/lib/helpers/dashboard.helper";
 import { useDashboardSummary } from "@/lib/hooks/dashboard/useDashboardSummary";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 
-interface SummaryCardsProps {
-  orgId?: string;
-}
-
-const SummaryCards = React.memo(({ orgId }: SummaryCardsProps) => {
+const SummaryCards = React.memo(() => {
+  const orgId = useActiveOrgId();
   const { data: summary, isLoading, isError } = useDashboardSummary(orgId);
 
   if (isError) {
@@ -64,7 +62,7 @@ const SummaryCards = React.memo(({ orgId }: SummaryCardsProps) => {
         hint={
           repositories.addedThisMonth > 0 && (
             <>
-              <span className="font-mono font-semibold text-info-light">
+              <span className="font-mono font-semibold text-text-strong">
                 +{repositories.addedThisMonth}
               </span>{" "}
               this month

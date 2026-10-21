@@ -3,34 +3,28 @@ import { tv } from "tailwind-variants";
 
 import Icon, { type IconName } from "@/components/ui/icon/Icon";
 
+// One look for every banner: a neutral card like the rest of the UI, with
+// colour only on the icon and, for warning/danger, a 2px left bar. Body text
+// stays neutral so long messages stay readable.
 const notice = tv({
   slots: {
     root: "flex",
     icon: "flex-none",
-    text: "leading-normal",
+    text: "leading-normal text-text-nav",
   },
   variants: {
     tone: {
-      warning: {
-        root: "border-warning/35 bg-warning/7",
-        icon: "text-warning-light",
-        text: "text-warning-soft",
-      },
-      danger: {
-        root: "border-danger/35 bg-danger/7",
-        icon: "text-danger-light",
-        text: "text-danger-light",
-      },
-      info: {
-        root: "border-info/35 bg-info/7",
-        icon: "text-info-light",
-        text: "text-info-light",
-      },
+      // Information: the brand accent on the icon only.
+      note: { icon: "text-primary-300" },
+      // Needs action, nothing broken (pending approval, expiring token).
+      warning: { icon: "text-warning-light" },
+      // Errors and destructive outcomes.
+      danger: { icon: "text-danger-light" },
     },
     // banner = standalone rounded box; row = full-width strip inside a card.
     variant: {
       banner: {
-        root: "items-start gap-2.5 rounded-lg border px-3.5 py-2.75",
+        root: "items-start gap-2.5 rounded-lg border border-border-subtle bg-raised px-3.5 py-2.75",
         icon: "mt-px",
         text: "text-xs",
       },
@@ -40,11 +34,17 @@ const notice = tv({
       },
     },
   },
+  // The left bar goes last: classes are merged, and the variant's `border` /
+  // `border-border-subtle` would otherwise override it.
+  compoundVariants: [
+    { tone: "warning", class: { root: "border-l-2 border-l-warning" } },
+    { tone: "danger", class: { root: "border-l-2 border-l-danger" } },
+  ],
   defaultVariants: { tone: "warning", variant: "banner" },
 });
 
 interface NoticeProps extends React.HTMLAttributes<HTMLDivElement> {
-  tone?: "warning" | "danger" | "info";
+  tone?: "note" | "warning" | "danger";
   variant?: "banner" | "row";
   icon?: IconName;
 }
@@ -68,7 +68,7 @@ const Notice = forwardRef<HTMLDivElement, NoticeProps>(
     return (
       <div
         ref={ref}
-        role={role ?? (tone === "info" ? "status" : "alert")}
+        role={role ?? (tone === "note" ? "status" : "alert")}
         className={slots.root({ className })}
         {...props}
       >

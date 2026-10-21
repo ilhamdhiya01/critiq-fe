@@ -8,6 +8,8 @@ export const ROUTES = {
   LOGIN: "/login",
   REGISTER: "/register",
   SETUP: "/setup",
+  // Always open to a signed-in user, whatever orgs they already have.
+  NEW_ORGANIZATION: "/organizations/new",
   invite: (token: string) => `/invite/${token}`,
 
   dashboard: (slug: string) => `/${slug}`,

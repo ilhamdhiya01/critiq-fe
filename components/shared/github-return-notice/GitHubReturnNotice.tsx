@@ -12,7 +12,7 @@ import { integrationKeys } from "@/lib/hooks/integrations/queryKeys";
 import { toast } from "@/lib/toast";
 
 // Handles `?github=connected|pending_approval|error|updated` after the GitHub
-// App install or "Manage on GitHub" redirect: toast once, refetch every
+// App install or "Manage on GitHub" redirect, in Settings and onboarding: toast once, refetch every
 // integration query (so newly granted repos show up as candidates), then drop
 // the param so a refresh does not repeat the toast.
 const GitHubReturnNotice = React.memo(() => {

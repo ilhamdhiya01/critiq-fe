@@ -8,6 +8,7 @@ import {
   getErrorCode,
   isGitHubAccessError,
 } from "@/lib/helpers/integration.helper";
+import { userKeys } from "@/lib/hooks/auth/queryKeys";
 import { repositoryKeys } from "@/lib/hooks/repositories/queryKeys";
 import { toast } from "@/lib/toast";
 import type { ErrorResponse } from "@/lib/types/api.types";
@@ -15,7 +16,7 @@ import type { ConnectRepositoryInput } from "@/lib/types/repository.types";
 import { ROUTES } from "@/routes";
 import { connectRepositories } from "@/services/integrations.service";
 
-import { integrationKeys } from "./queryKeys";
+import { integrationKeys, membershipWithOrgKeys } from "./queryKeys";
 
 interface UseConnectRepositoriesOptions {
   // Onboarding: summarise with a toast and go to the dashboard. Without it the
@@ -34,12 +35,15 @@ export const useConnectRepositories = (
   const mutation = useMutation({
     mutationFn: (payload: ConnectRepositoryInput) =>
       connectRepositories(orgId, payload),
-    onSuccess: (response, payload) => {
+    onSuccess: async (response, payload) => {
       const items = response.data.items;
       const failed = items.filter((item) => item.status === "failed");
       const succeeded = items.filter((item) => item.status === "ok");
 
       if (succeeded.length > 0) {
+        // The first repo completes the org's setup (onboardingCompleted), so
+        // the setup banner and the switcher's "Finish setup" go away.
+        queryClient.invalidateQueries({ queryKey: membershipWithOrgKeys.all });
         queryClient.invalidateQueries({ queryKey: repositoryKeys.org(orgId) });
         queryClient.invalidateQueries({ queryKey: repositoryKeys.lists() });
         queryClient.invalidateQueries({
@@ -67,6 +71,11 @@ export const useConnectRepositories = (
         toast.success("All repositories connected");
       }
 
+      // Onboarding is now done for this org (the BE re-issued the session).
+      // Refetch before leaving: the org layout reads onboardingCompleted from
+      // memberships and would bounce a stale "unfinished" org back to setup.
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
+      await queryClient.refetchQueries({ queryKey: membershipWithOrgKeys.all });
       router.replace(ROUTES.dashboard(redirectSlug));
     },
     onError: (error: AxiosError<ErrorResponse>) => {

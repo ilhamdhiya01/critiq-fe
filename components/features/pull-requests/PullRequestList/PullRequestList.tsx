@@ -6,8 +6,10 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 
 import CriticalCount from "@/components/shared/critical-count";
+import EmptyState from "@/components/shared/empty-state";
 import FilterChip from "@/components/shared/filter-chip";
 import ReviewDecisionBadge from "@/components/shared/review-decision-badge";
+import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
 import DataTable from "@/components/ui/table";
 import {
@@ -18,6 +20,7 @@ import {
 } from "@/const/pull-request.constant";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import { sortableFeatures } from "@/lib/helpers/table.helper";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 import { usePullRequestList } from "@/lib/hooks/pull-requests/usePullRequestList";
 import type {
   PullRequest,
@@ -42,11 +45,8 @@ const matchesFilter = (pr: PullRequest, filter: PullRequestFilter): boolean => {
   return pr.state.toLowerCase() === filter;
 };
 
-interface PullRequestListProps {
-  orgId?: string;
-}
-
-const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
+const PullRequestList = React.memo(() => {
+  const orgId = useActiveOrgId();
   const router = useRouter();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
@@ -232,16 +232,21 @@ const PullRequestList = React.memo(({ orgId }: PullRequestListProps) => {
             </colgroup>
           }
           emptyMessage={
-            <>
-              No pull requests match this filter.{" "}
-              <button
-                type="button"
-                onClick={handleResetFilter}
-                className="cursor-pointer text-info-light hover:underline"
-              >
-                Show all
-              </button>
-            </>
+            <EmptyState
+              icon="TbFilterOff"
+              title="No pull requests match this filter"
+              action={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  fullWidth={false}
+                  onClick={handleResetFilter}
+                >
+                  Show all
+                </Button>
+              }
+            />
           }
         />
       </div>

@@ -8,7 +8,9 @@ interface StepFooterProps {
   isLastStep: boolean;
   isLoading: boolean;
   onBack: () => void;
-  onSkip: () => void;
+  // Leave the wizard (e.g. back to another org). Hidden without a handler.
+  exitLabel?: string;
+  onExit?: () => void;
   onContinue: () => void;
 }
 
@@ -19,7 +21,8 @@ const StepFooter = React.memo(
     isLastStep,
     isLoading,
     onBack,
-    onSkip,
+    exitLabel = "Skip setup",
+    onExit,
     onContinue,
   }: StepFooterProps) => {
     return (
@@ -36,15 +39,17 @@ const StepFooter = React.memo(
           </Button>
         )}
         <div className="flex-1" />
-        <Button
-          type="button"
-          variant="provider"
-          size="md"
-          fullWidth={false}
-          onClick={onSkip}
-        >
-          Skip setup
-        </Button>
+        {onExit && (
+          <Button
+            type="button"
+            variant="provider"
+            size="md"
+            fullWidth={false}
+            onClick={onExit}
+          >
+            {exitLabel}
+          </Button>
+        )}
         <Button
           type="button"
           size="md"

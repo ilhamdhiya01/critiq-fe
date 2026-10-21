@@ -9,6 +9,7 @@ import {
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import type { Role } from "@/lib/types/auth.types";
 import type { OrgRules } from "@/lib/types/rules.types";
 import { getOrgRules, updateRuleTier } from "@/services/rules.service";
@@ -26,10 +27,6 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/acme/rules",
   useSearchParams: () =>
     new URLSearchParams(tierParam ? { tier: tierParam } : {}),
-}));
-
-vi.mock("@/lib/hooks/organisation/useOrgBySlug", () => ({
-  useOrgBySlug: () => ({ membership: { role: currentRole } }),
 }));
 
 vi.mock("@/lib/toast", () => ({
@@ -75,7 +72,9 @@ const renderView = () =>
         new QueryClient({ defaultOptions: { queries: { retry: false } } })
       }
     >
-      <RulesView orgId="org_1" />
+      <ActiveOrgTestProvider orgId="org_1" role={currentRole}>
+        <RulesView />
+      </ActiveOrgTestProvider>
     </QueryClientProvider>,
   );
 

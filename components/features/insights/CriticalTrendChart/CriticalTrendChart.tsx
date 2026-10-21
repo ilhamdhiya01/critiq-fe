@@ -3,6 +3,7 @@
 import React, { useCallback, useMemo } from "react";
 
 import LineAreaChart, { type ChartSeries } from "@/components/shared/charts";
+import EmptyState from "@/components/shared/empty-state";
 import SectionCard from "@/components/shared/section-card";
 import SectionMessage from "@/components/shared/section-message";
 import Skeleton from "@/components/ui/skeleton";
@@ -15,14 +16,12 @@ import {
   INSIGHTS_DEFAULT_WEEKS,
   useInsights,
 } from "@/lib/hooks/insights/useInsights";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 
 const CHART_HEIGHT = 260;
 
-interface CriticalTrendChartProps {
-  orgId?: string;
-}
-
-const CriticalTrendChart = React.memo(({ orgId }: CriticalTrendChartProps) => {
+const CriticalTrendChart = React.memo(() => {
+  const orgId = useActiveOrgId();
   const { data, isLoading, isError } = useInsights(orgId);
   const weekly = data?.weekly;
 
@@ -69,7 +68,13 @@ const CriticalTrendChart = React.memo(({ orgId }: CriticalTrendChartProps) => {
       );
     }
     if (weekly.length === 0) {
-      return <SectionMessage>No scans yet.</SectionMessage>;
+      return (
+        <EmptyState
+          icon="TbChartLine"
+          title="No scans yet"
+          description="The trend fills in once pull requests are scanned."
+        />
+      );
     }
 
     return (

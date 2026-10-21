@@ -11,10 +11,20 @@ interface ConnectRepositoriesActionProps {
   provider: IntegrationProvider;
   label: string;
   variant: "secondary" | "ghost";
+  disabled?: boolean;
+  // Explains a disabled button (native tooltip).
+  title?: string;
 }
 
 const ConnectRepositoriesAction = React.memo(
-  ({ orgId, provider, label, variant }: ConnectRepositoriesActionProps) => {
+  ({
+    orgId,
+    provider,
+    label,
+    variant,
+    disabled = false,
+    title,
+  }: ConnectRepositoriesActionProps) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleClose = useCallback(() => setIsOpen(false), []);
@@ -26,6 +36,8 @@ const ConnectRepositoriesAction = React.memo(
           variant={variant}
           size="sm"
           fullWidth={false}
+          disabled={disabled}
+          title={title}
           onClick={() => setIsOpen(true)}
         >
           {label}
