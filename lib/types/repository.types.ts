@@ -34,6 +34,14 @@ export interface RepoScan {
   pull: { id: string; number: string; title: string };
 }
 
+// POST /repos/:repoId/rescan — what happened to the repo's open PRs.
+export interface RepoRescanResult {
+  enqueued: number;
+  skippedUpToDate: number;
+  // Skipped because their scan (static or AI) is still running.
+  skippedInFlight: number;
+}
+
 export type RepoCountByProvider = Record<IntegrationProvider, number>;
 
 export interface BranchPolicyEntry {

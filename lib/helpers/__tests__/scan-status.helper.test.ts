@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { isScanInProgress, scanDisplayStatus } from "../scan-status.helper";
+import {
+  getScanTriggerLabel,
+  isPullScanInProgress,
+  isScanInProgress,
+  scanDisplayStatus,
+} from "../scan-status.helper";
 
 describe("scanDisplayStatus", () => {
   it("shows the static status until the static scan is done", () => {
@@ -102,5 +107,42 @@ describe("isScanInProgress", () => {
     expect(isScanInProgress({ status: "DONE", aiStatus: null })).toBe(false);
     expect(isScanInProgress({ status: "FAILED" })).toBe(false);
     expect(isScanInProgress({ status: "SUPERSEDED" })).toBe(false);
+  });
+
+  describe("isPullScanInProgress", () => {
+    it("is running while a static scan is active or the AI review is queued/running", () => {
+      expect(isPullScanInProgress({ activeScan: { id: "s1" } })).toBe(true);
+      expect(isPullScanInProgress({ latestScan: { aiStatus: "queued" } })).toBe(
+        true,
+      );
+      expect(
+        isPullScanInProgress({ latestScan: { aiStatus: "running" } }),
+      ).toBe(true);
+    });
+
+    it("is settled once the AI review finished, failed, was skipped or never ran", () => {
+      for (const aiStatus of [
+        "done",
+        "cached",
+        "failed",
+        "consent_required",
+        null,
+      ] as const) {
+        expect(isPullScanInProgress({ latestScan: { aiStatus } })).toBe(false);
+      }
+      expect(isPullScanInProgress({ activeScan: null, latestScan: null })).toBe(
+        false,
+      );
+    });
+  });
+
+  describe("getScanTriggerLabel", () => {
+    it("names pushes and rescans, and capitalises anything else", () => {
+      expect(getScanTriggerLabel("WEBHOOK")).toBe("Push");
+      expect(getScanTriggerLabel("webhook")).toBe("Push");
+      expect(getScanTriggerLabel("RESCAN")).toBe("Rescan");
+      expect(getScanTriggerLabel("MANUAL")).toBe("Manual");
+      expect(getScanTriggerLabel("schedule")).toBe("Schedule");
+    });
   });
 });

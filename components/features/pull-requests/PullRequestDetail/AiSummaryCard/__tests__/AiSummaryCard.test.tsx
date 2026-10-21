@@ -48,7 +48,12 @@ const renderCard = (
   {
     prState = "OPEN",
     hasScan = true,
-  }: { prState?: PullRequestState; hasScan?: boolean } = {},
+    isScanInProgress = false,
+  }: {
+    prState?: PullRequestState;
+    hasScan?: boolean;
+    isScanInProgress?: boolean;
+  } = {},
 ) =>
   render(
     <QueryClientProvider client={new QueryClient()}>
@@ -66,6 +71,7 @@ const renderCard = (
         role={role}
         prState={prState}
         hasScan={hasScan}
+        isScanInProgress={isScanInProgress}
       />
     </QueryClientProvider>,
   );
@@ -215,6 +221,7 @@ describe("AiSummaryCard — done", () => {
           role="ADMIN"
           prState="OPEN"
           hasScan
+          isScanInProgress={false}
         />
       </QueryClientProvider>,
     );
@@ -225,5 +232,25 @@ describe("AiSummaryCard — done", () => {
     expect(screen.getByText("5 suggestions")).toBeInTheDocument();
     expect(screen.getByText(/RISK/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Regenerate/ })).toBeVisible();
+  });
+});
+
+describe("AiSummaryCard — scan in progress", () => {
+  it("disables Regenerate with a tooltip while the scan or AI review runs", () => {
+    renderCard(
+      { ...STALE_SUMMARY, aiStatus: "done", summaryMd: "Fine.", error: null },
+      "ADMIN",
+      { isScanInProgress: true },
+    );
+
+    const regenerate = screen.getByRole("button", { name: "Regenerate" });
+    expect(regenerate).toBeDisabled();
+    // The tooltip sits on the wrapper (disabled buttons get no hover).
+    expect(regenerate.parentElement).toHaveAttribute(
+      "title",
+      "AI review masih berjalan",
+    );
+    // Rescanning a whole PR lives on the repository page only.
+    expect(screen.queryByRole("button", { name: "Rescan" })).toBeNull();
   });
 });

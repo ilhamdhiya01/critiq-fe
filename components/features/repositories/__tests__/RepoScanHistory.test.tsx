@@ -73,4 +73,29 @@ describe("RepoScanHistory", () => {
 
     expect(rowOf("5")).toHaveTextContent("Running");
   });
+
+  it("shows what triggered each scan and an accurate header", async () => {
+    vi.mocked(getRepoScans).mockResolvedValue({
+      data: [
+        scan("1", { trigger: "WEBHOOK" }),
+        scan("2", { trigger: "RESCAN" }),
+      ],
+    });
+    render(
+      <QueryClientProvider
+        client={
+          new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        }
+      >
+        <RepoScanHistory orgId="org_1" repoId="repo_1" slug="acme" />
+      </QueryClientProvider>,
+    );
+    await screen.findByText("#1");
+
+    expect(rowOf("1")).toHaveTextContent("Push");
+    expect(rowOf("2")).toHaveTextContent("Rescan");
+    expect(
+      screen.getByText("Push & manual rescans · diff only"),
+    ).toBeInTheDocument();
+  });
 });

@@ -275,6 +275,11 @@ export const SCROLL_TO_TOP_MIN_DIFF_FILES = 10;
 export const getFindingIcon = (ruleId: string): IconName =>
   FINDING_CATEGORY_ICON[ruleId.split(".")[0]] ?? "TbAlertTriangle";
 
+// Rescan / forced regenerate while the PR's scan (static or AI) still runs.
+export const SCAN_IN_PROGRESS_TOOLTIP = "AI review masih berjalan";
+export const AI_IN_PROGRESS_MESSAGE =
+  "AI review masih berjalan, coba lagi setelah selesai";
+
 export const REVIEW_BODY_MAX = 2000;
 
 export const REVIEW_DECISION_LABEL: Record<ReviewDecision, string> = {

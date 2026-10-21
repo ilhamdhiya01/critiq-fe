@@ -12,7 +12,10 @@ import SectionMessage from "@/components/shared/section-message";
 import Skeleton from "@/components/ui/skeleton";
 import DataTable from "@/components/ui/table";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
-import { scanDisplayStatus } from "@/lib/helpers/scan-status.helper";
+import {
+  getScanTriggerLabel,
+  scanDisplayStatus,
+} from "@/lib/helpers/scan-status.helper";
 import { sortableFeatures } from "@/lib/helpers/table.helper";
 import { useRepoScans } from "@/lib/hooks/repositories/useRepoScans";
 import type { RepoScan } from "@/lib/types/repository.types";
@@ -43,6 +46,15 @@ const columns = columnHelper.columns([
     id: "status",
     header: "Status",
     cell: (info) => <ScanStatusBadge scan={info.row.original} />,
+  }),
+  columnHelper.accessor("trigger", {
+    header: "Trigger",
+    enableSorting: false,
+    cell: (info) => (
+      <span className="text-[12px] text-text-secondary">
+        {getScanTriggerLabel(info.getValue())}
+      </span>
+    ),
   }),
   columnHelper.accessor("criticalCount", {
     header: "Critical",
@@ -103,7 +115,7 @@ const RepoScanHistory = React.memo(
     return (
       <SectionCard
         title="PR Scan History"
-        meta="One scan per PR push · diff only"
+        meta="Push & manual rescans · diff only"
       >
         {isError ? (
           <SectionMessage tone="danger">
@@ -128,7 +140,7 @@ const RepoScanHistory = React.memo(
               router.push(ROUTES.pullRequestDetail(slug, scan.pull.id, repoId))
             }
             maxHeight="480px"
-            minWidth={600}
+            minWidth={720}
           />
         )}
       </SectionCard>

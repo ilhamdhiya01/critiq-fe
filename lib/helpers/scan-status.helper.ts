@@ -50,3 +50,24 @@ export const isScanInProgress = (scan: ScanStatusInput): boolean => {
     (display.kind === "static" && ACTIVE_REPO_SCAN_STATUSES.has(display.status))
   );
 };
+
+// A PR's scan is still running while a static scan is active or its AI
+// review is queued/running. The BE rejects a rescan or forced regenerate
+// until then.
+export const isPullScanInProgress = (pull: {
+  activeScan?: unknown;
+  latestScan?: { aiStatus?: AiSummaryStatus | null } | null;
+}): boolean => {
+  if (pull.activeScan) return true;
+  const aiStatus = pull.latestScan?.aiStatus?.toLowerCase();
+  return !!aiStatus && AI_IN_PROGRESS.has(aiStatus);
+};
+
+// History row trigger: "webhook" → Push, "rescan" → Rescan, anything else
+// as is with a capital first letter.
+export const getScanTriggerLabel = (trigger: string): string => {
+  const value = trigger.toLowerCase();
+  if (value === "webhook") return "Push";
+  if (value === "rescan") return "Rescan";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};

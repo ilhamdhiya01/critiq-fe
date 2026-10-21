@@ -14,6 +14,7 @@ import {
 } from "@/const/pull-request.constant";
 import { PROVIDER_NAME } from "@/const/repository.constant";
 import { getErrorCode } from "@/lib/helpers/integration.helper";
+import { isPullScanInProgress } from "@/lib/helpers/scan-status.helper";
 import {
   useActiveMembership,
   useActiveOrgId,
@@ -243,6 +244,7 @@ const PullRequestDetail = React.memo(
             role={membership?.role}
             prState={data.state}
             hasScan={!!data.latestScan}
+            isScanInProgress={isPullScanInProgress(data)}
           />
         )}
 

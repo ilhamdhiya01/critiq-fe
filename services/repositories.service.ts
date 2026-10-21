@@ -4,6 +4,7 @@ import type { RepoBranches } from "@/lib/types/integration.types";
 import type { PullRequest } from "@/lib/types/pull-request.types";
 import type {
   OrgRepository,
+  RepoRescanResult,
   RepoScan,
   ScanConfig,
   UpdateScanConfigInput,
@@ -64,7 +65,7 @@ export const getRepoBranches = async (
 export const rescanRepo = async (
   orgId: string,
   repoId: string,
-): Promise<ApiResponse<null>> => {
+): Promise<ApiResponse<RepoRescanResult>> => {
   try {
     const res = await axiosInstance.post(API_PULL_RESCAN(orgId, repoId));
     return res.data;

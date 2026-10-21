@@ -82,4 +82,30 @@ describe("useScanPullRequest", () => {
     await act(() => expect(result.current.handleScanNow()).rejects.toThrow());
     expect(toast.error).toHaveBeenLastCalledWith("Network Error");
   });
+
+  it("explains a running AI review (409 ai_in_progress) and refreshes the PR", async () => {
+    rejectWith(409, { errors: [{ field: "", message: "ai_in_progress" }] });
+    const { result, invalidatedKeys } = setup();
+
+    await act(() => result.current.handleScanNow().catch(() => {}));
+
+    expect(toast.info).toHaveBeenCalledWith(
+      "AI review masih berjalan, coba lagi setelah selesai",
+    );
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(invalidatedKeys()).toContainEqual(pullRequestKeys.detail(...PR));
+  });
+
+  it("keeps the existing message for 409 scan_in_progress", async () => {
+    rejectWith(409, {
+      message: "Scan already running",
+      errors: [{ field: "", message: "scan_in_progress" }],
+    });
+    const { result } = setup();
+
+    await act(() => result.current.handleScanNow().catch(() => {}));
+
+    expect(toast.error).toHaveBeenCalledWith("Scan already running");
+    expect(toast.info).not.toHaveBeenCalled();
+  });
 });

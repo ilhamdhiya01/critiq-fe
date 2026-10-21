@@ -82,4 +82,29 @@ describe("useRegeneratePullRequestSummary", () => {
     expect(toast.error).toHaveBeenCalledWith("Server error");
     expect(invalidatedKeys()).toHaveLength(0);
   });
+
+  it("explains a running AI review (409 ai_in_progress) and refreshes", async () => {
+    vi.mocked(regeneratePullRequestSummary).mockRejectedValue(
+      Object.assign(new Error("Conflict"), {
+        response: {
+          status: 409,
+          data: { errors: [{ field: "", message: "ai_in_progress" }] },
+        },
+      }),
+    );
+    const { result, invalidatedKeys } = setup();
+
+    await act(() => result.current.handleRegenerate().catch(() => {}));
+
+    expect(toast.info).toHaveBeenCalledWith(
+      "AI review masih berjalan, coba lagi setelah selesai",
+    );
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(invalidatedKeys()).toEqual(
+      expect.arrayContaining([
+        pullRequestKeys.detail(...PR),
+        pullRequestKeys.summary(...PR),
+      ]),
+    );
+  });
 });

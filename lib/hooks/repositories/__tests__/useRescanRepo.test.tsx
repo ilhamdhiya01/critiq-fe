@@ -31,21 +31,23 @@ const setup = () => {
   return { result, invalidatedKeys };
 };
 
-const httpError = (status: number, message = "boom") =>
-  Object.assign(new Error(message), { response: { status, data: {} } });
+const httpError = (status: number, message = "boom", data: object = {}) =>
+  Object.assign(new Error(message), { response: { status, data } });
 
 describe("useRescanRepo", () => {
   afterEach(() => vi.clearAllMocks());
 
   it("starts the re-scan and refetches pulls, scans and repos", async () => {
-    vi.mocked(rescanRepo).mockResolvedValue({ data: {} } as never);
+    vi.mocked(rescanRepo).mockResolvedValue({
+      data: { enqueued: 2, skippedUpToDate: 1, skippedInFlight: 3 },
+    });
     const { result, invalidatedKeys } = setup();
 
     act(() => result.current.handleRescan());
 
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
-        "Re-scan started for open pull requests",
+        "2 PR di-scan ulang · 3 dilewati karena scan masih berjalan · 1 sudah up to date",
       ),
     );
     expect(rescanRepo).toHaveBeenCalledWith("org_1", "repo_1");
@@ -81,5 +83,39 @@ describe("useRescanRepo", () => {
       expect(toast.error).toHaveBeenCalledWith("Server error"),
     );
     expect(invalidatedKeys()).toHaveLength(0);
+  });
+
+  it("says when nothing was re-scanned, and why", async () => {
+    vi.mocked(rescanRepo).mockResolvedValue({
+      data: { enqueued: 0, skippedUpToDate: 0, skippedInFlight: 2 },
+    });
+    const { result } = setup();
+
+    act(() => result.current.handleRescan());
+
+    await waitFor(() =>
+      expect(toast.info).toHaveBeenCalledWith(
+        "Tidak ada PR yang di-scan ulang · 2 dilewati karena scan masih berjalan",
+      ),
+    );
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("asks to wait when re-scanning too often (429 rescan_rate_limited)", async () => {
+    vi.mocked(rescanRepo).mockRejectedValue(
+      httpError(429, "Too Many Requests", {
+        errors: [{ field: "", message: "rescan_rate_limited" }],
+      }),
+    );
+    const { result } = setup();
+
+    act(() => result.current.handleRescan());
+
+    await waitFor(() =>
+      expect(toast.info).toHaveBeenCalledWith(
+        "Tunggu sebentar sebelum re-scan lagi",
+      ),
+    );
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });
