@@ -121,30 +121,33 @@ const RepositoriesStep = React.memo(
           )}
 
           {!isNotConnected && provider === "GITLAB" && (
-            <div className="flex items-center gap-3 rounded-lg border border-border-subtle px-3.5 py-3">
+            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border-subtle px-3.5 py-3">
               <span className="h-2 w-2 shrink-0 rounded-full bg-success" />
-              <div className="flex flex-1 flex-col gap-0.5">
-                <span className="font-mono text-[12.5px] text-neutral-100">
+              <div className="flex min-w-0 flex-1 basis-40 flex-col gap-0.5">
+                <span className="truncate font-mono text-[12.5px] text-neutral-100">
                   {hostOf(verifiedInstanceUrl)}
                 </span>
                 <span className="text-[11px] leading-normal text-text-secondary">
                   Projects reachable by the access token (Maintainer or above).
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={handleChangeGitLabToken}
-                className="text-[12px] text-text-secondary hover:underline"
-              >
-                Change
-              </button>
-              <Badge
-                tone="gitlab"
-                weight="normal"
-                className="tracking-[.06em] uppercase"
-              >
-                GitLab · Token
-              </Badge>
+              {/* Stays together and drops under the host on narrow screens. */}
+              <div className="ml-auto flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleChangeGitLabToken}
+                  className="text-[12px] text-text-secondary hover:underline"
+                >
+                  Change
+                </button>
+                <Badge
+                  tone="gitlab"
+                  weight="normal"
+                  className="tracking-[.06em] uppercase"
+                >
+                  GitLab · Token
+                </Badge>
+              </div>
             </div>
           )}
 

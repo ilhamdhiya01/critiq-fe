@@ -16,8 +16,7 @@ vi.mock("@/services/repositories.service", () => ({
   getOrgRepositories: vi.fn(),
 }));
 
-// First render in a cold worker can exceed the 5s default under load.
-describe("RepositoryList", { timeout: 15_000 }, () => {
+describe("RepositoryList", () => {
   it("renders real data only — no gate or rating badges", async () => {
     vi.mocked(getOrgRepositories).mockResolvedValue({
       data: [

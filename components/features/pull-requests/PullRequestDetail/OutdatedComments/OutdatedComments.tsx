@@ -34,7 +34,7 @@ const OutdatedComments = React.memo(({ scope }: OutdatedCommentsProps) => {
           key={thread.id}
           className="flex flex-col gap-2.5 border-b border-border-row px-5 py-3.5 last:border-b-0"
         >
-          <span className="font-mono text-[11.5px] text-text-muted">
+          <span className="font-mono text-[11.5px] wrap-anywhere text-text-muted">
             {thread.path}:{thread.line}
             {thread.side === "old" && " (removed line)"}
           </span>

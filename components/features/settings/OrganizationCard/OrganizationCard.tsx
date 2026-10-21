@@ -2,6 +2,7 @@
 
 import React from "react";
 
+import DetailRow from "@/components/shared/detail-row";
 import Badge from "@/components/ui/badge";
 import { useActiveOrg } from "@/lib/hooks/organisation/useActiveOrg";
 
@@ -38,29 +39,33 @@ const OrganizationCard = React.memo(() => {
     const { organization, role } = membership;
 
     return (
-      <div className="grid grid-cols-[140px_1fr] items-center gap-y-3 text-[12.5px]">
-        <span className="text-text-secondary">Name</span>
-        <span className="flex items-center gap-2.5">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-500/20 font-mono text-[11px] font-bold text-primary-300">
-            {getOrgInitials(organization.name)}
+      <div className="flex flex-col gap-3">
+        <DetailRow label="Name">
+          <span className="flex items-center gap-2.5">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-500/20 font-mono text-[11px] font-bold text-primary-300">
+              {getOrgInitials(organization.name)}
+            </span>
+            <span className="min-w-0 font-semibold wrap-anywhere text-neutral-100">
+              {organization.name}
+            </span>
           </span>
-          <span className="font-semibold text-neutral-100">
-            {organization.name}
-          </span>
-        </span>
+        </DetailRow>
 
-        <span className="text-text-secondary">URL</span>
-        <span className="font-mono text-neutral-100">
-          critiq.app/{organization.slug}
-        </span>
-
-        <span className="text-text-secondary">Your role</span>
-        <span className="flex items-center gap-2.5">
-          <Badge tone="primary">{role}</Badge>
-          <span className="text-text-faint">
-            roles are per organization — you may hold a different one elsewhere
+        <DetailRow label="URL">
+          <span className="font-mono wrap-anywhere text-neutral-100">
+            critiq.app/{organization.slug}
           </span>
-        </span>
+        </DetailRow>
+
+        <DetailRow label="Your role">
+          <span className="flex items-center gap-2.5">
+            <Badge tone="primary">{role}</Badge>
+            <span className="text-text-faint">
+              roles are per organization — you may hold a different one
+              elsewhere
+            </span>
+          </span>
+        </DetailRow>
       </div>
     );
   };

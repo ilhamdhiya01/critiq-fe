@@ -12,6 +12,7 @@ import ReviewDecisionBadge from "@/components/shared/review-decision-badge";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
 import DataTable from "@/components/ui/table";
+import { SM_UP_MEDIA_QUERY } from "@/const/layout.constant";
 import {
   PULL_REQUEST_NUMBER_PREFIX,
   PULL_REQUEST_POLICY_LABEL,
@@ -22,6 +23,7 @@ import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import { sortableFeatures } from "@/lib/helpers/table.helper";
 import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 import { usePullRequestList } from "@/lib/hooks/pull-requests/usePullRequestList";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import type {
   PullRequest,
   PullRequestFilter,
@@ -46,6 +48,7 @@ const matchesFilter = (pr: PullRequest, filter: PullRequestFilter): boolean => {
 };
 
 const PullRequestList = React.memo(() => {
+  const isSmUp = useMediaQuery(SM_UP_MEDIA_QUERY);
   const orgId = useActiveOrgId();
   const router = useRouter();
   const params = useParams<{ slug: string }>();
@@ -204,7 +207,7 @@ const PullRequestList = React.memo(() => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {FILTER_OPTIONS.map((option) => (
           <FilterChip
             key={option.value}
@@ -222,7 +225,10 @@ const PullRequestList = React.memo(() => {
           table={table}
           columnCount={columns.length}
           onRowClick={(pr) => handleDetailPullRequest(pr.id, pr.repositoryId)}
-          maxHeight="calc(100vh - 170px)"
+          // Phones scroll the page instead: the filter chips wrap there, so a
+          // fixed offset would nest a scroll area inside <main>.
+          maxHeight={isSmUp ? "calc(100dvh - 170px)" : undefined}
+          minWidth={640}
           colgroup={
             <colgroup>
               <col className="w-auto" />

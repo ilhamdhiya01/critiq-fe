@@ -63,7 +63,7 @@ const renderWidget = (widget: React.ReactElement) =>
     </QueryClientProvider>,
   );
 
-describe("Dashboard widgets", { timeout: 15_000 }, () => {
+describe("Dashboard widgets", () => {
   beforeEach(() => {
     vi.mocked(getDashboardSummary).mockReset();
     vi.mocked(getDashboardCriticalIssues).mockReset();

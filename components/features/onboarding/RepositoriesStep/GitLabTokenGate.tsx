@@ -49,22 +49,26 @@ const GitLabTokenGate = React.memo(
 
     const handleVerifyClick = useCallback(async () => {
       const trimmedInstanceUrl = instanceUrl.trim();
-      await toast.promise(
-        handleVerifyGitLabToken({
-          instanceUrl: trimmedInstanceUrl,
-          token: token.trim(),
-        }),
-        {
-          loading: "Verifying token…",
-          success: (response) => {
-            const successMessage =
-              response.message || "GitLab successfully connected";
-            onVerified(trimmedInstanceUrl);
-            return successMessage;
+      try {
+        await toast.promise(
+          handleVerifyGitLabToken({
+            instanceUrl: trimmedInstanceUrl,
+            token: token.trim(),
+          }),
+          {
+            loading: "Verifying token…",
+            success: (response) => {
+              const successMessage =
+                response.message || "GitLab successfully connected";
+              onVerified(trimmedInstanceUrl);
+              return successMessage;
+            },
+            error: (err) => messageFor(err.message),
           },
-          error: (err) => messageFor(err.message),
-        },
-      );
+        );
+      } catch {
+        // toast.promise already showed the error and rethrows it.
+      }
     }, [handleVerifyGitLabToken, instanceUrl, token, onVerified]);
 
     const canVerify = instanceUrl.trim().length > 0 && token.trim().length > 0;

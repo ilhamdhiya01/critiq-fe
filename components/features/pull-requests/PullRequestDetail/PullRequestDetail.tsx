@@ -6,6 +6,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import BackLink from "@/components/shared/back-link";
 import ScrollToTop from "@/components/shared/scroll-to-top";
 import StateStatus from "@/components/shared/state-status";
+import { PR_STICKY_BAR_HEIGHT_PX } from "@/const/layout.constant";
 import {
   PR_REVIEW_SECTION_ID,
   REVIEW_MODE_COPY,
@@ -169,7 +170,15 @@ const PullRequestDetail = React.memo(
     const diffFiles = diff?.files ?? NO_DIFF_FILES;
 
     return (
-      <div className="flex flex-col gap-4">
+      <div
+        className="flex flex-col gap-4"
+        // Shared by the sticky bar and the diff's pinned file headers.
+        style={
+          {
+            "--pr-bar-h": `${PR_STICKY_BAR_HEIGHT_PX}px`,
+          } as React.CSSProperties
+        }
+      >
         <PullRequestStickyBar
           targetRef={headerRef}
           detail={data}
@@ -241,6 +250,7 @@ const PullRequestDetail = React.memo(
           findings={findings}
           files={diffFiles}
           truncated={data.latestScan?.findingsTruncated ?? false}
+          scan={data.latestScan}
         />
 
         {isErrorDiff || !diff ? (

@@ -81,4 +81,23 @@ describe("SegmentedControl", () => {
       "0",
     );
   });
+
+  it("spans the row on phones only with fullWidth='mobile'", () => {
+    render(
+      <SegmentedControl
+        options={OPTIONS}
+        value="a"
+        onChange={vi.fn()}
+        ariaLabel="Mode"
+        fullWidth="mobile"
+      />,
+    );
+    const group = screen.getByRole("radiogroup", { name: "Mode" });
+
+    expect(group).toHaveClass("flex", "w-full", "sm:inline-flex", "sm:w-auto");
+    // Phone padding is tighter; sm and up keep the md size's padding.
+    const alpha = within(group).getByRole("radio", { name: "Alpha" });
+    expect(alpha).toHaveClass("px-2.5", "sm:px-4");
+    expect(alpha).not.toHaveClass("px-4");
+  });
 });

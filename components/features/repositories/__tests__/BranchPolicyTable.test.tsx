@@ -73,8 +73,7 @@ const renderTable = (config: ScanConfig, isAdmin: boolean) =>
 const policyGroup = (label: string) =>
   within(screen.getByRole("radiogroup", { name: label }));
 
-// First render in a cold worker can exceed the 5s default under load.
-describe("BranchPolicyTable", { timeout: 15_000 }, () => {
+describe("BranchPolicyTable", () => {
   beforeEach(() => {
     vi.mocked(updateScanConfig).mockReset();
     vi.mocked(getRepoBranches).mockReset();

@@ -57,7 +57,7 @@ const axiosError = (status: number, data: object) =>
     data,
   } as AxiosResponse);
 
-describe("MergeControl", { timeout: 15_000 }, () => {
+describe("MergeControl", () => {
   beforeEach(() => {
     vi.mocked(mergePullRequest).mockReset();
     vi.mocked(mergePullRequest).mockResolvedValue({

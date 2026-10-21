@@ -63,4 +63,4 @@ export const RULE_TIER_IDS = Object.keys(RULE_TIER_META) as RuleTierId[];
 
 // Older BE versions may still send tiers that were removed (e.g. "ci").
 export const isKnownRuleTier = (id: string): id is RuleTierId =>
-  id in RULE_TIER_META;
+  Object.hasOwn(RULE_TIER_META, id);

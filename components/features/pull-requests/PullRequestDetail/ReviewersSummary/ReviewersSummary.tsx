@@ -63,7 +63,7 @@ const ReviewersSummary = React.memo(
         );
       }
       return (
-        <span className="flex items-center gap-2 font-mono">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono">
           {approvals > 0 && (
             <span className="flex items-center gap-1 text-success-light">
               <Icon icon="TbCheck" size={14} /> {approvals} approval

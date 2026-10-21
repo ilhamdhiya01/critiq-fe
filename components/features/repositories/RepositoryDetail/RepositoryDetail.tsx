@@ -51,7 +51,14 @@ const RepositoryHeader = ({ orgId, repo, isAdmin }: RepositoryHeaderProps) => {
               {repo.language}
             </Badge>
           )}
-          <Badge tone="neutral" shape="tag" size="md" weight="normal">
+          <Badge
+            tone="neutral"
+            shape="tag"
+            size="md"
+            weight="normal"
+            title={repo.defaultBranch}
+            truncate
+          >
             default: {repo.defaultBranch}
           </Badge>
           {repo.lastScanAt !== undefined && (

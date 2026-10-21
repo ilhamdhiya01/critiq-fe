@@ -160,6 +160,7 @@ const RecentActivity = React.memo(() => {
           columnCount={columns.length}
           onRowClick={handleRowClick}
           emptyMessage={NO_REVIEWS}
+          minWidth={720}
         />
       )}
     </SectionCard>

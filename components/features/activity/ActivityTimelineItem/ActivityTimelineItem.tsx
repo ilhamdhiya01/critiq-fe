@@ -58,7 +58,7 @@ const ActivityTimelineItem = React.memo(
             "pb-7": !isLast,
           })}
         >
-          <p className="text-[14px] leading-snug">
+          <p className="text-[14px] leading-snug wrap-anywhere">
             {item.reviewer ? (
               <span className="font-semibold text-neutral-50">
                 {item.reviewer.name}

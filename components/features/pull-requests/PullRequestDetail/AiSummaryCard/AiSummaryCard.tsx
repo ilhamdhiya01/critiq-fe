@@ -131,7 +131,7 @@ const AiSummaryCard = React.memo(
             )}
           </span>
 
-          <span className="flex items-center gap-2.5">
+          <span className="flex flex-wrap items-center gap-2.5">
             {summary?.generatedAt && (
               <span className="font-mono text-[10.5px] text-text-muted">
                 {summary.cached ? "cache · " : ""}

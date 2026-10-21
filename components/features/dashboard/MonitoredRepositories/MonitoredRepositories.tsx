@@ -127,6 +127,7 @@ const MonitoredRepositories = React.memo(() => {
           columnCount={columns.length}
           onRowClick={handleRowClick}
           emptyMessage={NO_REPOSITORIES}
+          minWidth={480}
         />
       )}
     </SectionCard>

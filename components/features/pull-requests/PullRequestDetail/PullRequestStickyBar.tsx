@@ -25,12 +25,13 @@ interface PullRequestStickyBarProps {
   role?: Role;
 }
 
-const BRANCH_CLASS = "max-w-[40%] min-w-0 truncate";
+// Phones show only the target branch, which may take all the room left.
+const BRANCH_CLASS = "sm:max-w-[40%]";
 
 // Compact PR header pinned to the top while scrolling, like GitHub's.
-// Sticky stops at <main>'s padding edge, so -top-6 (= DashboardLayout's p-6)
-// pulls it flush under the navbar. The diff's file headers stick right below
-// it: top-9 = this bar's h-15 (60px) minus that 24px.
+// Sticky stops at <main>'s padding edge, so a negative --main-pad pulls it
+// flush under the navbar. Its height is --pr-bar-h (PullRequestDetail sets it
+// from PR_STICKY_BAR_HEIGHT_PX); the diff's file headers pin right below.
 const PullRequestStickyBar = React.memo(
   ({
     targetRef,
@@ -56,13 +57,13 @@ const PullRequestStickyBar = React.memo(
 
     return (
       // Zero-height sticky anchor: takes no space (-mb-4 cancels the gap).
-      <div className="sticky -top-6 z-30 -mb-4 h-0">
+      <div className="sticky top-[calc(var(--main-pad)*-1)] z-30 -mb-4 h-0">
         <div
           data-testid="pr-sticky-bar"
           inert={!isVisible}
           aria-hidden={!isVisible}
           className={classNames(
-            "absolute -inset-x-6 top-0 flex h-15 items-center gap-3 border-b border-border-subtle bg-background px-6 transition duration-150 motion-reduce:transition-none",
+            "absolute inset-x-[calc(var(--main-pad)*-1)] top-0 flex h-(--pr-bar-h) items-center gap-3 border-b border-border-subtle bg-background px-(--main-pad) transition duration-150 motion-reduce:transition-none",
             {
               "pointer-events-none -translate-y-1 opacity-0": !isVisible,
               "translate-y-0 opacity-100": isVisible,
@@ -93,21 +94,26 @@ const PullRequestStickyBar = React.memo(
                 size="xs"
                 weight="normal"
                 title={detail.targetBranch}
+                truncate
                 className={BRANCH_CLASS}
               >
                 {detail.targetBranch}
               </Badge>{" "}
-              <span className="shrink-0">from</span>{" "}
-              <Badge
-                tone="neutral"
-                shape="tag"
-                size="xs"
-                weight="normal"
-                title={detail.sourceBranch}
-                className={BRANCH_CLASS}
-              >
-                {detail.sourceBranch}
-              </Badge>
+              {/* `contents` keeps both parts flex items of the line on sm+. */}
+              <span className="hidden sm:contents">
+                <span className="shrink-0">from</span>{" "}
+                <Badge
+                  tone="neutral"
+                  shape="tag"
+                  size="xs"
+                  weight="normal"
+                  title={detail.sourceBranch}
+                  truncate
+                  className={BRANCH_CLASS}
+                >
+                  {detail.sourceBranch}
+                </Badge>
+              </span>
             </span>
           </div>
           <span className="hidden shrink-0 font-mono text-[11.5px] sm:inline">

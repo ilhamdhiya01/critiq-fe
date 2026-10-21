@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import { getUser, logout } from "@/services/auth.service";
+import { useSidebarStore } from "@/stores/useSidebarStore";
 
 import Navbar from "../Navbar";
 
@@ -57,5 +58,23 @@ describe("Navbar sign out", () => {
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
     expect(logout).toHaveBeenCalledTimes(1);
     expect(clear).toHaveBeenCalled();
+  });
+
+  it("opens the sidebar drawer from the menu button", () => {
+    useSidebarStore.setState({ isMobileOpen: false });
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ActiveOrgTestProvider orgId="org_1">
+          <Navbar title="Dashboard" />
+        </ActiveOrgTestProvider>
+      </QueryClientProvider>,
+    );
+
+    const menu = screen.getByRole("button", { name: "Open menu" });
+    expect(menu).toHaveAttribute("aria-expanded", "false");
+    expect(menu).toHaveAttribute("aria-controls", "app-sidebar");
+
+    fireEvent.click(menu);
+    expect(useSidebarStore.getState().isMobileOpen).toBe(true);
   });
 });

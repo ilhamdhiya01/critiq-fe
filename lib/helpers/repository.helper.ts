@@ -158,5 +158,10 @@ const LANGUAGE_DOT_CLASS: Record<string, string> = {
   "c#": "bg-success",
 };
 
-export const languageDotClass = (language: string): string =>
-  LANGUAGE_DOT_CLASS[language.toLowerCase()] ?? "bg-neutral-500";
+// Own keys only: "constructor" or "toString" must not hit Object.prototype.
+export const languageDotClass = (language: string): string => {
+  const key = language.toLowerCase();
+  return Object.hasOwn(LANGUAGE_DOT_CLASS, key)
+    ? LANGUAGE_DOT_CLASS[key]
+    : "bg-neutral-500";
+};

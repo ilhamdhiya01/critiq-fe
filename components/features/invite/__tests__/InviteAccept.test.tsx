@@ -56,7 +56,7 @@ const renderPage = () =>
     </QueryClientProvider>,
   );
 
-describe("InviteAccept", { timeout: 15_000 }, () => {
+describe("InviteAccept", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.sessionStorage.clear();

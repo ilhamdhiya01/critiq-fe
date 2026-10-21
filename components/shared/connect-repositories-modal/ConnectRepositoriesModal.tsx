@@ -263,8 +263,10 @@ const ConnectRepositoriesModal = React.memo(
                   className="mt-px flex-none"
                 />
                 <span>
-                  <span className="font-mono">{warning.path}</span> —{" "}
-                  {warning.message}
+                  <span className="font-mono wrap-anywhere">
+                    {warning.path}
+                  </span>{" "}
+                  — {warning.message}
                 </span>
               </span>
             ))}

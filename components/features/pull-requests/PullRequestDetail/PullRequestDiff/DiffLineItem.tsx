@@ -16,7 +16,7 @@ import DiffLineRow from "./DiffLineRow";
 import DiffNewComment from "./DiffNewComment";
 
 const THREAD_ROW =
-  "flex flex-col gap-3 border-y border-border-subtle bg-sunken py-3 pr-5 pl-23";
+  "flex flex-col gap-3 border-y border-border-subtle bg-sunken py-3 pr-4 pl-4 sm:pr-5 sm:pl-23";
 
 interface DiffLineItemProps {
   filePath: string;

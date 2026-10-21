@@ -89,7 +89,8 @@ const InviteLinkModal = React.memo(
         <div className="flex flex-col gap-3.5">
           <p className="text-[13px] text-text-strong">
             Invitation for{" "}
-            <span className="font-mono">{result.invite.email}</span> as{" "}
+            <span className="font-mono break-all">{result.invite.email}</span>{" "}
+            as{" "}
             <span className="font-mono">
               {MEMBER_ROLE_LABEL[result.invite.role]}
             </span>
@@ -102,7 +103,7 @@ const InviteLinkModal = React.memo(
               value={result.inviteUrl}
               aria-label="Invite link"
               onFocus={(event) => event.target.select()}
-              className="font-mono text-[12px]"
+              className="min-w-0 font-mono text-[12px]"
             />
             <Button
               type="button"

@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
-import {
-  ACTIVE_REPO_SCAN_STATUSES,
-  REPO_SCAN_POLL_INTERVAL_MS,
-} from "@/const/repository.constant";
+import { REPO_SCAN_POLL_INTERVAL_MS } from "@/const/repository.constant";
+import { isScanInProgress } from "@/lib/helpers/scan-status.helper";
 import { useLivePollInterval } from "@/lib/hooks/useLivePollInterval";
 import { getRepoScans } from "@/services/repositories.service";
 
@@ -18,11 +16,10 @@ export const useRepoScans = (orgId: string, repoId: string) => {
     select: (response) => response.data ?? [],
     enabled: !!orgId && !!repoId,
     retry: false,
-    // Keeps "Scanning…" rows moving to Done/Failed without a reload.
+    // Fallback when realtime is down: keeps queued/running rows and those
+    // still in AI review moving without a reload.
     refetchInterval: (query) =>
-      query.state.data?.data?.some((scan) =>
-        ACTIVE_REPO_SCAN_STATUSES.has(scan.status),
-      )
+      query.state.data?.data?.some(isScanInProgress)
         ? poll.active(REPO_SCAN_POLL_INTERVAL_MS)
         : false,
   });

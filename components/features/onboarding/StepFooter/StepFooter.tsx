@@ -26,7 +26,9 @@ const StepFooter = React.memo(
     onContinue,
   }: StepFooterProps) => {
     return (
-      <div className="flex items-center gap-3">
+      // Phones stack full-width buttons (column items stretch); from `sm` it is
+      // one row with the spacer pushing exit/continue to the right.
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         {canBack && (
           <Button
             type="button"
@@ -38,7 +40,7 @@ const StepFooter = React.memo(
             Back
           </Button>
         )}
-        <div className="flex-1" />
+        <div className="hidden sm:block sm:flex-1" />
         {onExit && (
           <Button
             type="button"

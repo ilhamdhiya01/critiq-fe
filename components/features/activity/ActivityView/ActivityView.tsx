@@ -130,6 +130,7 @@ const ActivityView = React.memo(() => {
           value={mode}
           onChange={setMode}
           ariaLabel="Review mode"
+          fullWidth="mobile"
         />
       </div>
 
@@ -146,7 +147,7 @@ const ActivityView = React.memo(() => {
           }
         />
       ) : (
-        <div className="flex flex-col gap-6 rounded-lg border border-border-subtle bg-surface px-7 py-6">
+        <div className="flex flex-col gap-6 rounded-lg border border-border-subtle bg-surface px-4 py-6 sm:px-7">
           {renderTimeline()}
 
           {hasNextPage && !isError && (

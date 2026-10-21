@@ -104,6 +104,18 @@ describe("PullRequestStickyBar", () => {
     expect(bar).toHaveAttribute("aria-hidden", "true");
   });
 
+  it("keeps only the target branch in the phone layout", () => {
+    render(<Harness />);
+    scrollHeader(true);
+
+    // The source part is display:none below sm; the target stays visible.
+    expect(screen.getByTitle("feat/activity").parentElement).toHaveClass(
+      "hidden",
+      "sm:contents",
+    );
+    expect(screen.getByTitle("development").closest(".hidden")).toBeNull();
+  });
+
   it("jumps to the review section", () => {
     const scrollIntoView = vi.fn();
     Element.prototype.scrollIntoView = scrollIntoView;

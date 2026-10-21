@@ -78,8 +78,7 @@ const renderView = () =>
     </QueryClientProvider>,
   );
 
-// First render in a cold worker can exceed the 5s default under load.
-describe("RulesView", { timeout: 15_000 }, () => {
+describe("RulesView", () => {
   beforeEach(() => {
     currentRole = "ADMIN";
     vi.clearAllMocks();

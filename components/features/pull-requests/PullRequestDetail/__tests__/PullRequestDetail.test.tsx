@@ -96,7 +96,7 @@ const renderDetail = () =>
     </QueryClientProvider>,
   );
 
-describe("PullRequestDetail", { timeout: 15_000 }, () => {
+describe("PullRequestDetail", () => {
   beforeEach(() => {
     currentDetail = DETAIL;
   });

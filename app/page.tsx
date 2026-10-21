@@ -17,7 +17,7 @@ const RootPage = async () => {
   if (!userData.activeOrgId) redirect(ROUTES.SETUP);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-6">
+    <div className="flex min-h-dvh items-center justify-center bg-background p-6">
       <Organisation.OrganisationRedirect />
     </div>
   );

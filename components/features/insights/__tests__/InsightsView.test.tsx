@@ -52,7 +52,7 @@ const renderView = () =>
 const card = (label: string) =>
   screen.getByText(label).closest("div") as HTMLElement;
 
-describe("InsightsView", { timeout: 15_000 }, () => {
+describe("InsightsView", () => {
   beforeEach(() => {
     vi.mocked(getInsights).mockReset();
   });

@@ -120,10 +120,13 @@ const RepoRow = React.memo(
       >
         <div
           onClick={isConnected ? undefined : () => onToggle(repo.id)}
-          className={classNames("flex items-center gap-3 px-3.5 py-2.5", {
-            "cursor-pointer": !isConnected,
-            "cursor-default": isConnected,
-          })}
+          className={classNames(
+            "flex flex-wrap items-center gap-3 px-3.5 py-2.5",
+            {
+              "cursor-pointer": !isConnected,
+              "cursor-default": isConnected,
+            },
+          )}
         >
           <Checkbox
             checked={checked}
@@ -131,7 +134,7 @@ const RepoRow = React.memo(
             readOnly
             className={classNames("shrink-0", { "opacity-60": isConnected })}
           />
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex min-w-0 flex-1 basis-40 flex-col gap-1">
             <span
               title={repo.path}
               className={classNames(
@@ -153,7 +156,8 @@ const RepoRow = React.memo(
             </span>
           </div>
           {isConnected && (
-            <div className="flex shrink-0 items-center gap-2.5">
+            // Drops under the repo path on narrow screens.
+            <div className="ml-auto flex shrink-0 items-center gap-2.5">
               <Badge tone="green">Connected</Badge>
               {settingsHref && (
                 <Link

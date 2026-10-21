@@ -8,7 +8,7 @@ interface AuthLayoutProps {
 
 const AuthLayout = React.memo(({ children }: AuthLayoutProps) => {
   return (
-    <div className="flex min-h-screen bg-background font-sans text-[13px] text-neutral-100">
+    <div className="flex min-h-dvh bg-background font-sans text-[13px] text-neutral-100">
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
         <div className="flex w-90 max-w-full flex-col">{children}</div>
       </div>

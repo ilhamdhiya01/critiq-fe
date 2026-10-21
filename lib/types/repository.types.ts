@@ -1,4 +1,5 @@
 import type { IntegrationProvider } from "./integration.types";
+import type { AiSummaryStatus } from "./pull-request.types";
 
 export type BranchPolicy = "manual_only" | "allow_ai" | "require_both";
 
@@ -23,7 +24,11 @@ export interface RepoScan {
   id: string;
   status: RepoScanStatus;
   trigger: "WEBHOOK" | "MANUAL" | "RESCAN";
+  // Static findings so far; can still grow while the AI review runs.
   criticalCount: number;
+  // The AI half of the scan. Missing on older BE.
+  aiStatus?: AiSummaryStatus | null;
+  aiErrorCode?: string | null;
   createdAt: string;
   finishedAt: string | null;
   pull: { id: string; number: string; title: string };

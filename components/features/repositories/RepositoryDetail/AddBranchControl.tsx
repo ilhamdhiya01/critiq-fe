@@ -21,7 +21,7 @@ import type { IntegrationProvider } from "@/lib/types/integration.types";
 const SKELETON_CHIPS = 4;
 
 const CHIP_CLASS =
-  "cursor-pointer rounded-full border border-border-default bg-raised px-3 py-1 font-mono text-[11.5px] text-text-nav transition-colors hover:border-neutral-600 hover:text-text-strong";
+  "max-w-full cursor-pointer truncate rounded-full border border-border-default bg-raised px-3 py-1 font-mono text-[11.5px] text-text-nav transition-colors hover:border-neutral-600 hover:text-text-strong";
 
 interface AddBranchControlProps {
   orgId: string;
@@ -124,6 +124,7 @@ const AddBranchControl = React.memo(
               type="button"
               onClick={() => onAdd(branch)}
               aria-label={`Monitor ${branch}`}
+              title={branch}
               className={CHIP_CLASS}
             >
               + {branch}
@@ -150,7 +151,7 @@ const AddBranchControl = React.memo(
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-[11.5px] text-text-muted">From repo:</span>
           {showSearch && (
-            <label className="flex w-64 items-center gap-2 rounded-md border border-border-default bg-raised px-2.5 py-1.5 focus-within:border-neutral-600">
+            <label className="flex w-full items-center gap-2 rounded-md border border-border-default bg-raised px-2.5 py-1.5 focus-within:border-neutral-600 sm:w-64">
               <Icon
                 icon="TbSearch"
                 size={13}

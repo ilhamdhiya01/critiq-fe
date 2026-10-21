@@ -45,11 +45,11 @@ const RuleTierRow = React.memo(
           { "bg-primary-500/10 ring-1 ring-primary-500/40": isHighlighted },
         )}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
           <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border-default bg-raised text-text-secondary">
             <Icon icon={meta.icon} size={15} />
           </span>
-          <div className="flex flex-col gap-1">
+          <div className="flex min-w-0 flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[13px] font-semibold text-text-strong">
                 {meta.title}

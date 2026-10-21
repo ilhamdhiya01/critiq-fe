@@ -67,7 +67,7 @@ const renderView = () =>
     </QueryClientProvider>,
   );
 
-describe("ActivityView", { timeout: 15_000 }, () => {
+describe("ActivityView", () => {
   beforeEach(() => {
     vi.mocked(getOrgActivity).mockReset();
     vi.mocked(getOrgRepositories).mockResolvedValue({ data: [] });

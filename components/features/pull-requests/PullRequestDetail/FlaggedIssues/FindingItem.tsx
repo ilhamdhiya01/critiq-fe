@@ -44,18 +44,21 @@ const FindingItem = React.memo(({ finding, canJump }: FindingItemProps) => {
   }, [finding.filePath, finding.lineStart, setTarget, clearTarget]);
 
   return (
-    <div className="flex items-start gap-3.5 border-b border-border-row px-5 py-3.5 last:border-b-0">
-      <Badge palette={severityStyle} className="tracking-[0.03em]">
-        {finding.severity}
-      </Badge>
+    // Phones stack the badges above the text instead of giving them a column.
+    <div className="flex flex-col items-start gap-2 border-b border-border-row px-5 py-3.5 last:border-b-0 sm:flex-row sm:gap-3.5">
+      <span className="flex shrink-0 items-start gap-2 sm:gap-3.5">
+        <Badge palette={severityStyle} className="tracking-[0.03em]">
+          {finding.severity}
+        </Badge>
 
-      <Badge
-        palette={sourceStyle}
-        size="xs"
-        title={finding.source === "AI" ? "Model review" : "Static rule"}
-      >
-        {FINDING_SOURCE_LABEL[finding.source]}
-      </Badge>
+        <Badge
+          palette={sourceStyle}
+          size="xs"
+          title={finding.source === "AI" ? "Model review" : "Static rule"}
+        >
+          {FINDING_SOURCE_LABEL[finding.source]}
+        </Badge>
+      </span>
 
       {/* <Icon
         icon={getFindingIcon(finding.ruleId)}
@@ -74,14 +77,14 @@ const FindingItem = React.memo(({ finding, canJump }: FindingItemProps) => {
               type="button"
               onClick={handleJump}
               title="Lihat baris ini di diff"
-              className="cursor-pointer font-mono font-normal text-primary-300 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400"
+              className="cursor-pointer text-left font-mono font-normal wrap-anywhere text-primary-300 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400"
             >
               {finding.filePath}:{finding.lineStart}
             </button>
           ) : (
             <span
               title="Baris ini tidak ada di diff yang ditampilkan"
-              className="font-mono font-normal text-text-faint"
+              className="font-mono font-normal wrap-anywhere text-text-faint"
             >
               {finding.filePath}:{finding.lineStart}
             </span>

@@ -37,7 +37,9 @@ const OrganizationStep = React.memo(
         />
         <div className="flex items-center gap-2 font-mono text-[11.5px]">
           <span className="text-text-muted">URL</span>
-          <span className="text-primary-400">critiq.app/{slug}</span>
+          <span className="min-w-0 wrap-anywhere text-primary-400">
+            critiq.app/{slug}
+          </span>
         </div>
         <div className="flex gap-2.5 rounded-[7px] border border-indigo-500/35 bg-indigo-500/7 px-3.5 py-3">
           <span className="text-[12px] leading-[1.55] text-indigo-200/70">

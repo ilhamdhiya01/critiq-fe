@@ -75,7 +75,7 @@ const ReviewStats = React.memo(() => {
             )}
           </div>
           {split ? (
-            <div className="flex justify-between font-mono text-[11.5px]">
+            <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 font-mono text-[11.5px]">
               <span className="text-primary-300">
                 AI-assisted · {aiAssisted} ({split.aiPercent}%)
               </span>
@@ -88,7 +88,7 @@ const ReviewStats = React.memo(() => {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
           <div className="flex flex-col gap-1.5 rounded-md border border-border-subtle bg-raised/40 px-3.5 py-3">
             <span className={LABEL}>Avg approve · AI</span>
             <span className="font-mono text-[18px] font-bold text-primary-200">

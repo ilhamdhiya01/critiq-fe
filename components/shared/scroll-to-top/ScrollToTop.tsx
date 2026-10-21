@@ -49,7 +49,7 @@ const ScrollToTop = React.memo(({ threshold = 600 }: ScrollToTopProps) => {
           onClick={handleClick}
           aria-label="Kembali ke atas"
           title="Kembali ke atas"
-          className="fixed right-6 bottom-6 z-40 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border-default bg-raised text-text-secondary shadow-lg transition-colors hover:border-neutral-600 hover:text-text-strong"
+          className="fixed right-[max(1.5rem,env(safe-area-inset-right))] bottom-[max(1.5rem,env(safe-area-inset-bottom))] z-40 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border-default bg-raised text-text-secondary shadow-lg transition-colors hover:border-neutral-600 hover:text-text-strong"
         >
           <Icon icon="TbArrowUp" size={18} />
         </button>

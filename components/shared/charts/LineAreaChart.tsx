@@ -29,6 +29,20 @@ interface LineAreaChartProps {
 
 const PAD = { top: 12, right: 14, bottom: 30, left: 38 };
 const FALLBACK_WIDTH = 640;
+// Approximate x-axis label footprint (11px mono glyph + breathing room),
+// used to skip labels that would otherwise overlap on narrow charts.
+const LABEL_CHAR_WIDTH = 6.6;
+const LABEL_GAP = 8;
+
+// Centred on the point but kept inside the chart: percentages in translate
+// refer to the tooltip's own width, so no measuring is needed.
+const getTooltipStyle = (
+  anchor: number,
+  width: number,
+): React.CSSProperties => ({
+  left: anchor,
+  transform: `translateX(clamp(${-anchor}px, -50%, calc(${width - anchor}px - 100%)))`,
+});
 
 // Plain SVG line/area chart: drawn in pixels from the measured width so text
 // and dots never stretch.
@@ -76,6 +90,27 @@ const LineAreaChart = React.memo(
     const xAt = (index: number) => plotted[0]?.points[index]?.x ?? 0;
     const columnWidth =
       labels.length > 1 ? plotWidth / (labels.length - 1) : plotWidth;
+    const labelFootprint =
+      Math.max(0, ...labels.map((label) => label.length)) * LABEL_CHAR_WIDTH +
+      LABEL_GAP;
+    // Show every nth label so neighbours never overlap.
+    const labelStep =
+      columnWidth > 0
+        ? Math.max(1, Math.ceil(labelFootprint / columnWidth))
+        : 1;
+
+    // Touch: a tap opens the tooltip and dragging sideways scrubs through the
+    // points. Releasing the implicit touch capture lets each column receive
+    // its own pointermove.
+    const handlePointer = (
+      event: React.PointerEvent<SVGRectElement>,
+      index: number,
+    ) => {
+      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      setActiveIndex(index);
+    };
 
     return (
       <div ref={containerRef} className="relative w-full">
@@ -85,6 +120,8 @@ const LineAreaChart = React.memo(
           width="100%"
           height={height}
           viewBox={`0 0 ${width} ${height}`}
+          // Vertical swipes still scroll the page; horizontal ones scrub.
+          className="touch-pan-y"
         >
           <g transform={`translate(${PAD.left},${PAD.top})`}>
             {scale.ticks.map((tick) => {
@@ -112,17 +149,19 @@ const LineAreaChart = React.memo(
               );
             })}
 
-            {labels.map((label, index) => (
-              <text
-                key={label}
-                x={xAt(index)}
-                y={plotHeight + 20}
-                textAnchor="middle"
-                className="fill-text-muted font-mono text-[11px]"
-              >
-                {label}
-              </text>
-            ))}
+            {labels.map((label, index) =>
+              index % labelStep === 0 ? (
+                <text
+                  key={label}
+                  x={xAt(index)}
+                  y={plotHeight + 20}
+                  textAnchor="middle"
+                  className="fill-text-muted font-mono text-[11px]"
+                >
+                  {label}
+                </text>
+              ) : null,
+            )}
 
             {activeIndex !== null && (
               <line
@@ -161,7 +200,7 @@ const LineAreaChart = React.memo(
               </g>
             ))}
 
-            {/* Transparent hit columns: hover or Tab to inspect a point. */}
+            {/* Transparent hit columns: hover, tap or Tab to inspect a point. */}
             {labels.map((label, index) => (
               <rect
                 key={label}
@@ -176,6 +215,8 @@ const LineAreaChart = React.memo(
                   .join(", ")}`}
                 className="outline-none"
                 onMouseEnter={() => setActiveIndex(index)}
+                onPointerDown={(event) => handlePointer(event, index)}
+                onPointerMove={(event) => handlePointer(event, index)}
                 onFocus={() => setActiveIndex(index)}
                 onMouseLeave={() => setActiveIndex(null)}
                 onBlur={() => setActiveIndex(null)}
@@ -187,8 +228,8 @@ const LineAreaChart = React.memo(
         {activeIndex !== null && (
           <div
             role="tooltip"
-            className="pointer-events-none absolute top-0 z-10 flex -translate-x-1/2 flex-col gap-1 rounded-md border border-border-default bg-raised-alt px-3 py-2 text-[11.5px] shadow-lg"
-            style={{ left: PAD.left + xAt(activeIndex) }}
+            className="pointer-events-none absolute top-0 z-10 flex flex-col gap-1 rounded-md border border-border-default bg-raised-alt px-3 py-2 text-[11.5px] shadow-lg"
+            style={getTooltipStyle(PAD.left + xAt(activeIndex), width)}
           >
             <span className="font-mono text-text-secondary">
               {formatTooltip?.(activeIndex) ?? labels[activeIndex]}

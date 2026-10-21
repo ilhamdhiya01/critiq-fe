@@ -129,7 +129,7 @@ const MembersCard = React.memo(({ orgId = "" }: MembersCardProps) => {
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface p-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-mono text-[13px] font-semibold text-text-strong">
           Members{data ? ` (${data.members.length})` : ""}
         </span>

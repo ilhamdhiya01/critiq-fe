@@ -79,7 +79,7 @@ const activeLabel = () =>
     .find((option) => option.getAttribute("aria-selected") === "true")
     ?.textContent;
 
-describe("GlobalSearch", { timeout: 15_000 }, () => {
+describe("GlobalSearch", () => {
   beforeEach(() => {
     push.mockReset();
     vi.mocked(getGlobalSearch).mockReset();
@@ -226,5 +226,20 @@ describe("GlobalSearch", { timeout: 15_000 }, () => {
     fireEvent.change(input(), { target: { value: "zzz" } });
 
     expect(await screen.findByText('No results for "zzz"')).toBeInTheDocument();
+  });
+
+  it("opens as a sheet from the mobile search button and cancels", () => {
+    renderSearch();
+
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+    expect(input()).toHaveAttribute("aria-expanded", "true");
+    expect(input()).toHaveFocus();
+    // The icon button gives way to the open sheet.
+    expect(
+      screen.queryByRole("button", { name: "Search" }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(input()).toHaveAttribute("aria-expanded", "false");
   });
 });

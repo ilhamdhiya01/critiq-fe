@@ -84,7 +84,7 @@ const nameInput = () =>
 const clickButton = (name: string) =>
   fireEvent.click(screen.getByRole("button", { name }));
 
-describe("OnboardingWizard (new organization)", { timeout: 15_000 }, () => {
+describe("OnboardingWizard (new organization)", () => {
   beforeEach(() => {
     replace.mockReset();
     sessionStorage.clear();

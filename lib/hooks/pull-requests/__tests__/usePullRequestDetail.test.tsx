@@ -26,7 +26,7 @@ const SyncProbe = () => {
   return <span>{data?.latestReview?.sync.status ?? "loading"}</span>;
 };
 
-describe("usePullRequestDetail", { timeout: 15_000 }, () => {
+describe("usePullRequestDetail", () => {
   it("polls while the latest review is syncing, then stops", async () => {
     vi.mocked(getPullRequestDetail)
       .mockResolvedValueOnce(withSync("pending"))

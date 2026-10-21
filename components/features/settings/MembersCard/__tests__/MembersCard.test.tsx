@@ -107,7 +107,7 @@ const openInvite = async () => {
   });
 };
 
-describe("MembersCard", { timeout: 15_000 }, () => {
+describe("MembersCard", () => {
   beforeEach(() => {
     currentRole = "ADMIN";
     vi.clearAllMocks();

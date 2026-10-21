@@ -44,4 +44,26 @@ describe("Badge", () => {
       "font-normal",
     );
   });
+
+  it("never shrinks by default", () => {
+    render(<Badge tone="neutral">feat/very-long-branch</Badge>);
+
+    const badge = screen.getByText("feat/very-long-branch");
+    expect(badge).toHaveClass("shrink-0");
+    expect(badge).not.toHaveClass("min-w-0");
+  });
+
+  it("can shrink and ellipsize long text when asked to", () => {
+    render(
+      <Badge tone="neutral" truncate>
+        acme/platform/services/payments
+      </Badge>,
+    );
+
+    const text = screen.getByText("acme/platform/services/payments");
+    expect(text).toHaveClass("truncate");
+    const badge = text.parentElement;
+    expect(badge).toHaveClass("max-w-full", "min-w-0");
+    expect(badge).not.toHaveClass("shrink-0");
+  });
 });

@@ -27,7 +27,8 @@ interface SegmentedControlProps<T extends string> {
   onChange: (value: T) => void;
   ariaLabel: string;
   size?: "sm" | "md";
-  fullWidth?: boolean;
+  // "mobile" = full width below sm, intrinsic width from sm up.
+  fullWidth?: boolean | "mobile";
   className?: string;
 }
 
@@ -44,8 +45,19 @@ const segmented = tv({
     fullWidth: {
       true: { root: "flex w-full", item: "flex-1" },
       false: { root: "inline-flex" },
+      // Options share the row and may wrap their label as a last resort, so
+      // the control never overflows a 320px screen.
+      mobile: {
+        root: "flex w-full sm:inline-flex sm:w-auto",
+        item: "min-w-0 flex-auto text-center whitespace-normal sm:flex-none sm:whitespace-nowrap",
+      },
     },
   },
+  compoundVariants: [
+    // Tighter padding on phones only; sm and up keep the size's padding.
+    { fullWidth: "mobile", size: "sm", class: { item: "px-2 sm:px-3" } },
+    { fullWidth: "mobile", size: "md", class: { item: "px-2.5 sm:px-4" } },
+  ],
   defaultVariants: { size: "md", fullWidth: false },
 });
 

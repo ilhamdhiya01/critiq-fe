@@ -8,7 +8,7 @@ export interface BadgePalette {
 }
 
 const badge = tv({
-  base: "inline-flex shrink-0 items-center gap-1 border font-mono whitespace-nowrap",
+  base: "inline-flex items-center gap-1 border font-mono whitespace-nowrap",
   variants: {
     tone: {
       gray: "border-neutral-400/30 bg-neutral-400/8 text-neutral-400",
@@ -36,12 +36,19 @@ const badge = tv({
       normal: "font-normal",
       semibold: "font-semibold",
     },
+    // Opt-in: lets the badge shrink to its container and ellipsize long text
+    // (repo paths, branch names). Off by default so badges never squash.
+    truncate: {
+      true: "max-w-full min-w-0 overflow-hidden",
+      false: "shrink-0",
+    },
   },
   defaultVariants: {
     tone: "gray",
     size: "sm",
     shape: "pill",
     weight: "semibold",
+    truncate: false,
   },
 });
 
@@ -51,13 +58,24 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   size?: keyof typeof badge.variants.size;
   shape?: keyof typeof badge.variants.shape;
   weight?: keyof typeof badge.variants.weight;
+  truncate?: boolean;
 }
 
 // Pill/tag label. Use `tone` for the standard colours or `palette` for a
-// status map; never both.
+// status map; never both. Pass `truncate` to let long text ellipsize.
 const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
   (
-    { tone, palette, size, shape, weight, className, children, ...props },
+    {
+      tone,
+      palette,
+      size,
+      shape,
+      weight,
+      truncate = false,
+      className,
+      children,
+      ...props
+    },
     ref,
   ) => (
     <span
@@ -67,6 +85,7 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
         size,
         shape,
         weight,
+        truncate,
         className: [
           palette && `${palette.text} ${palette.bg} ${palette.border}`,
           className,
@@ -76,7 +95,8 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
       })}
       {...props}
     >
-      {children}
+      {/* text-overflow only applies to a block box, not the flex badge. */}
+      {truncate ? <span className="truncate">{children}</span> : children}
     </span>
   ),
 );

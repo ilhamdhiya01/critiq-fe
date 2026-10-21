@@ -32,8 +32,14 @@ const DiffFileHeader = React.memo(
           {displayPath}
         </span>
         <span className="shrink-0 font-mono text-[11px] text-text-faint">
-          UNIFIED · +{file.addedCount} −{file.removedCount}
-          {showCommentHint && " · KLIK BARIS UNTUK KOMENTAR"}
+          {/* Phones keep only the counts so the path has room. */}
+          <span className="hidden sm:inline">UNIFIED · </span>
+          {`+${file.addedCount} −${file.removedCount}`}
+          {showCommentHint && (
+            <span className="hidden sm:inline">
+              {" · KLIK BARIS UNTUK KOMENTAR"}
+            </span>
+          )}
         </span>
       </div>
     );

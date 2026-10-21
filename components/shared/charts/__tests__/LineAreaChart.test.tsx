@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import LineAreaChart, { type ChartSeries } from "../LineAreaChart";
 
@@ -9,18 +9,38 @@ const SERIES: ChartSeries[] = [
   { key: "ai", label: "AI", color: "purple", values: [1, 3, 0] },
 ];
 
-const renderChart = (series = SERIES) =>
+const renderChart = (series = SERIES, labels = LABELS) =>
   render(
     <LineAreaChart
       series={series}
-      labels={LABELS}
+      labels={labels}
       ariaLabel="Critical issues per week"
       formatTooltip={(index) => `Week ${index + 1} range`}
       emptyMessage="No critical issues in this period"
     />,
   );
 
+// Reports a fixed container width, like a phone-sized card.
+const stubContainerWidth = (width: number) =>
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      constructor(private callback: ResizeObserverCallback) {}
+      observe() {
+        this.callback(
+          [{ contentRect: { width } } as ResizeObserverEntry],
+          this as unknown as ResizeObserver,
+        );
+      }
+      disconnect() {}
+    },
+  );
+
 describe("LineAreaChart", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("labels the chart and draws a dot per value", () => {
     const { container } = renderChart();
 
@@ -54,6 +74,52 @@ describe("LineAreaChart", () => {
 
     fireEvent.mouseEnter(screen.getByLabelText("W1: Static 4, AI 1"));
     expect(screen.getByRole("tooltip")).toHaveTextContent("Week 1 range");
+  });
+
+  it("opens the tooltip on tap and follows a horizontal drag", () => {
+    renderChart();
+
+    fireEvent.pointerDown(screen.getByLabelText("W2: Static 2, AI 3"));
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Week 2 range");
+
+    fireEvent.pointerMove(screen.getByLabelText("W3: Static 6, AI 0"));
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Week 3 range");
+  });
+
+  it("keeps the tooltip inside the chart at the first and last point", () => {
+    renderChart();
+
+    // Default width 640, left pad 38, right pad 14 → points at x 38…626.
+    fireEvent.focus(screen.getByLabelText("W1: Static 4, AI 1"));
+    expect(screen.getByRole("tooltip").style.transform).toBe(
+      "translateX(clamp(-38px, -50%, calc(602px - 100%)))",
+    );
+
+    fireEvent.focus(screen.getByLabelText("W3: Static 6, AI 0"));
+    expect(screen.getByRole("tooltip").style.transform).toBe(
+      "translateX(clamp(-626px, -50%, calc(14px - 100%)))",
+    );
+  });
+
+  it("thins x-axis labels that would overlap on a narrow chart", () => {
+    stubContainerWidth(160);
+    const labels = Array.from({ length: 8 }, (_, index) => `W${index + 1}`);
+    renderChart(
+      SERIES.map((item) => ({ ...item, values: labels.map(() => 1) })),
+      labels,
+    );
+
+    expect(screen.getByText("W1")).toBeInTheDocument();
+    expect(screen.queryByText("W2")).not.toBeInTheDocument();
+    expect(screen.getByText("W3")).toBeInTheDocument();
+    // Hidden labels stay inspectable.
+    expect(screen.getByLabelText("W2: Static 1, AI 1")).toBeInTheDocument();
+  });
+
+  it("shows every label when there is room", () => {
+    renderChart();
+
+    LABELS.forEach((label) => expect(screen.getByText(label)).toBeVisible());
   });
 
   it("keeps a flat line and explains an all-zero period", () => {

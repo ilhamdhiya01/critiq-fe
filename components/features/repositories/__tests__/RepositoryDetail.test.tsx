@@ -90,8 +90,7 @@ const renderDetail = () =>
     </QueryClientProvider>,
   );
 
-// First render in a cold worker can exceed the 5s default under load.
-describe("RepositoryDetail", { timeout: 15_000 }, () => {
+describe("RepositoryDetail", () => {
   beforeEach(() => {
     currentRole = "ADMIN";
     vi.mocked(getOrgRepositories).mockResolvedValue({ data: [REPO] });
@@ -206,7 +205,7 @@ describe("RepositoryDetail", { timeout: 15_000 }, () => {
     const bodyRows = items.slice(1);
 
     expect(bodyRows.map((item) => item.textContent)).toEqual([
-      expect.stringContaining("Scanning…"),
+      expect.stringContaining("Running"),
       expect.stringContaining("Failed"),
       expect.stringContaining("Done"),
     ]);

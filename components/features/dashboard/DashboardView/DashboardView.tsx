@@ -12,7 +12,7 @@ const DashboardView = React.memo(() => (
   <div className="flex flex-col gap-4">
     <SummaryCards />
     <MonitoredRepositories />
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.4fr_1fr]">
       <CriticalIssues />
       <ReviewStats />
     </div>

@@ -12,6 +12,7 @@ import React, {
   useState,
 } from "react";
 
+import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
 import Spinner from "@/components/ui/spinner";
 import { SEARCH_DEBOUNCE_MS, SEARCH_MAX_LENGTH } from "@/const/search.constant";
@@ -25,6 +26,7 @@ import { useGlobalSearch } from "@/lib/hooks/search/useGlobalSearch";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useDismissable } from "@/lib/hooks/useDismissable";
 import type { SearchEntry } from "@/lib/types/search.types";
+import { useSidebarStore } from "@/stores/useSidebarStore";
 
 // Not visible until the field is focused.
 const SearchDropdown = dynamic(() => import("./SearchDropdown"), {
@@ -73,6 +75,15 @@ const GlobalSearch = React.memo(() => {
   }, []);
   useDismissable(isOpen, close, [wrapperRef]);
 
+  // The mobile sheet only mounts the field once open, so focus it then; it
+  // also replaces the mobile sidebar drawer if that is open.
+  const closeDrawer = useSidebarStore((state) => state.closeMobile);
+  useEffect(() => {
+    if (!isOpen) return;
+    closeDrawer();
+    inputRef.current?.focus();
+  }, [isOpen, closeDrawer]);
+
   // ⌘K / Ctrl+K from anywhere.
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -110,68 +121,103 @@ const GlobalSearch = React.memo(() => {
   };
 
   return (
-    <div ref={wrapperRef} className="relative">
-      <div
-        className={classNames(
-          "flex max-w-[60vw] items-center gap-2 rounded-[7px] border bg-raised px-3 py-1.5 transition-[width] duration-150 motion-reduce:transition-none",
-          {
-            "w-70 border-border-default": !isOpen,
-            "w-120 border-neutral-600": isOpen,
-          },
-        )}
-      >
-        {isFetching && isSearching ? (
-          <Spinner size={14} className="shrink-0 text-text-muted" />
-        ) : (
-          <Icon
-            icon="TbSearch"
-            size={14}
-            className="shrink-0 stroke-[1.8] text-text-muted"
-          />
-        )}
-        <input
-          ref={inputRef}
-          type="text"
-          role="combobox"
-          aria-label="Search"
-          aria-autocomplete="list"
-          aria-expanded={isOpen}
-          aria-controls={listboxId}
-          aria-activedescendant={
-            isOpen && entries.length > 0 ? getOptionId(safeIndex) : undefined
-          }
-          value={query}
-          maxLength={SEARCH_MAX_LENGTH}
-          placeholder="Search repos, PRs, rules…"
-          onFocus={() => setIsOpen(true)}
+    <>
+      {/* Below md the field doesn't fit the navbar: an icon opens it as a
+          full-width sheet over the top of the screen. */}
+      {!isOpen && (
+        <Button
+          type="button"
+          variant="icon"
+          size="md"
+          fullWidth={false}
           onClick={() => setIsOpen(true)}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setActiveIndex(0);
-            setIsOpen(true);
-          }}
-          onKeyDown={handleKeyDown}
-          className="min-w-0 flex-1 bg-transparent text-[12.5px] text-text-strong outline-none placeholder:text-text-placeholder"
-        />
-        <kbd className="shrink-0 rounded border border-border-default px-1.5 font-mono text-[10px] text-text-placeholder">
-          ⌘K
-        </kbd>
-      </div>
-
-      {isOpen && (
-        <SearchDropdown
-          listboxId={listboxId}
-          getOptionId={getOptionId}
-          entries={entries}
-          activeIndex={safeIndex}
-          query={debouncedQuery}
-          isUnavailable={isSearching && isError}
-          isSearching={isFetching}
-          onSelect={handleSelect}
-          onHover={setActiveIndex}
+          aria-label="Search"
+          className="md:hidden"
+          icon={<Icon icon="TbSearch" size={17} />}
         />
       )}
-    </div>
+      <div
+        ref={wrapperRef}
+        className={classNames("relative", {
+          "hidden md:block": !isOpen,
+          "max-md:fixed max-md:inset-x-0 max-md:top-0 max-md:z-50 max-md:flex max-md:items-center max-md:gap-2 max-md:border-b max-md:border-border-default max-md:bg-surface max-md:p-3":
+            isOpen,
+        })}
+      >
+        <div
+          className={classNames(
+            "flex items-center gap-2 rounded-[7px] border bg-raised px-3 py-1.5 transition-[width] duration-150 motion-reduce:transition-none max-md:min-w-0 max-md:flex-1 md:max-w-[60vw]",
+            {
+              "border-border-default md:w-70": !isOpen,
+              "border-neutral-600 md:w-120": isOpen,
+            },
+          )}
+        >
+          {isFetching && isSearching ? (
+            <Spinner size={14} className="shrink-0 text-text-muted" />
+          ) : (
+            <Icon
+              icon="TbSearch"
+              size={14}
+              className="shrink-0 stroke-[1.8] text-text-muted"
+            />
+          )}
+          <input
+            ref={inputRef}
+            type="text"
+            role="combobox"
+            aria-label="Search"
+            aria-autocomplete="list"
+            aria-expanded={isOpen}
+            aria-controls={listboxId}
+            aria-activedescendant={
+              isOpen && entries.length > 0 ? getOptionId(safeIndex) : undefined
+            }
+            value={query}
+            maxLength={SEARCH_MAX_LENGTH}
+            placeholder="Search repos, PRs, rules…"
+            onFocus={() => setIsOpen(true)}
+            onClick={() => setIsOpen(true)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setActiveIndex(0);
+              setIsOpen(true);
+            }}
+            onKeyDown={handleKeyDown}
+            className="min-w-0 flex-1 bg-transparent text-[12.5px] text-text-strong outline-none placeholder:text-text-placeholder"
+          />
+          <kbd className="hidden shrink-0 rounded border border-border-default px-1.5 font-mono text-[10px] text-text-placeholder sm:inline">
+            ⌘K
+          </kbd>
+        </div>
+        {isOpen && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            fullWidth={false}
+            onClick={close}
+            className="md:hidden"
+          >
+            Cancel
+          </Button>
+        )}
+
+        {isOpen && (
+          <SearchDropdown
+            listboxId={listboxId}
+            getOptionId={getOptionId}
+            entries={entries}
+            activeIndex={safeIndex}
+            query={debouncedQuery}
+            isUnavailable={isSearching && isError}
+            isSearching={isFetching}
+            onSelect={handleSelect}
+            onHover={setActiveIndex}
+          />
+        )}
+      </div>
+    </>
   );
 });
 

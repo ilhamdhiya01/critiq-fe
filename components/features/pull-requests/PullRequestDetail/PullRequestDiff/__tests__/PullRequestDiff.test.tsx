@@ -119,7 +119,7 @@ const commentOn = async (code: string, placeholder: string) => {
   fireEvent.click(screen.getByRole("button", { name: "Komentar" }));
 };
 
-describe("PullRequestDiff comments", { timeout: 15_000 }, () => {
+describe("PullRequestDiff comments", () => {
   beforeEach(() => {
     vi.mocked(getPullRequestComments).mockReset();
     vi.mocked(getPullRequestComments).mockResolvedValue(respond([]));
@@ -231,7 +231,7 @@ const renderBig = () =>
     </QueryClientProvider>,
   );
 
-describe("PullRequestDiff virtualisation", { timeout: 15_000 }, () => {
+describe("PullRequestDiff virtualisation", () => {
   // jsdom has no layout: give every row a real row's height, otherwise all
   // measure 0px and the window slides.
   beforeEach(() => {

@@ -75,8 +75,16 @@ describe("getEventInvalidations", () => {
         },
         "org_1",
       );
+      // Scan history too: an AI review finishing (running → done) updates
+      // the row's combined status without a reload.
       expect(keys).toEqual(
-        expect.arrayContaining([DIFF, REPO_ORG, DASHBOARD, INSIGHTS]),
+        expect.arrayContaining([
+          DIFF,
+          REPO_ORG,
+          DASHBOARD,
+          INSIGHTS,
+          REPO_SCANS,
+        ]),
       );
     },
   );

@@ -66,6 +66,9 @@ const PolicyRow = React.memo(
                 value={row.policy}
                 onChange={(policy) => onPolicyChange(row.branch, policy)}
                 ariaLabel={`Review policy for ${row.branch}`}
+                fullWidth="mobile"
+                // Phones: branch + remove on one line, policy below it.
+                className="order-last sm:order-none"
               />
             ) : (
               <span className="font-mono text-[11.5px] text-text-secondary">

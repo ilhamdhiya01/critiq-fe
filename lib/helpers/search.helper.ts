@@ -2,7 +2,7 @@ import {
   NAVIGATION_ITEMS,
   type NavigationItem,
 } from "@/const/navigation.constant";
-import { RULE_TIER_META } from "@/const/rules.constant";
+import { isKnownRuleTier, RULE_TIER_META } from "@/const/rules.constant";
 import { SEARCH_MAX_LENGTH } from "@/const/search.constant";
 import type {
   GlobalSearchResult,
@@ -34,9 +34,7 @@ export const getRepoMeta = (repo: SearchRepository): SearchEntryMeta | null => {
 };
 
 const tierTitle = (tier: string): string =>
-  tier in RULE_TIER_META
-    ? RULE_TIER_META[tier as keyof typeof RULE_TIER_META].title
-    : tier;
+  isKnownRuleTier(tier) ? RULE_TIER_META[tier].title : tier;
 
 // Flat list in display order (repos → PRs → rules → pages), so ↑/↓ move
 // across groups.

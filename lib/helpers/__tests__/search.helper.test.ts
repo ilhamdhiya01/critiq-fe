@@ -157,3 +157,21 @@ describe("getRepoName", () => {
     expect(getRepoName("solo")).toBe("solo");
   });
 });
+
+describe("buildSearchEntries rule labels", () => {
+  it("never treats an inherited name as a known tier", () => {
+    const [entry] = buildSearchEntries(
+      {
+        repositories: [],
+        pulls: [],
+        rules: [
+          { kind: "rule", id: "x.y", label: "Weird", tier: "constructor" },
+        ],
+      },
+      [],
+      "acme",
+    );
+
+    expect(entry.meta).toEqual({ kind: "text", text: "constructor" });
+  });
+});

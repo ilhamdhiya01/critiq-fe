@@ -79,7 +79,7 @@ const CriticalTrendChart = React.memo(() => {
 
     return (
       <div className="flex flex-col gap-3 px-5 py-4">
-        <ul className="flex items-center gap-4 font-mono text-[11px] text-text-secondary">
+        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-[11px] text-text-secondary">
           {series.map((item) => (
             <li key={item.key} className="flex items-center gap-1.5">
               <span

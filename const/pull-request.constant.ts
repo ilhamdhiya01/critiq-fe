@@ -234,7 +234,7 @@ export const AI_SUMMARY_STALE_STATE = {
 export const isAiSummaryBlocked = (
   status: AiSummaryStatus | null | undefined,
 ): status is AiSummaryBlockedStatus =>
-  !!status && status in AI_SUMMARY_BLOCKED_STATE;
+  !!status && Object.hasOwn(AI_SUMMARY_BLOCKED_STATE, status);
 
 export const AI_SUMMARY_RISK_LABEL: Record<AiSummaryRiskLevel, string> = {
   low: "LOW",

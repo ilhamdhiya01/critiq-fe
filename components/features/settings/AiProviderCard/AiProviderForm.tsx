@@ -2,6 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 
+import DetailRow from "@/components/shared/detail-row";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
@@ -381,13 +382,12 @@ const AiProviderForm = React.memo(
             />
           </FormRow>
 
-          <div className="grid grid-cols-[140px_1fr] items-center gap-3 text-[12.5px]">
-            <span className="text-text-secondary">Review scope</span>
+          <DetailRow label="Review scope">
             <span className="flex items-center gap-2 text-neutral-300">
               Critical severity only
               <Badge>MVP</Badge>
             </span>
-          </div>
+          </DetailRow>
         </div>
 
         <div className="flex flex-wrap items-end justify-between gap-3.5 border-t border-border-row pt-3.5">
@@ -396,7 +396,7 @@ const AiProviderForm = React.memo(
             lastTest={settings.lastTest}
             showSaved={showSaved}
           />
-          <div className="flex gap-2.5">
+          <div className="flex flex-wrap gap-2.5">
             <Button
               type="button"
               variant="secondary"

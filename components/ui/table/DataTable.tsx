@@ -20,7 +20,13 @@ interface DataTableProps<TData extends RowData> {
   // Caps the table body height and makes it scrollable with a sticky header,
   // e.g. "480px" or "28rem". Omit for an unbounded, non-scrolling table.
   maxHeight?: string;
+  // Minimum table width in px. Narrower containers scroll horizontally
+  // instead of squeezing the flexible (title) column to nothing on phones.
+  minWidth?: number;
 }
+
+// Tighter on phones; sm and up keep the original 18px.
+const CELL_X = "px-3 sm:px-4.5";
 
 const DataTable = <TData extends RowData>({
   table,
@@ -30,12 +36,15 @@ const DataTable = <TData extends RowData>({
   className,
   colgroup,
   maxHeight,
+  minWidth,
 }: DataTableProps<TData>) => {
   const rows = table.getRowModel().rows;
 
   const tableEl = (
     <table
       className={classNames("w-full table-fixed border-collapse", className)}
+      // Rows only: the empty state should stay centred in the visible width.
+      style={minWidth && rows.length > 0 ? { minWidth } : undefined}
     >
       {colgroup}
       <thead>
@@ -50,7 +59,8 @@ const DataTable = <TData extends RowData>({
                 <th
                   key={header.id}
                   className={classNames(
-                    "px-4.5 py-3 text-left font-mono text-[10.5px] tracking-[.06em] text-text-muted uppercase",
+                    CELL_X,
+                    "py-3 text-left font-mono text-[10.5px] tracking-[.06em] text-text-muted uppercase",
                     { "text-right": align === "right" },
                     { "sticky top-0 z-10 bg-surface": maxHeight },
                   )}
@@ -97,7 +107,7 @@ const DataTable = <TData extends RowData>({
             onClick={onRowClick ? () => onRowClick(row.original) : undefined}
           >
             {row.getAllCells().map((cell) => (
-              <td key={cell.id} className="px-4.5 py-3.5">
+              <td key={cell.id} className={classNames(CELL_X, "py-3.5")}>
                 <table.FlexRender cell={cell} />
               </td>
             ))}
@@ -110,7 +120,10 @@ const DataTable = <TData extends RowData>({
               // A node (e.g. EmptyState) brings its own spacing and type.
               className={
                 typeof emptyMessage === "string"
-                  ? "px-4.5 py-10 text-center text-[12.5px] text-text-secondary"
+                  ? classNames(
+                      CELL_X,
+                      "py-10 text-center text-[12.5px] text-text-secondary",
+                    )
                   : "p-0"
               }
             >
@@ -122,10 +135,15 @@ const DataTable = <TData extends RowData>({
     </table>
   );
 
-  if (!maxHeight) return tableEl;
-
+  // Always a horizontal scroll box: callers sit in overflow-hidden cards,
+  // which would otherwise clip a table wider than its container.
   return (
-    <div className="overflow-y-auto" style={{ maxHeight }}>
+    <div
+      className={classNames("overflow-x-auto", {
+        "overflow-y-auto": maxHeight,
+      })}
+      style={maxHeight ? { maxHeight } : undefined}
+    >
       {tableEl}
     </div>
   );

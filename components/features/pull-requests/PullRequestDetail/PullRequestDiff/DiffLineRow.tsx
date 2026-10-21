@@ -9,8 +9,10 @@ import type { DiffLine, DiffLineFlag } from "@/lib/types/pull-request.types";
 
 const diffLineRow = tv({
   slots: {
-    row: "group grid grid-cols-[46px_46px_18px_minmax(0,1fr)_26px]",
-    lineNumber: "pr-2.5 text-right",
+    // Narrower gutter on phones (104px vs 136px) leaves room for the code;
+    // 34px still fits a 4-digit line number.
+    row: "group grid grid-cols-[34px_34px_14px_minmax(0,1fr)_22px] sm:grid-cols-[46px_46px_18px_minmax(0,1fr)_26px]",
+    lineNumber: "pr-1 text-right sm:pr-2.5",
     marker: "text-center",
     code: "wrap-anywhere whitespace-pre-wrap",
     gutter: "flex items-center",
@@ -155,7 +157,8 @@ const DiffLineRow = React.memo(
               className={
                 isActive
                   ? "text-primary-300"
-                  : "text-text-muted opacity-0 transition-opacity group-hover:opacity-100"
+                  : // Touch screens have no hover to reveal it.
+                    "text-text-muted opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:opacity-100"
               }
             />
           ) : null}

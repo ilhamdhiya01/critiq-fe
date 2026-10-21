@@ -60,7 +60,7 @@ const CommentForm = React.memo(
           className="text-[12.5px]"
         />
         {error && <FieldError>{error}</FieldError>}
-        <div className="flex items-center justify-end gap-2.5">
+        <div className="flex flex-wrap items-center justify-end gap-2.5">
           <span
             className={classNames("mr-auto font-mono text-[10.5px]", {
               "text-danger-light": isTooLong,

@@ -88,8 +88,8 @@ const RepositoryList = React.memo(() => {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4">
-        <Skeleton className="h-4 w-80 rounded" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Skeleton className="h-4 w-full max-w-80 rounded" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: SKELETON_CARDS }, (_, index) => (
             <Skeleton key={index} className="h-32 rounded-lg" />
           ))}
@@ -116,7 +116,7 @@ const RepositoryList = React.memo(() => {
         {repositories.length === 1 ? "repository" : "repositories"} connected ·
         every pull request is scanned on push
       </p>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {repositories.map((repo) => (
           <RepositoryCard
             key={repo.id}

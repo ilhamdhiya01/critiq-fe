@@ -14,6 +14,7 @@ import React, {
 } from "react";
 
 import EmptyState from "@/components/shared/empty-state";
+import { PR_STICKY_BAR_HEIGHT_PX } from "@/const/layout.constant";
 import {
   buildDiffList,
   type DiffListItem,
@@ -63,9 +64,9 @@ const ESTIMATED_SIZE: Record<DiffListItem["kind"], number> = {
 };
 // Space under each header before the first line (part of the header item).
 const HEADER_GAP_PX = 8;
-// PullRequestStickyBar covers the top 60px of <main>'s scrollport; file
-// headers pin right below it (the overlay's top-9 is the same line).
-const STICKY_BAR_PX = 60;
+// PullRequestStickyBar covers the top of <main>'s scrollport; file headers
+// pin right below it (the overlay's top is the same line in CSS).
+const STICKY_BAR_PX = PR_STICKY_BAR_HEIGHT_PX;
 // Rendered before the scroll container is measured (first paint, tests).
 const INITIAL_RECT = { width: 0, height: 900 };
 
@@ -326,7 +327,7 @@ const PullRequestDiff = React.memo(
           className="relative"
           style={{ height: virtualizer.getTotalSize() }}
         >
-          <div className="sticky top-9 z-20 h-0">
+          <div className="sticky top-[calc(var(--pr-bar-h)-var(--main-pad))] z-20 h-0">
             {showOverlay && (
               <div
                 aria-hidden

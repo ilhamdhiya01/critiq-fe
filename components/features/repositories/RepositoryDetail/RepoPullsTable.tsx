@@ -127,6 +127,7 @@ const RepoPullsTable = React.memo(
               router.push(ROUTES.pullRequestDetail(slug, pull.id, repoId))
             }
             maxHeight="480px"
+            minWidth={720}
             colgroup={
               <colgroup>
                 <col className="w-auto" />

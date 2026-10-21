@@ -96,7 +96,7 @@ const OrgSwitcher = React.memo(
           <div
             ref={panelRef}
             role="menu"
-            className="absolute top-[calc(100%+6px)] left-0 z-50 w-62.5 overflow-hidden rounded-lg border border-border-default bg-raised-alt shadow-lg"
+            className="absolute top-[calc(100%+6px)] left-0 z-50 w-[min(250px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border-default bg-raised-alt shadow-lg"
           >
             <p className="px-3.5 pt-2.5 pb-1 font-mono text-[10px] tracking-wider text-text-muted">
               ORGANIZATIONS

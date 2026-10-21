@@ -124,8 +124,8 @@ export const ACTIVE_REPO_SCAN_STATUSES: ReadonlySet<RepoScanStatus> = new Set([
 export const SCAN_STATUS_LABEL: Record<RepoScanStatus, string> = {
   DONE: "Done",
   FAILED: "Failed",
-  RUNNING: "Scanning…",
-  QUEUED: "Scanning…",
+  RUNNING: "Running",
+  QUEUED: "Queued",
   SUPERSEDED: "Superseded",
 };
 

@@ -59,7 +59,7 @@ const ToastCard = ({
   );
 
   const cardClass = classNames(
-    "relative flex w-[360px] items-start gap-3 rounded-lg border border-border-default bg-raised p-4 pr-9 shadow-lg transition-all duration-300 ease-out",
+    "relative flex w-[min(360px,calc(100vw-2rem))] items-start gap-3 rounded-lg border border-border-default bg-raised p-4 pr-9 shadow-lg transition-all duration-300 ease-out",
     {
       "translate-y-0 opacity-100": isVisible,
       "-translate-y-2 opacity-0": !isVisible,

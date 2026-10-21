@@ -74,14 +74,14 @@ const GitHubRow = React.memo(
 
     return (
       <div className="flex flex-col gap-3 border-b border-border-row py-2.5">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div className="flex min-w-0 flex-col gap-0.5">
             <span className="text-[13px] font-semibold text-neutral-100">
               GitHub
             </span>
             {integration ? (
               <>
-                <span className="font-mono text-[11.5px] text-text-faint">
+                <span className="font-mono text-[11.5px] wrap-anywhere text-text-faint">
                   org: {integration.installationLogin ?? "—"}
                   {repoCount !== undefined &&
                     ` · ${formatConnectedRepoCount(repoCount)}`}
