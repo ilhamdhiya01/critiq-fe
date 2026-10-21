@@ -56,14 +56,14 @@ const MemberRow = React.memo(
     const canChangeRole = isAdmin && !member.isYou;
 
     return (
-      <div className="flex items-center gap-3 py-2.5">
+      <div className="flex flex-wrap items-center gap-3 py-2.5">
         <Avatar
           name={member.name}
           src={member.avatarUrl}
           size="md"
           className="font-mono"
         />
-        <span className="flex min-w-0 flex-1 flex-col">
+        <span className="flex min-w-0 flex-1 basis-40 flex-col">
           <span className="truncate text-[12.5px] text-neutral-100">
             {member.name}
             {member.isYou && <span className="text-text-faint"> (you)</span>}
@@ -73,52 +73,55 @@ const MemberRow = React.memo(
           </span>
         </span>
 
-        {canChangeRole ? (
-          <DropdownMenu
-            ariaLabel={`Role for ${member.name}`}
-            items={roleItems}
-            trigger={({ toggle, isOpen }) => (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                fullWidth={false}
-                onClick={toggle}
-                aria-haspopup="menu"
-                aria-expanded={isOpen}
-                aria-label={`Change role for ${member.name}`}
-                className="gap-1.5 bg-raised px-2.5 py-1 font-mono text-[11px] hover:bg-raised-alt"
-              >
-                {MEMBER_ROLE_LABEL[member.role]}
-                <Icon icon="TbChevronDown" size={12} />
-              </Button>
-            )}
-          />
-        ) : (
-          <Badge tone="neutral" size="md" weight="normal">
-            {MEMBER_ROLE_LABEL[member.role]}
-          </Badge>
-        )}
+        {/* Stays together and drops under the name when the row is too narrow. */}
+        <div className="ml-auto flex items-center gap-3">
+          {canChangeRole ? (
+            <DropdownMenu
+              ariaLabel={`Role for ${member.name}`}
+              items={roleItems}
+              trigger={({ toggle, isOpen }) => (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  fullWidth={false}
+                  onClick={toggle}
+                  aria-haspopup="menu"
+                  aria-expanded={isOpen}
+                  aria-label={`Change role for ${member.name}`}
+                  className="gap-1.5 bg-raised px-2.5 py-1 font-mono text-[11px] hover:bg-raised-alt"
+                >
+                  {MEMBER_ROLE_LABEL[member.role]}
+                  <Icon icon="TbChevronDown" size={12} />
+                </Button>
+              )}
+            />
+          ) : (
+            <Badge tone="neutral" size="md" weight="normal">
+              {MEMBER_ROLE_LABEL[member.role]}
+            </Badge>
+          )}
 
-        {isAdmin && (
-          <DropdownMenu
-            ariaLabel={`Actions for ${member.name}`}
-            items={actionItems}
-            trigger={({ toggle, isOpen }) => (
-              <Button
-                type="button"
-                variant="icon"
-                size="sm"
-                fullWidth={false}
-                onClick={toggle}
-                aria-haspopup="menu"
-                aria-expanded={isOpen}
-                aria-label={`More actions for ${member.name}`}
-                icon={<Icon icon="TbDots" size={15} />}
-              />
-            )}
-          />
-        )}
+          {isAdmin && (
+            <DropdownMenu
+              ariaLabel={`Actions for ${member.name}`}
+              items={actionItems}
+              trigger={({ toggle, isOpen }) => (
+                <Button
+                  type="button"
+                  variant="icon"
+                  size="sm"
+                  fullWidth={false}
+                  onClick={toggle}
+                  aria-haspopup="menu"
+                  aria-expanded={isOpen}
+                  aria-label={`More actions for ${member.name}`}
+                  icon={<Icon icon="TbDots" size={15} />}
+                />
+              )}
+            />
+          )}
+        </div>
       </div>
     );
   },

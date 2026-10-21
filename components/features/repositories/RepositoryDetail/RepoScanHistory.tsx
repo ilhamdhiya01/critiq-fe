@@ -5,30 +5,21 @@ import classNames from "classnames";
 import { useRouter } from "next/navigation";
 import React, { useMemo } from "react";
 
+import EmptyState from "@/components/shared/empty-state";
+import ScanStatusBadge from "@/components/shared/scan-status-badge";
 import SectionCard from "@/components/shared/section-card";
 import SectionMessage from "@/components/shared/section-message";
-import Badge from "@/components/ui/badge";
 import Skeleton from "@/components/ui/skeleton";
 import DataTable from "@/components/ui/table";
-import { SCAN_STATUS_LABEL } from "@/const/repository.constant";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
+import {
+  getScanTriggerLabel,
+  scanDisplayStatus,
+} from "@/lib/helpers/scan-status.helper";
 import { sortableFeatures } from "@/lib/helpers/table.helper";
 import { useRepoScans } from "@/lib/hooks/repositories/useRepoScans";
-import type { RepoScan, RepoScanStatus } from "@/lib/types/repository.types";
+import type { RepoScan } from "@/lib/types/repository.types";
 import { ROUTES } from "@/routes";
-
-// Scan status, not a quality gate — "Done" deliberately avoids the green
-// PASSED look.
-const STATUS_TONE: Record<
-  RepoScanStatus,
-  React.ComponentProps<typeof Badge>["tone"]
-> = {
-  DONE: "neutral",
-  FAILED: "red",
-  RUNNING: "primary",
-  QUEUED: "primary",
-  SUPERSEDED: "gray",
-};
 
 interface RepoScanHistoryProps {
   orgId: string;
@@ -51,13 +42,18 @@ const columns = columnHelper.columns([
       </span>
     ),
   }),
-  columnHelper.accessor("status", {
+  columnHelper.display({
+    id: "status",
     header: "Status",
+    cell: (info) => <ScanStatusBadge scan={info.row.original} />,
+  }),
+  columnHelper.accessor("trigger", {
+    header: "Trigger",
     enableSorting: false,
     cell: (info) => (
-      <Badge tone={STATUS_TONE[info.getValue()]}>
-        {SCAN_STATUS_LABEL[info.getValue()]}
-      </Badge>
+      <span className="text-[12px] text-text-secondary">
+        {getScanTriggerLabel(info.getValue())}
+      </span>
     ),
   }),
   columnHelper.accessor("criticalCount", {
@@ -65,14 +61,17 @@ const columns = columnHelper.columns([
     enableSorting: false,
     cell: (info) => {
       const count = info.getValue();
+      // Static findings only while the AI review runs: the count can grow.
+      const isPartial =
+        scanDisplayStatus(info.row.original).kind === "ai_reviewing";
       return (
         <span
           className={classNames("font-mono text-[12px]", {
-            "text-danger-light": count > 0,
-            "text-text-muted": count === 0,
+            "text-danger-light": count > 0 && !isPartial,
+            "text-text-muted": count === 0 || isPartial,
           })}
         >
-          {count} critical found
+          {count} critical {isPartial ? "so far" : "found"}
         </span>
       );
     },
@@ -85,7 +84,7 @@ const columns = columnHelper.columns([
       return (
         <span
           title={pull.title}
-          className="font-mono text-[11.5px] text-info-light"
+          className="font-mono text-[11.5px] text-primary-300"
         >
           #{pull.number}
         </span>
@@ -116,7 +115,7 @@ const RepoScanHistory = React.memo(
     return (
       <SectionCard
         title="PR Scan History"
-        meta="One scan per PR push · diff only"
+        meta="Push & manual rescans · diff only"
       >
         {isError ? (
           <SectionMessage tone="danger">
@@ -128,7 +127,11 @@ const RepoScanHistory = React.memo(
             <Skeleton className="h-4 w-3/4 rounded" />
           </div>
         ) : !scans || scans.length === 0 ? (
-          <SectionMessage>No scans yet.</SectionMessage>
+          <EmptyState
+            icon="TbHistory"
+            title="No scans yet"
+            description="A scan runs whenever a pull request on this repository is opened or updated."
+          />
         ) : (
           <DataTable
             table={table}
@@ -137,6 +140,7 @@ const RepoScanHistory = React.memo(
               router.push(ROUTES.pullRequestDetail(slug, scan.pull.id, repoId))
             }
             maxHeight="480px"
+            minWidth={720}
           />
         )}
       </SectionCard>

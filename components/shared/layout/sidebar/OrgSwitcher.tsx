@@ -1,22 +1,21 @@
 "use client";
 
 import classNames from "classnames";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useRef, useState } from "react";
 
+import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
+import { getOrgSwitchHref } from "@/lib/helpers/organization.helper";
 import { useDismissable } from "@/lib/hooks/useDismissable";
-
-interface Organisation {
-  id: string;
-  name: string;
-  slug: string;
-  role: string;
-}
+import type { MembershipWithOrg } from "@/lib/types/membership.type";
+import { ROUTES } from "@/routes";
 
 interface OrgSwitcherProps {
-  organisations: readonly Organisation[];
-  activeOrgId: string;
+  memberships: readonly MembershipWithOrg[];
+  // The org in the URL.
+  activeSlug: string;
   isCollapsed: boolean;
 }
 
@@ -30,7 +29,9 @@ const initialsOf = (name: string) =>
     .toUpperCase();
 
 const OrgSwitcher = React.memo(
-  ({ organisations, activeOrgId, isCollapsed }: OrgSwitcherProps) => {
+  ({ memberships, activeSlug, isCollapsed }: OrgSwitcherProps) => {
+    const router = useRouter();
+    const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
@@ -38,10 +39,20 @@ const OrgSwitcher = React.memo(
     const close = useCallback(() => setIsOpen(false), []);
     useDismissable(isOpen, close, [triggerRef, panelRef]);
 
-    const activeOrg =
-      organisations.find((org) => org.id === activeOrgId) ?? organisations[0];
+    // Switching is just navigating: the org layout reads the org from the
+    // slug, so no API call is needed. An unfinished org opens too (its pages
+    // show the setup banner); its badge is informational.
+    const handleOpen = (href: string) => {
+      close();
+      router.push(href);
+    };
 
-    if (!activeOrg) return null;
+    const active =
+      memberships.find((item) => item.organization.slug === activeSlug) ??
+      memberships[0];
+
+    if (!active) return null;
+    const activeOrg = active.organization;
 
     return (
       <div className="relative">
@@ -69,7 +80,7 @@ const OrgSwitcher = React.memo(
                   {activeOrg.name}
                 </span>
                 <span className="font-mono text-[9.5px] tracking-wider text-text-faint">
-                  {activeOrg.role}
+                  {active.role}
                 </span>
               </span>
               <Icon
@@ -85,43 +96,55 @@ const OrgSwitcher = React.memo(
           <div
             ref={panelRef}
             role="menu"
-            className="absolute top-[calc(100%+6px)] left-0 z-50 w-62.5 overflow-hidden rounded-lg border border-border-default bg-raised-alt shadow-lg"
+            className="absolute top-[calc(100%+6px)] left-0 z-50 w-[min(250px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border-default bg-raised-alt shadow-lg"
           >
             <p className="px-3.5 pt-2.5 pb-1 font-mono text-[10px] tracking-wider text-text-muted">
               ORGANIZATIONS
             </p>
-            {organisations.map((org) => (
-              <button
-                key={org.id}
-                type="button"
-                role="menuitem"
-                onClick={close}
-                className={classNames(
-                  "flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-surface-hover",
-                  { "bg-primary-600/10": org.id === activeOrg.id },
-                )}
-              >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-800 font-mono text-[9px] font-bold text-primary-100">
-                  {initialsOf(org.name)}
-                </span>
-                <span className="flex min-w-0 flex-1 flex-col gap-px">
-                  <span className="truncate text-xs font-semibold text-text-strong">
-                    {org.name}
+            {memberships.map((membership) => {
+              const org = membership.organization;
+              const isUnfinished = org.onboardingCompleted === false;
+              return (
+                <button
+                  key={membership.id}
+                  type="button"
+                  role="menuitem"
+                  onClick={() =>
+                    handleOpen(getOrgSwitchHref(pathname, org.slug))
+                  }
+                  className={classNames(
+                    "flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-surface-hover",
+                    { "bg-primary-600/10": org.id === activeOrg.id },
+                  )}
+                >
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-800 font-mono text-[9px] font-bold text-primary-100">
+                    {initialsOf(org.name)}
                   </span>
-                  <span className="truncate font-mono text-[9.5px] text-text-muted">
-                    critiq.app/{org.slug}
+                  <span className="flex min-w-0 flex-1 flex-col gap-px">
+                    <span className="truncate text-xs font-semibold text-text-strong">
+                      {org.name}
+                    </span>
+                    <span className="truncate font-mono text-[9.5px] text-text-muted">
+                      critiq.app/{org.slug}
+                    </span>
                   </span>
-                </span>
-                <span className="shrink-0 font-mono text-[9.5px] tracking-wider text-text-faint">
-                  {org.role}
-                </span>
-              </button>
-            ))}
+                  {isUnfinished ? (
+                    <Badge tone="orange" size="xs" weight="normal">
+                      Finish setup
+                    </Badge>
+                  ) : (
+                    <span className="shrink-0 font-mono text-[9.5px] tracking-wider text-text-faint">
+                      {membership.role}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
             <div className="h-px bg-border-subtle" />
             <button
               type="button"
               role="menuitem"
-              onClick={close}
+              onClick={() => handleOpen(ROUTES.NEW_ORGANIZATION)}
               className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-primary-300 transition-colors hover:bg-surface-hover"
             >
               <Icon icon="TbPlus" size={13} className="shrink-0" />

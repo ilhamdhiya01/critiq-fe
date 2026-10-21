@@ -9,7 +9,10 @@ import type {
   Integration,
   IntegrationStatus,
 } from "@/lib/types/integration.types";
-import { disconnectGitHub } from "@/services/integrations.service";
+import {
+  disconnectGitHub,
+  installIntentGithub,
+} from "@/services/integrations.service";
 
 import GitHubRow from "../GitHubRow";
 
@@ -96,11 +99,45 @@ describe("GitHubRow", () => {
     expect(screen.getByRole("button", { name: "Disconnect" })).toBeVisible();
   });
 
-  it("PENDING_APPROVAL and unknown states render without crashing", () => {
-    const { unmount } = renderRow(integrationIn("PENDING_APPROVAL"));
-    expect(screen.getByText("PENDING APPROVAL")).toBeInTheDocument();
-    unmount();
+  it("waits for the GitHub org owner and offers to connect again", async () => {
+    vi.mocked(installIntentGithub).mockResolvedValue({
+      data: { installUrl: "https://github.com/apps/critiq/installations/new" },
+    } as never);
+    renderRow(integrationIn("PENDING_APPROVAL"));
 
+    expect(screen.getByText("WAITING FOR OWNER APPROVAL")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /A GitHub organization owner must approve the installation request/,
+      ),
+    ).toBeInTheDocument();
+    // Nothing is installed yet: no repos, no Manage / Disconnect.
+    expect(
+      screen.queryByRole("button", { name: "Disconnect" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Manage on GitHub")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Connect repositories/ }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Connect GitHub" }));
+    await waitFor(() =>
+      expect(installIntentGithub).toHaveBeenCalledWith("org_1", {
+        returnTo: "settings",
+      }),
+    );
+  });
+
+  it("shows a non-Admin the pending state without actions", () => {
+    renderRow(integrationIn("PENDING_APPROVAL"), false);
+
+    expect(screen.getByText("WAITING FOR OWNER APPROVAL")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Connect GitHub" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders a state added by the BE later without crashing", () => {
     renderRow(integrationIn("SOMETHING_NEW"));
     expect(screen.getByText("UNKNOWN")).toBeInTheDocument();
   });

@@ -9,8 +9,10 @@ import type { DiffLine, DiffLineFlag } from "@/lib/types/pull-request.types";
 
 const diffLineRow = tv({
   slots: {
-    row: "group grid grid-cols-[46px_46px_18px_minmax(0,1fr)_26px]",
-    lineNumber: "pr-2.5 text-right",
+    // Narrower gutter on phones (104px vs 136px) leaves room for the code;
+    // 34px still fits a 4-digit line number.
+    row: "group grid grid-cols-[34px_34px_14px_minmax(0,1fr)_22px] sm:grid-cols-[46px_46px_18px_minmax(0,1fr)_26px]",
+    lineNumber: "pr-1 text-right sm:pr-2.5",
     marker: "text-center",
     code: "wrap-anywhere whitespace-pre-wrap",
     gutter: "flex items-center",
@@ -74,8 +76,6 @@ interface DiffLineRowProps {
   isActive: boolean;
   onSelect: (index: number) => void;
   flag?: DiffLineFlag;
-  /** Set on lines a finding can link to, so the card can scroll here. */
-  elementId?: string;
   /** Briefly true right after being jumped to, to draw the eye. */
   isHighlighted?: boolean;
   /** Comment threads anchored to this line. */
@@ -90,7 +90,6 @@ const DiffLineRow = React.memo(
     isActive,
     onSelect,
     flag,
-    elementId,
     isHighlighted = false,
     commentCount = 0,
     isSelectable = false,
@@ -110,7 +109,6 @@ const DiffLineRow = React.memo(
 
     return (
       <div
-        id={elementId}
         className={classNames(row(), {
           // Ring rather than background: the flagged-line tint already owns
           // the background, and a ring reads on top of every row variant.
@@ -159,7 +157,8 @@ const DiffLineRow = React.memo(
               className={
                 isActive
                   ? "text-primary-300"
-                  : "text-text-muted opacity-0 transition-opacity group-hover:opacity-100"
+                  : // Touch screens have no hover to reveal it.
+                    "text-text-muted opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:opacity-100"
               }
             />
           ) : null}

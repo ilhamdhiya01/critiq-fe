@@ -2,8 +2,13 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 
+import ScanStatusBadge from "@/components/shared/scan-status-badge";
 import SectionCard from "@/components/shared/section-card";
 import Icon from "@/components/ui/icon/Icon";
+import {
+  scanDisplayStatus,
+  type ScanStatusInput,
+} from "@/lib/helpers/scan-status.helper";
 import type {
   Finding,
   ParsedPullRequestFile,
@@ -55,10 +60,12 @@ interface FlaggedIssuesProps {
   findings: Finding[];
   files: ParsedPullRequestFile[];
   truncated?: boolean;
+  // The scan these findings come from (static + AI status).
+  scan?: ScanStatusInput | null;
 }
 
 const FlaggedIssues = React.memo(
-  ({ findings, files, truncated = false }: FlaggedIssuesProps) => {
+  ({ findings, files, truncated = false, scan }: FlaggedIssuesProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(true);
     const [isSuggestionsExpanded, setIsSuggestionsExpanded] = useState(false);
@@ -130,7 +137,17 @@ const FlaggedIssues = React.memo(
         title="Flagged Issues"
         count={criticalFindings.length}
         countTone="danger"
-        meta="Critical · sorted by file"
+        meta={
+          <span className="flex flex-wrap items-center gap-2">
+            {scan && <ScanStatusBadge scan={scan} />}
+            <span className="font-mono text-[10.5px] tracking-[.04em] text-text-muted uppercase">
+              {/* AI findings can still add criticals while it reviews. */}
+              {scan && scanDisplayStatus(scan).kind === "ai_reviewing"
+                ? "Critical so far · sorted by file"
+                : "Critical · sorted by file"}
+            </span>
+          </span>
+        }
       >
         {visibleFindings.map((finding) => (
           <FindingItem
@@ -153,7 +170,7 @@ const FlaggedIssues = React.memo(
 
         {suggestionFindings.length > 0 && (
           <>
-            <div className="flex items-center justify-between border-t border-border-subtle bg-raised px-5 py-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border-subtle bg-raised px-5 py-2">
               <span className="font-mono text-[10.5px] text-text-muted">
                 SUGGESTIONS · NOT COUNTED ABOVE
               </span>

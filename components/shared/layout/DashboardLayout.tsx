@@ -1,5 +1,8 @@
 import React from "react";
 
+import OrgSetupBanner from "@/components/shared/org-setup-banner";
+import { APP_CONTENT_ID } from "@/const/layout.constant";
+
 import Navbar from "./navbar";
 import Sidebar from "./sidebar";
 
@@ -16,9 +19,12 @@ const DashboardLayout = React.memo(
     return (
       <div className="fixed inset-0 flex overflow-hidden bg-background font-sans text-[13px] text-text-strong">
         <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div id={APP_CONTENT_ID} className="flex min-w-0 flex-1 flex-col">
           <Navbar title={title} />
-          <main className="container mx-auto min-h-0 flex-1 overflow-y-auto p-6">
+          {/* --main-pad is also read by PR detail's sticky bar and diff headers
+              to pin flush under the navbar. */}
+          <main className="container mx-auto min-h-0 flex-1 overflow-y-auto p-(--main-pad) [--main-pad:1rem] sm:[--main-pad:1.5rem]">
+            <OrgSetupBanner />
             {children}
           </main>
         </div>

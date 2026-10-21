@@ -33,7 +33,7 @@ const UncheckedTiersNotice = React.memo(
               href={
                 notice.link.target === "settings" ? settingsHref : rulesHref
               }
-              className="underline underline-offset-2 hover:text-warning-light"
+              className="underline underline-offset-2 hover:text-text-strong"
             >
               {notice.link.label}
             </Link>

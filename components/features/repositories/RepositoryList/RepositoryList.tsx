@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import React from "react";
 
+import EmptyState from "@/components/shared/empty-state";
 import StateStatus from "@/components/shared/state-status";
 import LanguageDot from "@/components/ui/language-dot";
 import Skeleton from "@/components/ui/skeleton";
 import { repoName } from "@/lib/helpers/repository.helper";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 import { useOrgRepositories } from "@/lib/hooks/repositories/useOrgRepositories";
 import type { OrgRepository } from "@/lib/types/repository.types";
 import { ROUTES } from "@/routes";
@@ -68,11 +70,8 @@ const RepositoryCard = React.memo(({ repo, href }: RepositoryCardProps) => {
 
 RepositoryCard.displayName = "RepositoryCard";
 
-interface RepositoryListProps {
-  orgId?: string;
-}
-
-const RepositoryList = React.memo(({ orgId }: RepositoryListProps) => {
+const RepositoryList = React.memo(() => {
+  const orgId = useActiveOrgId();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
   const { data: repositories, isLoading, isError } = useOrgRepositories(orgId);
@@ -89,8 +88,8 @@ const RepositoryList = React.memo(({ orgId }: RepositoryListProps) => {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4">
-        <Skeleton className="h-4 w-80 rounded" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Skeleton className="h-4 w-full max-w-80 rounded" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: SKELETON_CARDS }, (_, index) => (
             <Skeleton key={index} className="h-32 rounded-lg" />
           ))}
@@ -101,9 +100,11 @@ const RepositoryList = React.memo(({ orgId }: RepositoryListProps) => {
 
   if (!repositories || repositories.length === 0) {
     return (
-      <StateStatus
+      <EmptyState
+        size="page"
+        icon="TbFolder"
         title="No repositories connected yet"
-        description="Connect repositories from Settings → Integrations to start scanning pull requests."
+        description="Repositories connected from Settings → Integrations show up here, and every pull request on them is scanned against your rules."
       />
     );
   }
@@ -115,7 +116,7 @@ const RepositoryList = React.memo(({ orgId }: RepositoryListProps) => {
         {repositories.length === 1 ? "repository" : "repositories"} connected ·
         every pull request is scanned on push
       </p>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {repositories.map((repo) => (
           <RepositoryCard
             key={repo.id}

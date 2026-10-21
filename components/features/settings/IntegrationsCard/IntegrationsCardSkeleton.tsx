@@ -10,7 +10,7 @@ const IntegrationsCardSkeleton = React.memo(() => {
       {Array.from({ length: SKELETON_ROWS }, (_, index) => (
         <div
           key={index}
-          className="flex items-center justify-between gap-4 border-b border-border-row py-3 last:border-b-0"
+          className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border-row py-3 last:border-b-0"
         >
           <div className="flex flex-col gap-2">
             <Skeleton className="h-3.5 w-16 rounded" />

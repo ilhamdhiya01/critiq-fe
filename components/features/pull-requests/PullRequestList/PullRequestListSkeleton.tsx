@@ -13,7 +13,7 @@ const SKELETON_ROW_WIDTHS = [
 const PullRequestListSkeleton = React.memo(() => {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Skeleton className="h-7 w-16 rounded-md" />
         <Skeleton className="h-7 w-19.5 rounded-md" />
         <Skeleton className="h-7 w-29.5 rounded-md" />

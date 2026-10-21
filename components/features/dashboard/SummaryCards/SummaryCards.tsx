@@ -1,24 +1,20 @@
 "use client";
 
-import classNames from "classnames";
 import React from "react";
 
 import SectionMessage from "@/components/shared/section-message";
 import StatCard from "@/components/shared/stat-card";
+import TrendHint from "@/components/shared/trend-hint";
 import Skeleton from "@/components/ui/skeleton";
 import {
   formatDurationHours,
   getTurnaroundTrend,
 } from "@/lib/helpers/dashboard.helper";
 import { useDashboardSummary } from "@/lib/hooks/dashboard/useDashboardSummary";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 
-const TREND_ARROW = { down: "↓", up: "↑", same: "→" } as const;
-
-interface SummaryCardsProps {
-  orgId?: string;
-}
-
-const SummaryCards = React.memo(({ orgId }: SummaryCardsProps) => {
+const SummaryCards = React.memo(() => {
+  const orgId = useActiveOrgId();
   const { data: summary, isLoading, isError } = useDashboardSummary(orgId);
 
   if (isError) {
@@ -52,22 +48,7 @@ const SummaryCards = React.memo(({ orgId }: SummaryCardsProps) => {
       <StatCard
         label="Avg review turnaround"
         value={formatDurationHours(reviewTurnaround.avgHours)}
-        hint={
-          trend && (
-            <>
-              <span
-                className={classNames("font-mono font-semibold", {
-                  "text-success-light": trend.tone === "good",
-                  "text-danger-light": trend.tone === "bad",
-                  "text-text-secondary": trend.tone === "neutral",
-                })}
-              >
-                {TREND_ARROW[trend.direction]} {trend.text}
-              </span>{" "}
-              vs last week
-            </>
-          )
-        }
+        hint={trend && <TrendHint {...trend}>vs last week</TrendHint>}
       />
       <StatCard
         label="Open critical issues"
@@ -81,7 +62,7 @@ const SummaryCards = React.memo(({ orgId }: SummaryCardsProps) => {
         hint={
           repositories.addedThisMonth > 0 && (
             <>
-              <span className="font-mono font-semibold text-info-light">
+              <span className="font-mono font-semibold text-text-strong">
                 +{repositories.addedThisMonth}
               </span>{" "}
               this month

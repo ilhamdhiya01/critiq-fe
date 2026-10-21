@@ -1,8 +1,8 @@
-import classNames from "classnames";
 import React from "react";
 
 import Button from "@/components/ui/button";
-import Icon, { type IconName } from "@/components/ui/icon/Icon";
+import type { IconName } from "@/components/ui/icon/Icon";
+import Notice from "@/components/ui/notice";
 import {
   AI_SUMMARY_NO_SCAN_CODE,
   AI_SUMMARY_NO_SCAN_STATE,
@@ -24,10 +24,11 @@ const getIcon = (view: AiBlockedView): IconName => {
   return "TbAlertCircle";
 };
 
-const ICON_TONE = {
-  indigo: "text-primary-300",
-  warning: "text-warning-light",
-  neutral: "text-text-secondary",
+// Something to fix → warning; otherwise an informational note.
+const NOTICE_TONE = {
+  indigo: "note",
+  warning: "warning",
+  neutral: "note",
 } as const;
 
 const AiBlockedNotice = React.memo(
@@ -40,68 +41,65 @@ const AiBlockedNotice = React.memo(
     isScanning,
   }: AiBlockedNoticeProps) => {
     return (
-      <div className="flex flex-wrap items-start gap-3 rounded-md border border-dashed border-primary-500/35 bg-primary-500/6 px-3.5 py-3">
-        <Icon
-          icon={getIcon(view)}
-          size={16}
-          className={classNames("mt-px flex-none", ICON_TONE[view.tone])}
-        />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-[12.5px] font-semibold text-neutral-100">
-            {view.title}
-          </span>
-          <span className="text-xs leading-normal text-text-nav">
-            {view.body}
-          </span>
-          {view.note && (
-            <span className="text-[11.5px] text-text-muted">{view.note}</span>
-          )}
-          {view.roleNote && (
-            <span className="text-[11.5px] text-text-faint">
-              {view.roleNote}
+      <Notice tone={NOTICE_TONE[view.tone]} icon={getIcon(view)} role="note">
+        <span className="flex flex-wrap items-start gap-3">
+          <span className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="text-[12.5px] font-semibold text-neutral-100">
+              {view.title}
             </span>
+            <span className="text-xs leading-normal text-text-nav">
+              {view.body}
+            </span>
+            {view.note && (
+              <span className="text-[11.5px] text-text-muted">{view.note}</span>
+            )}
+            {view.roleNote && (
+              <span className="text-[11.5px] text-text-faint">
+                {view.roleNote}
+              </span>
+            )}
+          </span>
+          {view.action === "run" && (
+            <Button
+              type="button"
+              variant="ghost-primary"
+              size="sm"
+              fullWidth={false}
+              onClick={onRun}
+              disabled={isRunning}
+              isLoading={isRunning}
+              className="font-mono whitespace-nowrap"
+            >
+              Run AI review
+            </Button>
           )}
-        </div>
-        {view.action === "run" && (
-          <Button
-            type="button"
-            variant="ghost-primary"
-            size="sm"
-            fullWidth={false}
-            onClick={onRun}
-            disabled={isRunning}
-            isLoading={isRunning}
-            className="font-mono whitespace-nowrap"
-          >
-            Run AI review
-          </Button>
-        )}
-        {view.action === "scan" && (
-          <Button
-            type="button"
-            variant="ghost-primary"
-            size="sm"
-            fullWidth={false}
-            onClick={onScan}
-            disabled={isScanning}
-            isLoading={isScanning}
-            className="font-mono whitespace-nowrap"
-          >
-            {AI_SUMMARY_NO_SCAN_STATE.action}
-          </Button>
-        )}
-        {view.action === "settings" && (
-          <Button
-            link={settingsHref}
-            variant="ghost-primary"
-            size="sm"
-            fullWidth={false}
-            className="font-mono whitespace-nowrap"
-          >
-            Open Settings
-          </Button>
-        )}
-      </div>
+          {view.action === "scan" && (
+            <Button
+              type="button"
+              variant="ghost-primary"
+              size="sm"
+              fullWidth={false}
+              onClick={onScan}
+              disabled={isScanning}
+              isLoading={isScanning}
+              className="font-mono whitespace-nowrap"
+            >
+              {AI_SUMMARY_NO_SCAN_STATE.action}
+            </Button>
+          )}
+          {view.action === "settings" && (
+            <Button
+              link={settingsHref}
+              variant="ghost-primary"
+              size="sm"
+              fullWidth={false}
+              className="font-mono whitespace-nowrap"
+            >
+              Open Settings
+            </Button>
+          )}
+        </span>
+      </Notice>
     );
   },
 );

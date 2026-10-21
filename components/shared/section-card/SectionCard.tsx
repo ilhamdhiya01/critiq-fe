@@ -30,7 +30,7 @@ const SectionCard = React.memo(
       )}
     >
       {(title || meta) && (
-        <div className="flex items-center justify-between gap-3 border-b border-border-subtle px-5 py-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border-subtle px-5 py-3.5">
           {typeof title === "string" ? (
             <h3 className="font-mono text-[13px] font-semibold text-text-strong">
               {title}

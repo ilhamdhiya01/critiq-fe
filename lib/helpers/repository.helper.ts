@@ -6,6 +6,7 @@ import type { RepoCandidate } from "@/lib/types/integration.types";
 import type {
   ConnectProjectInput,
   ConnectRepositoryItem,
+  RepoRescanResult,
 } from "@/lib/types/repository.types";
 
 export interface RepoSelectionState {
@@ -158,5 +159,25 @@ const LANGUAGE_DOT_CLASS: Record<string, string> = {
   "c#": "bg-success",
 };
 
-export const languageDotClass = (language: string): string =>
-  LANGUAGE_DOT_CLASS[language.toLowerCase()] ?? "bg-neutral-500";
+// "2 PR di-scan ulang · 3 dilewati karena scan masih berjalan · 1 sudah up
+// to date" — skip reasons only when non-zero.
+export const formatRepoRescanResult = (result: RepoRescanResult): string => {
+  const headline =
+    result.enqueued > 0
+      ? `${result.enqueued} PR di-scan ulang`
+      : "Tidak ada PR yang di-scan ulang";
+  const reasons = [
+    result.skippedInFlight > 0 &&
+      `${result.skippedInFlight} dilewati karena scan masih berjalan`,
+    result.skippedUpToDate > 0 && `${result.skippedUpToDate} sudah up to date`,
+  ].filter(Boolean);
+  return [headline, ...reasons].join(" · ");
+};
+
+// Own keys only: "constructor" or "toString" must not hit Object.prototype.
+export const languageDotClass = (language: string): string => {
+  const key = language.toLowerCase();
+  return Object.hasOwn(LANGUAGE_DOT_CLASS, key)
+    ? LANGUAGE_DOT_CLASS[key]
+    : "bg-neutral-500";
+};

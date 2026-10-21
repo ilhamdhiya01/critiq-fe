@@ -1,8 +1,7 @@
 import React from "react";
 
+import ConnectRepositoriesAction from "@/components/shared/connect-repositories-action";
 import type { IntegrationProvider } from "@/lib/types/integration.types";
-
-import ConnectRepositoriesAction from "./ConnectRepositoriesAction";
 
 interface NoReposHintProps {
   orgId: string;

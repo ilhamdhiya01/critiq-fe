@@ -1,13 +1,10 @@
 import { Activity } from "@/components/features/activity";
 import DashboardLayout from "@/components/shared/layout";
-import { getUserFromToken } from "@/lib/helpers";
 
-const ActivityPage = async () => {
-  const userData = await getUserFromToken();
-
+const ActivityPage = () => {
   return (
     <DashboardLayout title="Activity">
-      <Activity.ActivityView orgId={userData?.activeOrgId ?? undefined} />
+      <Activity.ActivityView />
     </DashboardLayout>
   );
 };

@@ -77,7 +77,7 @@ const renderSection = (
     </QueryClientProvider>,
   );
 
-describe("ReviewSection", { timeout: 15_000 }, () => {
+describe("ReviewSection", () => {
   beforeEach(() => {
     vi.mocked(submitPullRequestReview).mockReset();
     vi.mocked(submitPullRequestReview).mockResolvedValue({

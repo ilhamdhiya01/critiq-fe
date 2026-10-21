@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
+import { AI_IN_PROGRESS_MESSAGE } from "@/const/pull-request.constant";
+import { getErrorCode } from "@/lib/helpers/integration.helper";
 import { toast } from "@/lib/toast";
 import type { ErrorResponse } from "@/lib/types/api.types";
 import { regeneratePullRequestSummary } from "@/services/pull-requests.service";
@@ -34,6 +36,18 @@ export const useRegeneratePullRequestSummary = (
           queryKey: pullRequestKeys.summary(orgId, repoId, id),
         });
         toast.info("AI setup changed — the summary has been refreshed.");
+        return;
+      }
+      // 409 ai_in_progress: the AI review is still running (another tab or
+      // user); refetch so the buttons show it is busy.
+      if (getErrorCode(error) === "ai_in_progress") {
+        queryClient.invalidateQueries({
+          queryKey: pullRequestKeys.detail(orgId, repoId, id),
+        });
+        queryClient.invalidateQueries({
+          queryKey: pullRequestKeys.summary(orgId, repoId, id),
+        });
+        toast.info(AI_IN_PROGRESS_MESSAGE);
         return;
       }
       toast.error(error.message);

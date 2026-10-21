@@ -143,6 +143,7 @@ const BranchPolicyTable = React.memo(
               value={sharedPolicy}
               onChange={handleApplyAll}
               ariaLabel="Apply a review policy to all branches"
+              fullWidth="mobile"
             />
           </div>
         )}

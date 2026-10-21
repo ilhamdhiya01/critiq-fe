@@ -10,16 +10,14 @@ import {
   getReviewSplit,
 } from "@/lib/helpers/dashboard.helper";
 import { useDashboardSummary } from "@/lib/hooks/dashboard/useDashboardSummary";
+import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 
 const LABEL =
   "font-mono text-[10.5px] tracking-[.06em] text-text-muted uppercase";
 
-interface ReviewStatsProps {
-  orgId?: string;
-}
-
 // Shares the summary query with the KPI cards.
-const ReviewStats = React.memo(({ orgId }: ReviewStatsProps) => {
+const ReviewStats = React.memo(() => {
+  const orgId = useActiveOrgId();
   const { data: summary, isLoading, isError } = useDashboardSummary(orgId);
 
   const renderBody = () => {
@@ -77,7 +75,7 @@ const ReviewStats = React.memo(({ orgId }: ReviewStatsProps) => {
             )}
           </div>
           {split ? (
-            <div className="flex justify-between font-mono text-[11.5px]">
+            <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 font-mono text-[11.5px]">
               <span className="text-primary-300">
                 AI-assisted · {aiAssisted} ({split.aiPercent}%)
               </span>
@@ -90,7 +88,7 @@ const ReviewStats = React.memo(({ orgId }: ReviewStatsProps) => {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
           <div className="flex flex-col gap-1.5 rounded-md border border-border-subtle bg-raised/40 px-3.5 py-3">
             <span className={LABEL}>Avg approve · AI</span>
             <span className="font-mono text-[18px] font-bold text-primary-200">

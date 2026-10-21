@@ -1,4 +1,5 @@
 import type { IntegrationProvider } from "./integration.types";
+import type { AiSummaryStatus } from "./pull-request.types";
 
 export type BranchPolicy = "manual_only" | "allow_ai" | "require_both";
 
@@ -23,10 +24,22 @@ export interface RepoScan {
   id: string;
   status: RepoScanStatus;
   trigger: "WEBHOOK" | "MANUAL" | "RESCAN";
+  // Static findings so far; can still grow while the AI review runs.
   criticalCount: number;
+  // The AI half of the scan. Missing on older BE.
+  aiStatus?: AiSummaryStatus | null;
+  aiErrorCode?: string | null;
   createdAt: string;
   finishedAt: string | null;
   pull: { id: string; number: string; title: string };
+}
+
+// POST /repos/:repoId/rescan — what happened to the repo's open PRs.
+export interface RepoRescanResult {
+  enqueued: number;
+  skippedUpToDate: number;
+  // Skipped because their scan (static or AI) is still running.
+  skippedInFlight: number;
 }
 
 export type RepoCountByProvider = Record<IntegrationProvider, number>;

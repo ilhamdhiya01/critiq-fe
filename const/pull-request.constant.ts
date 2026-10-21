@@ -234,7 +234,7 @@ export const AI_SUMMARY_STALE_STATE = {
 export const isAiSummaryBlocked = (
   status: AiSummaryStatus | null | undefined,
 ): status is AiSummaryBlockedStatus =>
-  !!status && status in AI_SUMMARY_BLOCKED_STATE;
+  !!status && Object.hasOwn(AI_SUMMARY_BLOCKED_STATE, status);
 
 export const AI_SUMMARY_RISK_LABEL: Record<AiSummaryRiskLevel, string> = {
   low: "LOW",
@@ -275,6 +275,11 @@ export const SCROLL_TO_TOP_MIN_DIFF_FILES = 10;
 export const getFindingIcon = (ruleId: string): IconName =>
   FINDING_CATEGORY_ICON[ruleId.split(".")[0]] ?? "TbAlertTriangle";
 
+// Rescan / forced regenerate while the PR's scan (static or AI) still runs.
+export const SCAN_IN_PROGRESS_TOOLTIP = "AI review masih berjalan";
+export const AI_IN_PROGRESS_MESSAGE =
+  "AI review masih berjalan, coba lagi setelah selesai";
+
 export const REVIEW_BODY_MAX = 2000;
 
 export const REVIEW_DECISION_LABEL: Record<ReviewDecision, string> = {
@@ -283,6 +288,20 @@ export const REVIEW_DECISION_LABEL: Record<ReviewDecision, string> = {
 };
 
 export const REVIEW_OUTDATED_LABEL = "Outdated — new commits since this review";
+
+// Sticky bar meta line, GitHub style: "{author} wants to merge into …".
+export const PULL_REQUEST_MERGE_VERB: Record<PullRequestState, string> = {
+  OPEN: "wants to merge into",
+  MERGED: "merged into",
+  CLOSED: "wanted to merge into",
+};
+
+// Anchor the sticky bar's "Review" button scrolls to.
+export const PR_REVIEW_SECTION_ID = "pr-review";
+
+// Reviewers list on the PR detail.
+export const REVIEWER_OUTDATED_TOOLTIP = "Reviewed an older commit";
+export const DELETED_REVIEWER_NAME = "Deleted user";
 
 // Error codes from POST …/review (`{ message: <code> }`).
 export const REVIEW_ERROR_MESSAGE: Record<string, string> = {

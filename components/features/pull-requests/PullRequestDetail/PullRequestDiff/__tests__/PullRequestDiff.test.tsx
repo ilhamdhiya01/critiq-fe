@@ -1,7 +1,13 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import React from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
   CommentScope,
@@ -12,6 +18,7 @@ import {
   createPullRequestComment,
   getPullRequestComments,
 } from "@/services/pull-requests.service";
+import { useDiffJumpStore } from "@/stores/useDiffJumpStore";
 
 import PullRequestDiff from "../PullRequestDiff";
 
@@ -112,7 +119,7 @@ const commentOn = async (code: string, placeholder: string) => {
   fireEvent.click(screen.getByRole("button", { name: "Komentar" }));
 };
 
-describe("PullRequestDiff comments", { timeout: 15_000 }, () => {
+describe("PullRequestDiff comments", () => {
   beforeEach(() => {
     vi.mocked(getPullRequestComments).mockReset();
     vi.mocked(getPullRequestComments).mockResolvedValue(respond([]));
@@ -194,5 +201,92 @@ describe("PullRequestDiff comments", { timeout: 15_000 }, () => {
     expect(
       screen.queryByText(/KLIK BARIS UNTUK KOMENTAR/),
     ).not.toBeInTheDocument();
+  });
+});
+
+const LINE_COUNT = 2000;
+const BIG_FILE = {
+  ...FILE,
+  path: "src/big.ts",
+  additions: LINE_COUNT,
+  deletions: 0,
+  addedCount: LINE_COUNT,
+  removedCount: 0,
+  lines: Array.from({ length: LINE_COUNT }, (_, index) => ({
+    type: "added",
+    oldLineNumber: null,
+    newLineNumber: index + 1,
+    content: `line${index + 1}();`,
+  })),
+} as ParsedPullRequestFile;
+
+const renderBig = () =>
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <PullRequestDiff
+        files={[FILE, BIG_FILE]}
+        truncated={false}
+        scope={SCOPE}
+      />
+    </QueryClientProvider>,
+  );
+
+describe("PullRequestDiff virtualisation", () => {
+  // jsdom has no layout: give every row a real row's height, otherwise all
+  // measure 0px and the window slides.
+  beforeEach(() => {
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(23);
+    vi.mocked(getPullRequestComments).mockReset();
+    vi.mocked(getPullRequestComments).mockResolvedValue(respond([]));
+    useDiffJumpStore.getState().clearTarget();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("renders only the rows near the viewport", async () => {
+    renderBig();
+    await waitFor(() => expect(getPullRequestComments).toHaveBeenCalled());
+
+    expect(screen.getByText("newCall();")).toBeInTheDocument();
+    expect(screen.getByText("line1();")).toBeInTheDocument();
+    expect(screen.queryByText(`line${LINE_COUNT}();`)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/^line\d+\(\);$/).length).toBeLessThan(200);
+  });
+
+  it("keeps a far-away comment thread mounted", async () => {
+    vi.mocked(getPullRequestComments).mockResolvedValue(
+      respond([
+        INLINE({
+          id: "far",
+          path: "src/big.ts",
+          line: 1800,
+          comments: [
+            { ...INLINE({}).comments[0], id: "c_far", body: "Far remark" },
+          ],
+        }),
+      ]),
+    );
+    renderBig();
+
+    expect(await screen.findByText("Far remark")).toBeInTheDocument();
+    expect(screen.getByText("line1800();")).toBeInTheDocument();
+  });
+
+  it("rings the line a finding jumps to", async () => {
+    renderDiff();
+    await waitFor(() => expect(getPullRequestComments).toHaveBeenCalled());
+
+    act(() =>
+      useDiffJumpStore.getState().setTarget({ filePath: "src/a.ts", line: 11 }),
+    );
+
+    expect(screen.getByText("newCall();").parentElement).toHaveClass(
+      "ring-primary-400",
+    );
+    expect(screen.getByText("keep();").parentElement).not.toHaveClass(
+      "ring-primary-400",
+    );
   });
 });

@@ -1,6 +1,5 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import React, { useCallback, useState } from "react";
 
 import SectionMessage from "@/components/shared/section-message";
@@ -14,7 +13,7 @@ import { useInviteMember } from "@/lib/hooks/members/useInviteMember";
 import { useMembers } from "@/lib/hooks/members/useMembers";
 import { useRemoveMember } from "@/lib/hooks/members/useRemoveMember";
 import { useRevokeInvite } from "@/lib/hooks/members/useRevokeInvite";
-import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import { useActiveMembership } from "@/lib/hooks/organisation/useActiveOrg";
 import type { MemberRole, OrgMember } from "@/lib/types/member.types";
 
 import InviteForm from "./InviteForm";
@@ -27,8 +26,7 @@ interface MembersCardProps {
 }
 
 const MembersCard = React.memo(({ orgId = "" }: MembersCardProps) => {
-  const { slug } = useParams<{ slug: string }>();
-  const { membership } = useOrgBySlug(slug);
+  const membership = useActiveMembership();
   // Every write is Admin-only; the BE refuses the rest with 403 anyway.
   const isAdmin = membership?.role === "ADMIN";
 
@@ -131,7 +129,7 @@ const MembersCard = React.memo(({ orgId = "" }: MembersCardProps) => {
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface p-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-mono text-[13px] font-semibold text-text-strong">
           Members{data ? ` (${data.members.length})` : ""}
         </span>

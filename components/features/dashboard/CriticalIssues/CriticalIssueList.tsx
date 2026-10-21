@@ -1,5 +1,6 @@
 import React from "react";
 
+import EmptyState from "@/components/shared/empty-state";
 import SectionMessage from "@/components/shared/section-message";
 import Skeleton from "@/components/ui/skeleton";
 import type { DashboardCriticalIssue } from "@/lib/types/dashboard.types";
@@ -34,7 +35,13 @@ const CriticalIssueList = React.memo(
       );
     }
     if (!issues || issues.length === 0) {
-      return <SectionMessage>No critical issues in open PRs</SectionMessage>;
+      return (
+        <EmptyState
+          icon="TbShieldCheck"
+          title="No critical issues in open PRs"
+          description="Nothing critical is waiting on a fix right now."
+        />
+      );
     }
 
     return (

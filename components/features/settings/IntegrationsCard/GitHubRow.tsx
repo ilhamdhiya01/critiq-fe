@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState } from "react";
 
+import ConnectRepositoriesAction from "@/components/shared/connect-repositories-action";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
@@ -15,7 +16,6 @@ import { useInstallGitHubApps } from "@/lib/hooks/integrations/useInstallGitHubA
 import type { Integration } from "@/lib/types/integration.types";
 import { GITHUB_INSTALLATIONS_URL } from "@/routes";
 
-import ConnectRepositoriesAction from "./ConnectRepositoriesAction";
 import NoReposHint from "./NoReposHint";
 
 interface GitHubRowProps {
@@ -66,19 +66,22 @@ const GitHubRow = React.memo(
     const status = integration ? getIntegrationStatus(integration) : null;
     const isActive = state === "ACTIVE";
     const isUninstalled = state === "UNINSTALLED";
+    // Install request sent to the GitHub org owner: nothing is installed yet,
+    // so the only action is to finish connecting once they approve.
+    const isPendingApproval = state === "PENDING_APPROVAL";
     // Connecting repos only works while the App is installed and active.
     const adminRepoCount = isAdmin && isActive ? repoCount : undefined;
 
     return (
       <div className="flex flex-col gap-3 border-b border-border-row py-2.5">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div className="flex min-w-0 flex-col gap-0.5">
             <span className="text-[13px] font-semibold text-neutral-100">
               GitHub
             </span>
             {integration ? (
               <>
-                <span className="font-mono text-[11.5px] text-text-faint">
+                <span className="font-mono text-[11.5px] wrap-anywhere text-text-faint">
                   org: {integration.installationLogin ?? "—"}
                   {repoCount !== undefined &&
                     ` · ${formatConnectedRepoCount(repoCount)}`}
@@ -109,7 +112,7 @@ const GitHubRow = React.memo(
                 onClick={handleInstall}
                 isLoading={isLoading || isRedirecting}
               >
-                {isRedirecting ? "Redirecting to GitHub…" : "Connect GitHub"}
+                {isRedirecting ? "Redirecting to GitHub…" : "Connect"}
               </Button>
             )}
           </div>
@@ -125,7 +128,22 @@ const GitHubRow = React.memo(
           <NoReposHint orgId={orgId} provider="GITHUB" />
         )}
 
-        {isAdmin && integration && (
+        {isAdmin && isPendingApproval && (
+          <div className="flex flex-wrap gap-2.5">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              fullWidth={false}
+              onClick={handleInstall}
+              isLoading={isLoading || isRedirecting}
+            >
+              {isRedirecting ? "Redirecting to GitHub…" : "Connect GitHub"}
+            </Button>
+          </div>
+        )}
+
+        {isAdmin && integration && !isPendingApproval && (
           <div className="flex flex-wrap gap-2.5">
             {adminRepoCount !== undefined && adminRepoCount > 0 && (
               <ConnectRepositoriesAction

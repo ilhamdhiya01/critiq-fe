@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState } from "react";
 
+import ConnectRepositoriesAction from "@/components/shared/connect-repositories-action";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
@@ -18,7 +19,6 @@ import { useCheckGitLabHealth } from "@/lib/hooks/integrations/useCheckGitLabHea
 import { useDisconnectGitlab } from "@/lib/hooks/integrations/useDisconnectGitlab";
 import type { Integration } from "@/lib/types/integration.types";
 
-import ConnectRepositoriesAction from "./ConnectRepositoriesAction";
 import GitLabConnectModal from "./GitLabConnectModal";
 import NoReposHint from "./NoReposHint";
 
@@ -73,14 +73,14 @@ const GitLabRow = React.memo(
     return (
       <>
         <div className="flex flex-col gap-3 py-2.5">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="flex min-w-0 flex-col gap-0.5">
               <span className="text-[13px] font-semibold text-neutral-100">
                 GitLab
               </span>
               {integration ? (
                 <>
-                  <span className="flex flex-wrap items-center gap-2 font-mono text-[11.5px] text-text-faint">
+                  <span className="flex flex-wrap items-center gap-2 font-mono text-[11.5px] wrap-anywhere text-text-faint">
                     <span>
                       {integration.instanceUrl &&
                         hostOf(integration.instanceUrl)}
@@ -92,7 +92,7 @@ const GitLabRow = React.memo(
                     )}
                   </span>
                   {detailParts.length > 0 && (
-                    <span className="font-mono text-[11.5px] text-text-faint">
+                    <span className="font-mono text-[11.5px] wrap-anywhere text-text-faint">
                       {detailParts.join(" · ")}
                     </span>
                   )}

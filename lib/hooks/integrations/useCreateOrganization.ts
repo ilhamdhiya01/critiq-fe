@@ -1,9 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
 import { useShallow } from "zustand/shallow";
 
+import { userKeys } from "@/lib/hooks/auth/queryKeys";
 import { toast } from "@/lib/toast";
+import type { ErrorResponse } from "@/lib/types/api.types";
 import { createOrganization } from "@/services/integrations.service";
 import { useOnboardingStore } from "@/stores/onboarding/useOnboardingStore";
+
+import { membershipWithOrgKeys } from "./queryKeys";
 
 export const useCreateOrganization = () => {
   const queryClient = useQueryClient();
@@ -27,14 +32,18 @@ export const useCreateOrganization = () => {
         name: organisation.name,
         organizationId: organisation.id ?? undefined,
       }),
+    // POST when the wizard has no org yet, PATCH (rename) once it has one, so
+    // Back → Continue never creates a second org.
     onSuccess: (res) => {
-      const { id, name } = res.data;
-      setOrganisationSaved({ id, name });
-      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      const { id, name, slug } = res.data;
+      setOrganisationSaved({ id, name, slug });
+      // A new org re-issues the session cookie with it active.
+      queryClient.invalidateQueries({ queryKey: membershipWithOrgKeys.all });
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
       toast.success(res.message || "Organization successfull created");
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast.error(error.response?.data?.message || error.message);
     },
   });
 
@@ -47,6 +56,7 @@ export const useCreateOrganization = () => {
     isCreating: mutation.isPending,
     organisationName: organisation.name,
     organisationId: organisation.id,
+    organisationSlug: organisation.slug,
     needsSave,
     setOrganisationName,
     hydrateOrganisationId,

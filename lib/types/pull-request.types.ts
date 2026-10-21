@@ -109,6 +109,21 @@ export interface PullRequestReview {
   createdAt: string;
 }
 
+// One entry per reviewer on the PR detail: their latest decision, on any
+// commit.
+export interface PullRequestReviewer {
+  reviewId: string;
+  // null when the account was deleted.
+  reviewer: PullRequestReview["reviewer"];
+  decision: ReviewDecision;
+  headSha: string;
+  // true once the PR has commits newer than this decision.
+  outdated: boolean;
+  aiAssisted: boolean;
+  sync: { status: ReviewSyncStatus; error: ReviewSyncError | null };
+  createdAt: string;
+}
+
 export interface SubmitReviewInput {
   decision: ReviewDecision;
   headSha: string;
@@ -128,6 +143,9 @@ export interface PullRequestFile {
 
 export interface PullRequestDetail extends PullRequest {
   headSha: string | null;
+  // Latest decision per reviewer (the list keeps using `latestReview`).
+  // Missing on older BE.
+  reviewers?: PullRequestReviewer[];
   // Whether Critiq may merge right now. Missing on older BE → no Merge button.
   merge?: PullRequestMerge;
 }

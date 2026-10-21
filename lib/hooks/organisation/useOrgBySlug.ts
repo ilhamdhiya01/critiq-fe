@@ -1,15 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-
-import { membershipWithOrgKeys } from "@/lib/hooks/integrations/queryKeys";
-import { getMembershipWithOrg } from "@/services/membership-with-org.service";
+import { useMemberships } from "./useMemberships";
 
 export const useOrgBySlug = (slug: string) => {
-  const { data: memberships, ...rest } = useQuery({
-    queryKey: membershipWithOrgKeys.all,
-    queryFn: () => getMembershipWithOrg(),
-    select: (response) => response.data ?? [],
-    retry: false,
-  });
+  const { data: memberships, ...rest } = useMemberships();
 
   const membership = memberships?.find(
     (item) => item.organization.slug === slug,

@@ -1,18 +1,24 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import BackLink from "@/components/shared/back-link";
 import ScrollToTop from "@/components/shared/scroll-to-top";
 import StateStatus from "@/components/shared/state-status";
+import { PR_STICKY_BAR_HEIGHT_PX } from "@/const/layout.constant";
 import {
+  PR_REVIEW_SECTION_ID,
   REVIEW_MODE_COPY,
   SCROLL_TO_TOP_MIN_DIFF_FILES,
 } from "@/const/pull-request.constant";
 import { PROVIDER_NAME } from "@/const/repository.constant";
 import { getErrorCode } from "@/lib/helpers/integration.helper";
-import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import { isPullScanInProgress } from "@/lib/helpers/scan-status.helper";
+import {
+  useActiveMembership,
+  useActiveOrgId,
+} from "@/lib/hooks/organisation/useActiveOrg";
 import { usePullRequestDetail } from "@/lib/hooks/pull-requests/usePullRequestDetail";
 import { usePullRequestDetailDiff } from "@/lib/hooks/pull-requests/usePullRequestDetailDiff";
 import { usePullRequestSummary } from "@/lib/hooks/pull-requests/usePullRequestSummary";
@@ -35,6 +41,7 @@ import PullRequestDetailHeader from "./PullRequestDetailHeader";
 import PullRequestDetailSkeleton from "./PullRequestDetailSkeleton";
 import PullRequestDiff from "./PullRequestDiff";
 import PullRequestDiscussion from "./PullRequestDiscussion";
+import PullRequestStickyBar from "./PullRequestStickyBar";
 import ReviewHistory from "./ReviewHistory";
 import ReviewModeToggle from "./ReviewModeToggle";
 import ReviewSection from "./ReviewSection";
@@ -45,16 +52,16 @@ const NO_DIFF_FILES: ParsedPullRequestFile[] = [];
 const NO_FINDINGS: Finding[] = [];
 
 interface PullRequestDetailProps {
-  orgId?: string;
   repoId: string;
   id: string;
 }
 
 const PullRequestDetail = React.memo(
-  ({ id, repoId, orgId }: PullRequestDetailProps) => {
+  ({ id, repoId }: PullRequestDetailProps) => {
+    const orgId = useActiveOrgId();
     const params = useParams<{ slug: string }>();
     const slug = params.slug;
-    const { membership } = useOrgBySlug(slug);
+    const membership = useActiveMembership();
 
     const { data, isLoading, isError } = usePullRequestDetail(
       orgId ?? "",
@@ -71,6 +78,9 @@ const PullRequestDetail = React.memo(
 
     const { data: summary, isLoading: isLoadingSummary } =
       usePullRequestSummary(orgId ?? "", repoId, id);
+
+    // The compact sticky bar shows once this has scrolled out of view.
+    const headerRef = useRef<HTMLDivElement>(null);
 
     // Only used when the policy opens both tabs (REQUIRE_BOTH). Not
     // persisted — the BE has no per-PR mode yet.
@@ -161,17 +171,35 @@ const PullRequestDetail = React.memo(
     const diffFiles = diff?.files ?? NO_DIFF_FILES;
 
     return (
-      <div className="flex flex-col gap-4">
+      <div
+        className="flex flex-col gap-4"
+        // Shared by the sticky bar and the diff's pinned file headers.
+        style={
+          {
+            "--pr-bar-h": `${PR_STICKY_BAR_HEIGHT_PX}px`,
+          } as React.CSSProperties
+        }
+      >
+        <PullRequestStickyBar
+          targetRef={headerRef}
+          detail={data}
+          additions={additions}
+          deletions={deletions}
+          role={membership?.role}
+        />
+
         <BackLink
           href={ROUTES.pullRequests(slug)}
           label="Kembali ke Pull Requests"
         />
 
-        <PullRequestDetailHeader
-          detail={data}
-          orgId={orgId ?? ""}
-          role={membership?.role}
-        />
+        <div ref={headerRef}>
+          <PullRequestDetailHeader
+            detail={data}
+            orgId={orgId ?? ""}
+            role={membership?.role}
+          />
+        </div>
 
         <UncheckedTiersNotice
           tiers={data.latestScan?.uncheckedTiers}
@@ -216,6 +244,7 @@ const PullRequestDetail = React.memo(
             role={membership?.role}
             prState={data.state}
             hasScan={!!data.latestScan}
+            isScanInProgress={isPullScanInProgress(data)}
           />
         )}
 
@@ -223,6 +252,7 @@ const PullRequestDetail = React.memo(
           findings={findings}
           files={diffFiles}
           truncated={data.latestScan?.findingsTruncated ?? false}
+          scan={data.latestScan}
         />
 
         {isErrorDiff || !diff ? (
@@ -238,13 +268,19 @@ const PullRequestDetail = React.memo(
 
         <OutdatedComments scope={commentScope} />
 
-        <ReviewSection
-          key={data.headSha ?? "no-head"}
-          orgId={orgId ?? ""}
-          detail={data}
-          summaryAiStatus={summary?.aiStatus}
-          role={membership?.role}
-        />
+        {/* Clears the sticky bar when its "Review" button jumps here. */}
+        <div
+          id={PR_REVIEW_SECTION_ID}
+          className="flex scroll-mt-20 flex-col gap-4 empty:hidden"
+        >
+          <ReviewSection
+            key={data.headSha ?? "no-head"}
+            orgId={orgId ?? ""}
+            detail={data}
+            summaryAiStatus={summary?.aiStatus}
+            role={membership?.role}
+          />
+        </div>
 
         <ReviewHistory orgId={orgId ?? ""} repoId={repoId} pullId={id} />
 

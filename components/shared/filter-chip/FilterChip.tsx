@@ -10,7 +10,7 @@ const filterChip = tv({
       // Pull request list: plain chip, count as a separate faint number.
       subtle: "gap-1.5 rounded-md px-2.5 py-1.5 text-[11.5px]",
       // Activity tabs: bordered button reading "All · 13".
-      outlined: "rounded-md border px-5 py-2 text-[12px]",
+      outlined: "rounded-md border px-3.5 py-2 text-[12px] sm:px-5",
     },
     isActive: { true: "", false: "" },
   },

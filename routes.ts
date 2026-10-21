@@ -8,6 +8,8 @@ export const ROUTES = {
   LOGIN: "/login",
   REGISTER: "/register",
   SETUP: "/setup",
+  // Always open to a signed-in user, whatever orgs they already have.
+  NEW_ORGANIZATION: "/organizations/new",
   invite: (token: string) => `/invite/${token}`,
 
   dashboard: (slug: string) => `/${slug}`,
@@ -58,6 +60,12 @@ export const API_INVITE_ACCEPT = (token: string) =>
 // Activity (review decisions across the org, cursor paginated)
 export const API_ORG_ACTIVITY = (orgId: string) =>
   `${API_ORG}/${orgId}/activity`;
+
+// Global search (⌘K): repos, PRs and rules
+export const API_ORG_SEARCH = (orgId: string) => `${API_ORG}/${orgId}/search`;
+
+// Insights (trends over the last weeks)
+export const API_INSIGHTS = (orgId: string) => `${API_ORG}/${orgId}/insights`;
 
 // Dashboard
 export const API_DASHBOARD_SUMMARY = (orgId: string) =>

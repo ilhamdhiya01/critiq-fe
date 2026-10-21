@@ -233,7 +233,7 @@ const ReviewPanel = React.memo(
               {body.length}/{REVIEW_BODY_MAX}
             </span>
 
-            <div className="flex justify-end gap-2.5">
+            <div className="flex flex-wrap justify-end gap-2.5">
               <Button
                 type="button"
                 variant="ghost"

@@ -10,7 +10,7 @@ interface ToggleRowProps {
 }
 
 const ToggleRow = React.memo(({ label, checked, onToggle }: ToggleRowProps) => (
-  <div className="flex items-center justify-between py-2.5">
+  <div className="flex items-center justify-between gap-3 py-2.5">
     <span className="text-[12.5px] text-text-secondary">{label}</span>
     <button
       type="button"

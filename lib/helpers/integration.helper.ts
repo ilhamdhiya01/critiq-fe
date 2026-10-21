@@ -2,6 +2,7 @@ import type { AxiosError } from "axios";
 
 import {
   GITHUB_ACCESS_ERROR_CODES,
+  GITHUB_PENDING_APPROVAL_MESSAGE,
   GITHUB_SUSPENDED_MESSAGE,
   GITHUB_UNINSTALLED_MESSAGE,
   GITLAB_ERROR_MESSAGE,
@@ -11,6 +12,7 @@ import { getDaysUntil } from "@/lib/helpers/date.helper";
 import type { ApiFieldError, ErrorResponse } from "@/lib/types/api.types";
 import type {
   Integration,
+  IntegrationProvider,
   IntegrationsBySource,
 } from "@/lib/types/integration.types";
 import type {
@@ -47,7 +49,11 @@ export const getIntegrationStatus = (
     case "ACTIVE":
       return { label: "Connected", tone: "green", message: null };
     case "PENDING_APPROVAL":
-      return { label: "Pending approval", tone: "orange", message: null };
+      return {
+        label: "Waiting for owner approval",
+        tone: "orange",
+        message: GITHUB_PENDING_APPROVAL_MESSAGE,
+      };
     case "EXPIRING_SOON":
       return {
         label: "Expiring soon",
@@ -98,12 +104,33 @@ export const getErrorCode = (error: unknown): string | null => {
 export const isGitHubAccessError = (code: string | null): boolean =>
   !!code && (GITHUB_ACCESS_ERROR_CODES as readonly string[]).includes(code);
 
+// States are matched in upper case ("PENDING_APPROVAL"); accept the BE's
+// lower-case spelling ("pending_approval") too.
+const normalizeState = (integration: Integration): Integration => ({
+  ...integration,
+  state: integration.state.toUpperCase() as Integration["state"],
+});
+
 export const splitIntegrations = (
   integrations: Integration[],
-): IntegrationsBySource => ({
-  github: integrations.find((item) => item.source === "GITHUB") ?? null,
-  gitlab: integrations.find((item) => item.source === "GITLAB") ?? null,
-});
+): IntegrationsBySource => {
+  const github = integrations.find((item) => item.source === "GITHUB");
+  const gitlab = integrations.find((item) => item.source === "GITLAB");
+  return {
+    github: github ? normalizeState(github) : null,
+    gitlab: gitlab ? normalizeState(gitlab) : null,
+  };
+};
+
+// Which provider "Add repository" can use right now, mirroring the Settings
+// rows: GitHub needs the App installed and active; a GitLab token is enough.
+export const getConnectableProvider = (
+  integrations: IntegrationsBySource | undefined,
+): IntegrationProvider | null => {
+  if (integrations?.github?.state === "ACTIVE") return "GITHUB";
+  if (integrations?.gitlab) return "GITLAB";
+  return null;
+};
 
 export const countReposByProvider = (
   repos: OrgRepository[],

@@ -5,6 +5,7 @@ import type { Integration } from "@/lib/types/integration.types";
 import { getDaysUntil } from "../date.helper";
 import {
   countReposByProvider,
+  getConnectableProvider,
   getIntegrationErrorMessage,
   getIntegrationStatus,
   hostOf,
@@ -49,8 +50,13 @@ describe("getIntegrationStatus", () => {
   it("maps GitHub states", () => {
     expect(getIntegrationStatus(GITHUB).label).toBe("Connected");
     expect(
-      getIntegrationStatus({ ...GITHUB, state: "PENDING_APPROVAL" }).label,
-    ).toBe("Pending approval");
+      getIntegrationStatus({ ...GITHUB, state: "PENDING_APPROVAL" }),
+    ).toEqual({
+      label: "Waiting for owner approval",
+      tone: "orange",
+      message:
+        "A GitHub organization owner must approve the installation request (GitHub → Settings → GitHub Apps → Pending requests)",
+    });
     expect(getIntegrationStatus({ ...GITHUB, state: "INVALID" })).toEqual({
       label: "Error",
       tone: "red",
@@ -125,6 +131,15 @@ describe("splitIntegrations / upsertIntegration", () => {
     expect(replaced).toHaveLength(2);
     expect(splitIntegrations(replaced).gitlab?.tokenLast4).toBe("zzzz");
   });
+
+  it("accepts a lower-case state from the BE", () => {
+    const pending = {
+      ...GITHUB,
+      state: "pending_approval",
+    } as unknown as Integration;
+
+    expect(splitIntegrations([pending]).github?.state).toBe("PENDING_APPROVAL");
+  });
 });
 
 describe("countReposByProvider", () => {
@@ -162,5 +177,28 @@ describe("hostOf", () => {
   it("returns the host or the raw value", () => {
     expect(hostOf("https://gitlab.cititex.io/")).toBe("gitlab.cititex.io");
     expect(hostOf("not a url")).toBe("not a url");
+  });
+});
+
+describe("getConnectableProvider", () => {
+  const github = (state: Integration["state"]) =>
+    ({ source: "GITHUB", state }) as Integration;
+  const gitlab = { source: "GITLAB", state: "ACTIVE" } as Integration;
+
+  it("uses GitHub only while the App is active", () => {
+    expect(
+      getConnectableProvider({ github: github("ACTIVE"), gitlab: null }),
+    ).toBe("GITHUB");
+    expect(
+      getConnectableProvider({ github: github("UNINSTALLED"), gitlab: null }),
+    ).toBeNull();
+  });
+
+  it("falls back to a connected GitLab, else nothing", () => {
+    expect(
+      getConnectableProvider({ github: github("SUSPENDED"), gitlab }),
+    ).toBe("GITLAB");
+    expect(getConnectableProvider({ github: null, gitlab: null })).toBeNull();
+    expect(getConnectableProvider(undefined)).toBeNull();
   });
 });

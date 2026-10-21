@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import ActiveOrgTestProvider from "@/lib/test-utils/ActiveOrgTestProvider";
 import type {
   ActivityPage,
   ReviewActivityItem,
@@ -60,11 +61,13 @@ const renderView = () =>
         new QueryClient({ defaultOptions: { queries: { retry: false } } })
       }
     >
-      <ActivityView orgId="org_1" />
+      <ActiveOrgTestProvider orgId="org_1">
+        <ActivityView />
+      </ActiveOrgTestProvider>
     </QueryClientProvider>,
   );
 
-describe("ActivityView", { timeout: 15_000 }, () => {
+describe("ActivityView", () => {
   beforeEach(() => {
     vi.mocked(getOrgActivity).mockReset();
     vi.mocked(getOrgRepositories).mockResolvedValue({ data: [] });

@@ -38,6 +38,10 @@ interface BranchMultiSelectProps {
 }
 
 const PANEL_HEIGHT_ESTIMATE = 290;
+// The trigger can be very narrow on phones; the panel never goes below this
+// width (unless the viewport itself is narrower).
+const PANEL_MIN_WIDTH = 256;
+const VIEWPORT_GUTTER = 8;
 
 const BranchMultiSelect = React.memo(
   ({
@@ -63,9 +67,18 @@ const BranchMultiSelect = React.memo(
       const openUpward =
         window.innerHeight - rect.bottom < PANEL_HEIGHT_ESTIMATE &&
         rect.top > PANEL_HEIGHT_ESTIMATE;
+      // Keep the fixed panel inside the viewport horizontally.
+      const width = Math.min(
+        Math.max(rect.width, PANEL_MIN_WIDTH),
+        window.innerWidth - VIEWPORT_GUTTER * 2,
+      );
+      const left = Math.max(
+        VIEWPORT_GUTTER,
+        Math.min(rect.left, window.innerWidth - VIEWPORT_GUTTER - width),
+      );
       setPanelRect({
-        left: rect.left,
-        width: rect.width,
+        left,
+        width,
         top: openUpward ? undefined : rect.bottom + 4,
         bottom: openUpward ? window.innerHeight - rect.top + 4 : undefined,
       });
@@ -188,7 +201,7 @@ const BranchMultiSelect = React.memo(
                   value={query}
                   onChange={(e) => onQueryChange(e.target.value)}
                   placeholder="Search branches…"
-                  className="flex-1 bg-transparent font-mono text-[12px] text-neutral-100 outline-none placeholder:text-text-muted"
+                  className="min-w-0 flex-1 bg-transparent font-mono text-[12px] text-neutral-100 outline-none placeholder:text-text-muted"
                 />
               </div>
               <div className="max-h-50 overflow-auto">

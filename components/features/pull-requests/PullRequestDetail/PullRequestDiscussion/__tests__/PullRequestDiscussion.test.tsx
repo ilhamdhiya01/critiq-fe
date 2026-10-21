@@ -85,7 +85,7 @@ const renderDiscussion = (scope: CommentScope = SCOPE) =>
     </QueryClientProvider>,
   );
 
-describe("PullRequestDiscussion", { timeout: 15_000 }, () => {
+describe("PullRequestDiscussion", () => {
   beforeEach(() => {
     vi.mocked(getPullRequestComments).mockReset();
     vi.mocked(createPullRequestComment).mockReset();

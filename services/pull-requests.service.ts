@@ -88,8 +88,10 @@ export const regeneratePullRequestSummary = async (
   id: string,
 ): Promise<ApiResponse<null>> => {
   try {
+    // Forced: always a fresh AI review, never the cached result.
     const res = await axiosInstance.post(
       API_PULL_SUMMARY_REGENERATE(orgId, repoId, id),
+      { force: true },
     );
     return res.data;
   } catch (error) {

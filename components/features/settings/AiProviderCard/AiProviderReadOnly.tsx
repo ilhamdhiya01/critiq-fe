@@ -1,5 +1,6 @@
 import React from "react";
 
+import DetailRow from "@/components/shared/detail-row";
 import {
   AI_LOCALE_READONLY_LABEL,
   AI_PROVIDER_LABEL,
@@ -14,28 +15,29 @@ const AiProviderReadOnly = React.memo(
   ({ settings }: AiProviderReadOnlyProps) => {
     return (
       <>
-        <div className="grid grid-cols-[140px_1fr] items-center gap-3 text-[12.5px]">
-          <span className="text-text-secondary">Provider</span>
-          <span className="text-neutral-300">
-            {settings.provider
-              ? AI_PROVIDER_LABEL[settings.provider]
-              : "Belum diatur"}
-          </span>
-
-          <span className="text-text-secondary">Model</span>
-          <span className="font-mono text-xs text-neutral-300">
-            {settings.model ?? "—"}
-          </span>
-
-          <span className="text-text-secondary">Izin data</span>
-          <span className="text-neutral-300">
-            {settings.consent.granted ? "Diizinkan" : "Belum diizinkan"}
-          </span>
-
-          <span className="text-text-secondary">Bahasa summary</span>
-          <span className="text-neutral-300">
-            {AI_LOCALE_READONLY_LABEL[settings.locale]}
-          </span>
+        <div className="flex flex-col gap-3">
+          <DetailRow label="Provider">
+            <span className="text-neutral-300">
+              {settings.provider
+                ? AI_PROVIDER_LABEL[settings.provider]
+                : "Belum diatur"}
+            </span>
+          </DetailRow>
+          <DetailRow label="Model">
+            <span className="font-mono text-xs wrap-anywhere text-neutral-300">
+              {settings.model ?? "—"}
+            </span>
+          </DetailRow>
+          <DetailRow label="Izin data">
+            <span className="text-neutral-300">
+              {settings.consent.granted ? "Diizinkan" : "Belum diizinkan"}
+            </span>
+          </DetailRow>
+          <DetailRow label="Bahasa summary">
+            <span className="text-neutral-300">
+              {AI_LOCALE_READONLY_LABEL[settings.locale]}
+            </span>
+          </DetailRow>
         </div>
         <p className="text-[11.5px] text-text-muted">
           Hanya Admin yang bisa mengubah pengaturan AI.

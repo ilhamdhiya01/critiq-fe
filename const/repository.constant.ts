@@ -121,11 +121,14 @@ export const ACTIVE_REPO_SCAN_STATUSES: ReadonlySet<RepoScanStatus> = new Set([
 ]);
 
 // Status of the scan itself — never a quality gate (no PASSED/FAILED gate yet).
+export const RESCAN_RATE_LIMITED_MESSAGE =
+  "Tunggu sebentar sebelum re-scan lagi";
+
 export const SCAN_STATUS_LABEL: Record<RepoScanStatus, string> = {
   DONE: "Done",
   FAILED: "Failed",
-  RUNNING: "Scanning…",
-  QUEUED: "Scanning…",
+  RUNNING: "Running",
+  QUEUED: "Queued",
   SUPERSEDED: "Superseded",
 };
 

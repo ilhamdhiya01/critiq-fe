@@ -13,6 +13,7 @@ import {
   AI_SUMMARY_RISK_LABEL,
   AI_SUMMARY_RISK_STYLE,
   AI_SUMMARY_STALE_STATE,
+  SCAN_IN_PROGRESS_TOOLTIP,
 } from "@/const/pull-request.constant";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import { getAiBlockedView } from "@/lib/helpers/pull-request.helper";
@@ -54,6 +55,9 @@ interface AiSummaryCardProps {
   prState: PullRequestState;
   // Finding counts come from the scan; without one there is nothing to count.
   hasScan: boolean;
+  // Static scan active or AI review queued/running: the BE rejects a scan or
+  // forced regenerate until it finishes (SSE re-enables the buttons).
+  isScanInProgress: boolean;
 }
 
 const AiSummaryCard = React.memo(
@@ -71,6 +75,7 @@ const AiSummaryCard = React.memo(
     role,
     prState,
     hasScan,
+    isScanInProgress,
   }: AiSummaryCardProps) => {
     const status = summary?.aiStatus;
     const isInProgress = status === "queued" || status === "running";
@@ -87,7 +92,10 @@ const AiSummaryCard = React.memo(
 
     const { handleRegenerate, isRegenerating } =
       useRegeneratePullRequestSummary(orgId, repoId, id);
-    const isRegenerateDisabled = isRegenerating || isInProgress;
+    const isRegenerateDisabled =
+      isRegenerating || isInProgress || isScanInProgress;
+    // Shown on the wrapper: disabled buttons don't get pointer events.
+    const busyTitle = isScanInProgress ? SCAN_IN_PROGRESS_TOOLTIP : undefined;
 
     const onRegenerateClick = useCallback(async () => {
       try {
@@ -131,7 +139,7 @@ const AiSummaryCard = React.memo(
             )}
           </span>
 
-          <span className="flex items-center gap-2.5">
+          <span className="flex flex-wrap items-center gap-2.5">
             {summary?.generatedAt && (
               <span className="font-mono text-[10.5px] text-text-muted">
                 {summary.cached ? "cache · " : ""}
@@ -143,26 +151,28 @@ const AiSummaryCard = React.memo(
                 the body's "Run AI review" — the header button would be a
                 duplicate or a guaranteed 412. */}
             {!blockedView && (
-              <Button
-                type="button"
-                variant="ghost-primary"
-                size="sm"
-                fullWidth={false}
-                onClick={onRegenerateClick}
-                disabled={isRegenerateDisabled}
-                icon={
-                  <Icon
-                    icon="TbRefresh"
-                    size={12}
-                    className={
-                      isRegenerateDisabled ? "animate-spin" : undefined
-                    }
-                  />
-                }
-                className="gap-1.5 font-mono"
-              >
-                Regenerate
-              </Button>
+              <span title={busyTitle} className="inline-flex">
+                <Button
+                  type="button"
+                  variant="ghost-primary"
+                  size="sm"
+                  fullWidth={false}
+                  onClick={onRegenerateClick}
+                  disabled={isRegenerateDisabled}
+                  icon={
+                    <Icon
+                      icon="TbRefresh"
+                      size={12}
+                      className={
+                        isRegenerateDisabled ? "animate-spin" : undefined
+                      }
+                    />
+                  }
+                  className="gap-1.5 font-mono"
+                >
+                  Regenerate
+                </Button>
+              </span>
             )}
           </span>
         </div>
@@ -202,7 +212,7 @@ const AiSummaryCard = React.memo(
             onRun={onRegenerateClick}
             isRunning={isRegenerateDisabled}
             onScan={onScanClick}
-            isScanning={isStartingScan}
+            isScanning={isStartingScan || isScanInProgress}
           />
         )}
 

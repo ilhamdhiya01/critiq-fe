@@ -21,7 +21,7 @@ const TestStatus = React.memo(
     const result = outcome?.kind === "result" ? outcome.result : null;
 
     return (
-      <div className="flex min-w-0 flex-1 basis-70 flex-col gap-1.25">
+      <div className="flex min-w-0 flex-1 basis-70 flex-col gap-1.25 wrap-anywhere">
         {outcome?.kind === "rate_limited" && (
           <span className="text-xs leading-normal text-warning-light">
             {AI_TEST_RATE_LIMIT_MESSAGE}

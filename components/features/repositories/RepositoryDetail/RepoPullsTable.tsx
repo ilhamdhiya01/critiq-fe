@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useMemo } from "react";
 
 import CriticalCount from "@/components/shared/critical-count";
+import EmptyState from "@/components/shared/empty-state";
 import ReviewDecisionBadge from "@/components/shared/review-decision-badge";
 import SectionCard from "@/components/shared/section-card";
 import SectionMessage from "@/components/shared/section-message";
@@ -113,7 +114,11 @@ const RepoPullsTable = React.memo(
             <Skeleton className="h-4 w-4/5 rounded" />
           </div>
         ) : !pulls || pulls.length === 0 ? (
-          <SectionMessage>No pull requests yet.</SectionMessage>
+          <EmptyState
+            icon="TbGitPullRequest"
+            title="No pull requests yet"
+            description="Pull requests on this repository show up here automatically."
+          />
         ) : (
           <DataTable
             table={table}
@@ -122,6 +127,7 @@ const RepoPullsTable = React.memo(
               router.push(ROUTES.pullRequestDetail(slug, pull.id, repoId))
             }
             maxHeight="480px"
+            minWidth={720}
             colgroup={
               <colgroup>
                 <col className="w-auto" />

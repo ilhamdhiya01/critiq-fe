@@ -11,10 +11,23 @@ describe("Notice", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Save failed.");
   });
 
-  it("uses a polite status role for info", () => {
-    render(<Notice tone="info">Heads up.</Notice>);
+  it("uses a polite status role for a note", () => {
+    render(<Notice tone="note">Heads up.</Notice>);
 
     expect(screen.getByRole("status")).toHaveTextContent("Heads up.");
+  });
+
+  it("keeps the text neutral and marks warnings with a left bar", () => {
+    const { rerender } = render(<Notice tone="warning">Pending.</Notice>);
+    expect(screen.getByRole("alert")).toHaveClass(
+      "bg-raised",
+      "border-l-2",
+      "border-l-warning",
+    );
+    expect(screen.getByText("Pending.")).toHaveClass("text-text-nav");
+
+    rerender(<Notice tone="note">Heads up.</Notice>);
+    expect(screen.getByRole("status")).not.toHaveClass("border-l-2");
   });
 
   it("renders the in-card row variant", () => {

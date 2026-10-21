@@ -59,7 +59,8 @@ const DropdownMenu = React.memo(
             role="menu"
             aria-label={ariaLabel}
             className={classNames(
-              "absolute top-full right-0 z-20 mt-1.5 min-w-56 rounded-lg border border-border-default bg-raised-alt py-1.5 shadow-lg",
+              // Above PR detail's sticky bar (z-30); never wider than the screen.
+              "absolute top-full right-0 z-40 mt-1.5 max-w-[calc(100vw-1rem)] min-w-56 rounded-lg border border-border-default bg-raised-alt py-1.5 shadow-lg",
               className,
             )}
           >

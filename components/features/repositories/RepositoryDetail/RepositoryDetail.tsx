@@ -13,7 +13,10 @@ import LanguageDot from "@/components/ui/language-dot";
 import Skeleton from "@/components/ui/skeleton";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import { repoName } from "@/lib/helpers/repository.helper";
-import { useOrgBySlug } from "@/lib/hooks/organisation/useOrgBySlug";
+import {
+  useActiveMembership,
+  useActiveOrgId,
+} from "@/lib/hooks/organisation/useActiveOrg";
 import { useOrgRepositories } from "@/lib/hooks/repositories/useOrgRepositories";
 import { useRescanRepo } from "@/lib/hooks/repositories/useRescanRepo";
 import { useScanConfig } from "@/lib/hooks/repositories/useScanConfig";
@@ -48,7 +51,14 @@ const RepositoryHeader = ({ orgId, repo, isAdmin }: RepositoryHeaderProps) => {
               {repo.language}
             </Badge>
           )}
-          <Badge tone="neutral" shape="tag" size="md" weight="normal">
+          <Badge
+            tone="neutral"
+            shape="tag"
+            size="md"
+            weight="normal"
+            title={repo.defaultBranch}
+            truncate
+          >
             default: {repo.defaultBranch}
           </Badge>
           {repo.lastScanAt !== undefined && (
@@ -79,117 +89,108 @@ const RepositoryHeader = ({ orgId, repo, isAdmin }: RepositoryHeaderProps) => {
 };
 
 interface RepositoryDetailProps {
-  orgId?: string;
   repoId: string;
 }
 
-const RepositoryDetail = React.memo(
-  ({ orgId, repoId }: RepositoryDetailProps) => {
-    const params = useParams<{ slug: string }>();
-    const slug = params.slug;
-    const { membership } = useOrgBySlug(slug);
-    const isAdmin = membership?.role === "ADMIN";
+const RepositoryDetail = React.memo(({ repoId }: RepositoryDetailProps) => {
+  const orgId = useActiveOrgId();
+  const params = useParams<{ slug: string }>();
+  const slug = params.slug;
+  const membership = useActiveMembership();
+  const isAdmin = membership?.role === "ADMIN";
 
-    const {
-      data: repos,
-      isLoading: isLoadingRepos,
-      isError: isReposError,
-    } = useOrgRepositories(orgId);
-    const {
-      data: config,
-      isLoading: isLoadingConfig,
-      isError: isConfigError,
-    } = useScanConfig(orgId, repoId);
+  const {
+    data: repos,
+    isLoading: isLoadingRepos,
+    isError: isReposError,
+  } = useOrgRepositories(orgId);
+  const {
+    data: config,
+    isLoading: isLoadingConfig,
+    isError: isConfigError,
+  } = useScanConfig(orgId, repoId);
 
-    const repo = repos?.find((item) => item.id === repoId);
+  const repo = repos?.find((item) => item.id === repoId);
 
-    const renderBody = () => {
-      if (isReposError) {
-        return (
-          <StateStatus
-            title="Couldn't load this repository"
-            description="Something went wrong while loading it. Reload the page to try again."
-          />
-        );
-      }
-      if (isLoadingRepos) {
-        return (
-          <div className="flex flex-col gap-4">
-            <Skeleton className="h-24 rounded-lg" />
-            <Skeleton className="h-20 rounded-lg" />
-            <Skeleton className="h-48 rounded-lg" />
-          </div>
-        );
-      }
-      if (!repo || !orgId) {
-        return (
-          <StateStatus
-            title="Repository not found"
-            description="It may have been disconnected from this organization."
-          />
-        );
-      }
-
-      const hasStats =
-        repo.openCriticalCount !== undefined ||
-        repo.openPullCount !== undefined;
-
+  const renderBody = () => {
+    if (isReposError) {
       return (
-        <>
-          <RepositoryHeader orgId={orgId} repo={repo} isAdmin={isAdmin} />
-
-          {hasStats && (
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-              {repo.openCriticalCount !== undefined && (
-                <StatCard
-                  label="Critical in open PRs"
-                  value={repo.openCriticalCount}
-                  isAlert={repo.openCriticalCount > 0}
-                />
-              )}
-              {repo.openPullCount !== undefined && (
-                <StatCard
-                  label="Open pull requests"
-                  value={repo.openPullCount}
-                />
-              )}
-            </div>
-          )}
-
-          <RepoPullsTable orgId={orgId} repoId={repo.id} slug={slug} />
-
-          {isConfigError ? (
-            <p className="rounded-lg border border-border-subtle bg-surface px-5 py-4 text-[12.5px] text-danger-light">
-              Couldn&apos;t load branches and review policies.
-            </p>
-          ) : isLoadingConfig || !config ? (
-            <Skeleton className="h-48 rounded-lg" />
-          ) : (
-            <BranchPolicyTable
-              orgId={orgId}
-              repoId={repo.id}
-              provider={repo.provider}
-              config={config}
-              isAdmin={isAdmin}
-            />
-          )}
-
-          <RepoScanHistory orgId={orgId} repoId={repo.id} slug={slug} />
-        </>
+        <StateStatus
+          title="Couldn't load this repository"
+          description="Something went wrong while loading it. Reload the page to try again."
+        />
       );
-    };
+    }
+    if (isLoadingRepos) {
+      return (
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-20 rounded-lg" />
+          <Skeleton className="h-48 rounded-lg" />
+        </div>
+      );
+    }
+    if (!repo || !orgId) {
+      return (
+        <StateStatus
+          title="Repository not found"
+          description="It may have been disconnected from this organization."
+        />
+      );
+    }
+
+    const hasStats =
+      repo.openCriticalCount !== undefined || repo.openPullCount !== undefined;
 
     return (
-      <div className="mx-auto flex flex-col gap-4">
-        <BackLink
-          href={ROUTES.repositories(slug)}
-          label="Back to Repositories"
-        />
-        {renderBody()}
-      </div>
+      <>
+        <RepositoryHeader orgId={orgId} repo={repo} isAdmin={isAdmin} />
+
+        {hasStats && (
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+            {repo.openCriticalCount !== undefined && (
+              <StatCard
+                label="Critical in open PRs"
+                value={repo.openCriticalCount}
+                isAlert={repo.openCriticalCount > 0}
+              />
+            )}
+            {repo.openPullCount !== undefined && (
+              <StatCard label="Open pull requests" value={repo.openPullCount} />
+            )}
+          </div>
+        )}
+
+        <RepoPullsTable orgId={orgId} repoId={repo.id} slug={slug} />
+
+        {isConfigError ? (
+          <p className="rounded-lg border border-border-subtle bg-surface px-5 py-4 text-[12.5px] text-danger-light">
+            Couldn&apos;t load branches and review policies.
+          </p>
+        ) : isLoadingConfig || !config ? (
+          <Skeleton className="h-48 rounded-lg" />
+        ) : (
+          <BranchPolicyTable
+            orgId={orgId}
+            repoId={repo.id}
+            provider={repo.provider}
+            config={config}
+            isAdmin={isAdmin}
+          />
+        )}
+
+        <RepoScanHistory orgId={orgId} repoId={repo.id} slug={slug} />
+      </>
     );
-  },
-);
+  };
+
+  return (
+    <div className="mx-auto flex flex-col gap-4">
+      <BackLink href={ROUTES.repositories(slug)} label="Back to Repositories" />
+      {renderBody()}
+    </div>
+  );
+});
 
 RepositoryDetail.displayName = "RepositoryDetail";
 

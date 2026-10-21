@@ -8,7 +8,9 @@ interface StepFooterProps {
   isLastStep: boolean;
   isLoading: boolean;
   onBack: () => void;
-  onSkip: () => void;
+  // Leave the wizard (e.g. back to another org). Hidden without a handler.
+  exitLabel?: string;
+  onExit?: () => void;
   onContinue: () => void;
 }
 
@@ -19,11 +21,14 @@ const StepFooter = React.memo(
     isLastStep,
     isLoading,
     onBack,
-    onSkip,
+    exitLabel = "Skip setup",
+    onExit,
     onContinue,
   }: StepFooterProps) => {
     return (
-      <div className="flex items-center gap-3">
+      // Phones stack full-width buttons (column items stretch); from `sm` it is
+      // one row with the spacer pushing exit/continue to the right.
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         {canBack && (
           <Button
             type="button"
@@ -35,16 +40,18 @@ const StepFooter = React.memo(
             Back
           </Button>
         )}
-        <div className="flex-1" />
-        <Button
-          type="button"
-          variant="provider"
-          size="md"
-          fullWidth={false}
-          onClick={onSkip}
-        >
-          Skip setup
-        </Button>
+        <div className="hidden sm:block sm:flex-1" />
+        {onExit && (
+          <Button
+            type="button"
+            variant="provider"
+            size="md"
+            fullWidth={false}
+            onClick={onExit}
+          >
+            {exitLabel}
+          </Button>
+        )}
         <Button
           type="button"
           size="md"

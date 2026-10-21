@@ -74,7 +74,7 @@ const ReviewHistory = React.memo(
                   </span>
                 </div>
                 {review.body && (
-                  <p className="text-[12.5px] leading-normal whitespace-pre-wrap text-text-nav">
+                  <p className="text-[12.5px] leading-normal wrap-break-word whitespace-pre-wrap text-text-nav">
                     {review.body}
                   </p>
                 )}

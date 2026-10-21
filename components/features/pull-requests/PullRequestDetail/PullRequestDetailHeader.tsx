@@ -14,9 +14,14 @@ import {
 import { PROVIDER_NAME } from "@/const/repository.constant";
 import { formatRelativeTime } from "@/lib/helpers/date.helper";
 import type { Role } from "@/lib/types/auth.types";
-import type { PullRequestDetail } from "@/lib/types/pull-request.types";
+import type {
+  PullRequestDetail,
+  PullRequestReviewer,
+} from "@/lib/types/pull-request.types";
 
-import LatestReviewStatus from "./LatestReviewStatus";
+import ReviewersSummary from "./ReviewersSummary";
+
+const NO_REVIEWERS: PullRequestReviewer[] = [];
 
 interface PullRequestDetailHeaderProps {
   detail: PullRequestDetail;
@@ -32,7 +37,7 @@ const PullRequestDetailHeader = React.memo(
     return (
       <div className="flex flex-col gap-3 rounded-lg border border-border-subtle bg-surface p-5">
         <div className="flex items-start justify-between gap-4">
-          <span className="font-mono text-[17px] font-semibold text-neutral-50">
+          <span className="min-w-0 font-mono text-[15px] font-semibold wrap-break-word text-neutral-50 sm:text-[17px]">
             {`${PULL_REQUEST_NUMBER_PREFIX[detail.provider]}${detail.externalId} ${detail.title}`}
           </span>
           <Badge palette={statusStyle} size="md">
@@ -56,11 +61,25 @@ const PullRequestDetailHeader = React.memo(
             {PULL_REQUEST_PROVIDER_LABEL[detail.provider]}
           </span>
 
-          <Badge tone="neutral" shape="tag" size="md" weight="normal">
+          <Badge
+            tone="neutral"
+            shape="tag"
+            size="md"
+            weight="normal"
+            title={detail.repositoryPath}
+            truncate
+          >
             {detail.repositoryPath}
           </Badge>
 
-          <Badge tone="neutral" shape="tag" size="md" weight="normal">
+          <Badge
+            tone="neutral"
+            shape="tag"
+            size="md"
+            weight="normal"
+            title={`${detail.sourceBranch} → ${detail.targetBranch}`}
+            truncate
+          >
             {detail.sourceBranch} → {detail.targetBranch}
           </Badge>
 
@@ -68,21 +87,21 @@ const PullRequestDetailHeader = React.memo(
             {PULL_REQUEST_POLICY_LABEL[detail.effectivePolicy]}
           </Badge>
 
-          <span className="ml-auto text-[11.5px] text-text-muted">
+          {/* Right-aligned only from sm up; on phones it would sit alone at
+              the far end of a wrapped line. */}
+          <span className="text-[11.5px] text-text-muted sm:ml-auto">
             dibuka {formatRelativeTime(detail.createdAt)}
           </span>
         </div>
 
-        {detail.latestReview && (
-          <LatestReviewStatus
-            orgId={orgId}
-            repoId={detail.repositoryId}
-            pullId={detail.id}
-            review={detail.latestReview}
-            providerName={PROVIDER_NAME[detail.provider]}
-            canRetry={role === "ADMIN" || role === "REVIEWER"}
-          />
-        )}
+        <ReviewersSummary
+          orgId={orgId}
+          repoId={detail.repositoryId}
+          pullId={detail.id}
+          reviewers={detail.reviewers ?? NO_REVIEWERS}
+          providerName={PROVIDER_NAME[detail.provider]}
+          canRetry={role === "ADMIN" || role === "REVIEWER"}
+        />
       </div>
     );
   },

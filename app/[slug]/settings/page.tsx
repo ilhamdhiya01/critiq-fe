@@ -1,13 +1,10 @@
 import { Settings } from "@/components/features/settings";
 import DashboardLayout from "@/components/shared/layout";
-import { getUserFromToken } from "@/lib/helpers";
 
-const SettingsPage = async () => {
-  const userData = await getUserFromToken();
-
+const SettingsPage = () => {
   return (
     <DashboardLayout title="Settings">
-      <Settings.SettingsView orgId={userData?.activeOrgId ?? undefined} />
+      <Settings.SettingsView />
     </DashboardLayout>
   );
 };

@@ -32,7 +32,8 @@ const Modal = React.memo(
         <div
           role="dialog"
           aria-modal="true"
-          className="flex max-h-[85vh] w-full max-w-[520px] flex-col overflow-hidden rounded-lg border border-border-default bg-raised-alt"
+          aria-label={title}
+          className="flex max-h-[85dvh] w-full max-w-[520px] flex-col overflow-hidden rounded-lg border border-border-default bg-raised-alt"
         >
           <div className="flex items-center justify-between border-b border-border-subtle px-5 py-4">
             <span className="font-mono text-[14px] font-semibold text-text-strong">
@@ -43,6 +44,7 @@ const Modal = React.memo(
               variant="icon"
               size="sm"
               fullWidth={false}
+              aria-label="Close"
               icon={<Icon icon="TbX" size={16} />}
               onClick={onClose}
             />
@@ -51,7 +53,7 @@ const Modal = React.memo(
           <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
 
           {footer && (
-            <div className="flex items-center justify-end gap-2.5 border-t border-border-subtle px-5 py-4">
+            <div className="flex flex-wrap items-center justify-end gap-2.5 border-t border-border-subtle px-5 py-4">
               {footer}
             </div>
           )}

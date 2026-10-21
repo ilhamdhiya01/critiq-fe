@@ -160,8 +160,8 @@ const InviteAccept = React.memo(({ token }: InviteAcceptProps) => {
           .
         </p>
         <p className="mt-1 text-[11.5px] text-text-faint">
-          Invited as <span className="font-mono">{invite.email}</span> · expires{" "}
-          {formatDate(invite.expiresAt)}
+          Invited as <span className="font-mono break-all">{invite.email}</span>{" "}
+          · expires {formatDate(invite.expiresAt)}
         </p>
 
         {signedInUser ? (
