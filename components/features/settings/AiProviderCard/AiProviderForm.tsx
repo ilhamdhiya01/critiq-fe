@@ -9,6 +9,8 @@ import Input from "@/components/ui/input";
 import Modal from "@/components/ui/modal";
 import SegmentedControl from "@/components/ui/segmented-control";
 import {
+  AI_KEY_PLACEHOLDER,
+  AI_KEY_SOURCE,
   AI_LOCALE_OPTIONS,
   MIN_DAILY_TOKEN_BUDGET,
 } from "@/const/ai-settings.constant";
@@ -82,6 +84,7 @@ const AiProviderForm = React.memo(
     const credential = values.provider
       ? settings.credentials[values.provider]
       : undefined;
+    const keySource = values.provider ? AI_KEY_SOURCE[values.provider] : null;
     const hasStoredKey = !!credential?.hasKey;
     const canDeleteKey = hasStoredKey && values.provider === settings.provider;
 
@@ -306,9 +309,21 @@ const AiProviderForm = React.memo(
               <FormRow
                 label="API key"
                 helper={
-                  option.keyOptional
-                    ? "Opsional untuk gateway yang tidak memakai key."
-                    : undefined
+                  option.keyOptional ? (
+                    "Opsional untuk gateway yang tidak memakai key."
+                  ) : keySource ? (
+                    <>
+                      Buat key di{" "}
+                      <a
+                        href={keySource.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-300 hover:underline"
+                      >
+                        {keySource.label}
+                      </a>
+                    </>
+                  ) : undefined
                 }
                 error={errors.apiKey}
               >
@@ -317,6 +332,7 @@ const AiProviderForm = React.memo(
                   credential={credential}
                   isKeyOptional={!!option.keyOptional}
                   canDeleteKey={canDeleteKey}
+                  keyFormat={AI_KEY_PLACEHOLDER[option.id]}
                   error={errors.apiKey}
                   onChange={handleApiKeyChange}
                   onDeleteKey={handleDeleteKey}

@@ -12,6 +12,7 @@ const renderField = (
     credential: AiCredentialStatus | undefined;
     isKeyOptional: boolean;
     canDeleteKey: boolean;
+    keyFormat: string;
   }> = {},
 ) => {
   const onChange = vi.fn();
@@ -22,6 +23,7 @@ const renderField = (
       credential={props.credential}
       isKeyOptional={props.isKeyOptional ?? false}
       canDeleteKey={props.canDeleteKey ?? false}
+      keyFormat={props.keyFormat}
       onChange={onChange}
       onDeleteKey={onDeleteKey}
     />,
@@ -66,6 +68,12 @@ describe("ApiKeyField", () => {
 
     fireEvent.change(input, { target: { value: "sk-123" } });
     expect(onChange).toHaveBeenCalledWith("sk-123");
+  });
+
+  it("hints the provider's key format while no key is stored", () => {
+    renderField({ keyFormat: "AIza…" });
+
+    expect(screen.getByPlaceholderText("AIza…")).toBeInTheDocument();
   });
 
   it("marks the key optional for gateways that don't need one", () => {

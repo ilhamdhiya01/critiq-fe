@@ -160,6 +160,8 @@ export const API_ORG_RULES = (orgId: string) => `${API_ORG}/${orgId}/rules`;
 // External
 export const GITHUB_INSTALLATIONS_URL =
   "https://github.com/settings/installations";
+export const GOOGLE_AI_STUDIO_API_KEY_URL =
+  "https://aistudio.google.com/apikey";
 
 // Settings
 export const API_SETTINGS_AI = (orgId: string) =>

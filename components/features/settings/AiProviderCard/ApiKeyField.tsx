@@ -8,6 +8,8 @@ interface ApiKeyFieldProps {
   credential: AiCredentialStatus | undefined;
   isKeyOptional: boolean;
   canDeleteKey: boolean;
+  // The provider's key format (e.g. "AIza…"), shown while no key is stored.
+  keyFormat?: string;
   error?: string;
   onChange: (value: string) => void;
   onDeleteKey: () => void;
@@ -16,11 +18,13 @@ interface ApiKeyFieldProps {
 const getPlaceholder = (
   credential: AiCredentialStatus | undefined,
   isKeyOptional: boolean,
+  keyFormat: string | undefined,
 ): string => {
   if (credential?.hasKey) {
     return `Tersimpan (…${credential.last4}) — isi untuk mengganti`;
   }
-  return isKeyOptional ? "Opsional" : "Tempel API key";
+  if (isKeyOptional) return "Opsional";
+  return keyFormat ?? "Tempel API key";
 };
 
 const ApiKeyField = React.memo(
@@ -29,6 +33,7 @@ const ApiKeyField = React.memo(
     credential,
     isKeyOptional,
     canDeleteKey,
+    keyFormat,
     error,
     onChange,
     onDeleteKey,
@@ -62,7 +67,7 @@ const ApiKeyField = React.memo(
           autoComplete="new-password"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={getPlaceholder(credential, isKeyOptional)}
+          placeholder={getPlaceholder(credential, isKeyOptional, keyFormat)}
           error={error}
           className="px-3 py-2.25 font-mono text-xs"
         />
