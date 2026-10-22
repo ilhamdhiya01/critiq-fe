@@ -1,6 +1,6 @@
 import React from "react";
 
-import Notice from "@/components/ui/notice";
+import Icon from "@/components/ui/icon/Icon";
 import {
   AI_TEST_ERROR_MESSAGE,
   AI_TEST_RATE_LIMIT_MESSAGE,
@@ -48,16 +48,22 @@ const TestStatus = React.memo(
             ({result.error.code})
           </span>
         )}
-        {warningMessage && (
-          <Notice tone="note" icon="TbInfoCircle">
-            {warningMessage}
-          </Notice>
-        )}
-        {lastTest && (
+        {/* The fresh result already says the same thing. */}
+        {!result && lastTest && (
           <span className="font-mono text-[11px] text-text-muted">
             Terakhir dites {formatDateTime(lastTest.at)} ·{" "}
             {lastTest.ok ? "OK" : "gagal"} · {formatLatency(lastTest.latencyMs)}
             {lastTest.model && ` · ${lastTest.model}`}
+          </span>
+        )}
+        {warningMessage && (
+          <span className="flex items-start gap-1.5 text-[11.5px] leading-normal text-text-muted">
+            <Icon
+              icon="TbInfoCircle"
+              size={13}
+              className="mt-0.5 flex-none text-primary-300"
+            />
+            {warningMessage}
           </span>
         )}
         {showSaved && (

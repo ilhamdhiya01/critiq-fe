@@ -468,9 +468,11 @@ describe("AiProviderForm", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Test connection" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Model ini berpikir dulu sebelum menjawab; pada diff besar bisa kehabisan token.",
-    );
+    expect(
+      await screen.findByText(
+        "Model ini berpikir dulu sebelum menjawab; pada diff besar bisa kehabisan token.",
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Koneksi berhasil/)).toBeInTheDocument();
   });
 
@@ -487,9 +489,12 @@ describe("AiProviderForm", () => {
       },
     });
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Model ini berpikir dulu sebelum menjawab; pada diff besar bisa kehabisan token.",
-    );
+    expect(screen.getByText(/Terakhir dites/)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Model ini berpikir dulu sebelum menjawab; pada diff besar bisa kehabisan token.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("explains when the test limit is reached", async () => {
