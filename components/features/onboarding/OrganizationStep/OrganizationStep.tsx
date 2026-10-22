@@ -3,6 +3,8 @@
 import React from "react";
 
 import Input from "@/components/ui/input";
+import { useAppHost } from "@/lib/hooks/useAppHost";
+import { ROUTES } from "@/routes";
 
 import StepCard from "../StepCard";
 
@@ -22,6 +24,7 @@ const slugify = (value: string) =>
 const OrganizationStep = React.memo(
   ({ onOrgNameChange, orgName, footer }: OrganizationStepProps) => {
     const slug = slugify(orgName) || "your-org";
+    const appHost = useAppHost();
 
     return (
       <StepCard
@@ -38,7 +41,8 @@ const OrganizationStep = React.memo(
         <div className="flex items-center gap-2 font-mono text-[11.5px]">
           <span className="text-text-muted">URL</span>
           <span className="min-w-0 wrap-anywhere text-primary-400">
-            critiq.app/{slug}
+            {appHost}
+            {ROUTES.dashboard(slug)}
           </span>
         </div>
         <div className="flex gap-2.5 rounded-[7px] border border-indigo-500/35 bg-indigo-500/7 px-3.5 py-3">

@@ -7,7 +7,7 @@ import { useActiveOrgId } from "@/lib/hooks/organisation/useActiveOrg";
 import AiProviderCard from "../AiProviderCard";
 import IntegrationsCard from "../IntegrationsCard";
 import MembersCard from "../MembersCard";
-import NotificationsCard from "../NotificationsCard";
+// import NotificationsCard from "../NotificationsCard";
 import OrganizationCard from "../OrganizationCard";
 
 const SettingsView = React.memo(() => {
@@ -18,7 +18,7 @@ const SettingsView = React.memo(() => {
       <OrganizationCard />
       <AiProviderCard orgId={orgId} />
       <IntegrationsCard orgId={orgId} />
-      <NotificationsCard />
+      {/* <NotificationsCard /> */}
       <MembersCard orgId={orgId} />
     </div>
   );

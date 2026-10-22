@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getUserFromToken } from "@/lib/helpers";
-import { proxy } from "@/proxy";
+import { config, proxy } from "@/proxy";
 
 vi.mock("@/lib/helpers", () => ({
   getUserFromToken: vi.fn(),
@@ -68,5 +68,15 @@ describe("proxy", () => {
 
     vi.mocked(getUserFromToken).mockResolvedValue(TOKEN);
     expect(redirectedTo(await visit("/login"))).toBe("/");
+  });
+
+  it("leaves static assets such as the favicon out of the auth check", () => {
+    const matcher = new RegExp(`^${config.matcher[0]}$`);
+
+    expect(matcher.test("/icon.svg")).toBe(false);
+    expect(matcher.test("/favicon.ico")).toBe(false);
+    expect(matcher.test("/_next/static/chunk.js")).toBe(false);
+    expect(matcher.test("/login")).toBe(true);
+    expect(matcher.test("/acme/settings")).toBe(true);
   });
 });
