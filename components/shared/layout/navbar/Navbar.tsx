@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import React, { useMemo } from "react";
 
+import type { DropdownMenuItem } from "@/components/shared/dropdown-menu";
 import DropdownMenu from "@/components/shared/dropdown-menu";
 import GlobalSearch from "@/components/shared/global-search";
 import Avatar from "@/components/ui/avatar";
@@ -11,6 +12,7 @@ import Icon from "@/components/ui/icon/Icon";
 import { SIDEBAR_ID } from "@/const/layout.constant";
 import { useLogout } from "@/lib/hooks/auth/useLogout";
 import { useUser } from "@/lib/hooks/auth/useUser";
+import { useActiveOrg } from "@/lib/hooks/organisation/useActiveOrg";
 import { ROUTES } from "@/routes";
 import { useSidebarStore } from "@/stores/useSidebarStore";
 
@@ -18,20 +20,35 @@ interface NavbarProps {
   title: string;
 }
 
-// Notifications are presentational for now. Search opens the ⌘K palette; the
-// profile menu signs out.
+// Search opens the ⌘K palette; the account menu shows who is signed in,
+// Preferences (the org's Settings) and sign out.
 const Navbar = React.memo(({ title }: NavbarProps) => {
   const router = useRouter();
   const { data: user } = useUser();
   const { handleLogout } = useLogout();
+  const { membership } = useActiveOrg();
   const isMobileOpen = useSidebarStore((state) => state.isMobileOpen);
   const openMobile = useSidebarStore((state) => state.openMobile);
 
-  const profileItems = useMemo(
+  const orgSlug = membership?.organization.slug;
+  const profileItems = useMemo<DropdownMenuItem[]>(
     () => [
+      ...(orgSlug
+        ? [
+            {
+              key: "preferences",
+              label: "Preferences",
+              icon: "TbSettings" as const,
+              onSelect: () => router.push(ROUTES.settings(orgSlug)),
+            },
+          ]
+        : []),
       {
         key: "sign-out",
         label: "Sign out",
+        icon: "TbLogout",
+        tone: "danger",
+        separated: !!orgSlug,
         onSelect: async () => {
           try {
             await handleLogout();
@@ -42,7 +59,22 @@ const Navbar = React.memo(({ title }: NavbarProps) => {
         },
       },
     ],
-    [handleLogout, router],
+    [orgSlug, handleLogout, router],
+  );
+
+  const profileHeader = useMemo(
+    () =>
+      user && (
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate text-[13px] font-semibold text-text-strong">
+            {user.name}
+          </span>
+          <span className="font-mono text-[11.5px] break-all text-text-muted">
+            {user.email}
+          </span>
+        </div>
+      ),
+    [user],
   );
 
   return (
@@ -68,15 +100,17 @@ const Navbar = React.memo(({ title }: NavbarProps) => {
 
       <GlobalSearch />
 
-      <span className="relative hidden text-text-nav sm:flex">
+      {/* <span className="relative hidden text-text-nav sm:flex">
         <Icon icon="TbBell" size={18} className="stroke-[1.5]" />
         <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-surface bg-danger" />
-      </span>
+      </span> */}
 
       <DropdownMenu
         ariaLabel="Account"
         items={profileItems}
-        className="min-w-44"
+        header={profileHeader}
+        size="md"
+        className="min-w-60"
         trigger={({ toggle, isOpen }) => (
           <button
             type="button"
@@ -99,7 +133,8 @@ const Navbar = React.memo(({ title }: NavbarProps) => {
                 {user?.name}
               </span>
               <span className="font-mono text-[10.5px] text-text-faint">
-                TECH LEAD · {user?.provider}
+                {/* The user's role in the org being viewed. */}
+                {membership?.role}
               </span>
             </span>
             <Icon

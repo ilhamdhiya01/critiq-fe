@@ -47,5 +47,7 @@ export const proxy = async (request: NextRequest) => {
 };
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Static assets skip the auth check, or a signed-out visitor (e.g. on the
+  // login page) gets the favicon redirected to /login.
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|icon.svg).*)"],
 };

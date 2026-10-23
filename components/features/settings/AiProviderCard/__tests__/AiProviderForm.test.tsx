@@ -62,7 +62,12 @@ const SETTINGS: AiSettingsAdmin = {
       needsBaseUrl: true,
       keyOptional: true,
     },
-    { id: "google", label: "Google", available: false },
+    {
+      id: "google",
+      label: "Google",
+      available: true,
+      defaultModel: "gemini-3.8-flash",
+    },
   ],
   lastTest: null,
 };
@@ -160,13 +165,32 @@ describe("AiProviderForm", () => {
     });
   });
 
-  it("keeps an unavailable provider disabled", () => {
-    renderForm();
+  it("keeps a provider the BE marks unavailable disabled", () => {
+    renderForm({
+      ...SETTINGS,
+      providers: SETTINGS.providers.map((provider) =>
+        provider.id === "google" ? { ...provider, available: false } : provider,
+      ),
+    });
 
     const google = screen.getByRole("button", { name: /Google/ });
     expect(google).toBeDisabled();
     expect(google).toHaveAttribute("title", "Segera tersedia");
     expect(within(google).getByText("SEGERA")).toBeInTheDocument();
+  });
+
+  it("Google asks for an AIza key, links to AI Studio and has no base URL", () => {
+    renderForm();
+
+    const google = screen.getByRole("button", { name: "Google" });
+    expect(google).toBeEnabled();
+    fireEvent.click(google);
+
+    expect(screen.getByPlaceholderText("AIza…")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Google AI Studio → Get API key" }),
+    ).toHaveAttribute("href", "https://aistudio.google.com/apikey");
+    expect(screen.queryByText("Base URL")).not.toBeInTheDocument();
   });
 
   it("switching provider asks for a key before saving, then sends only the changes", async () => {
@@ -424,6 +448,51 @@ describe("AiProviderForm", () => {
     expect(
       await screen.findByText(
         /Koneksi berhasil · 1\.234 ms · claude-sonnet-4 · output native/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a reasoning-model warning as info beside a passed test", async () => {
+    vi.mocked(testAiConnection).mockResolvedValue({
+      data: {
+        ok: true,
+        latencyMs: 900,
+        model: "gemini-3.8-flash",
+        structuredOutput: "native",
+        usage: null,
+        error: null,
+        warning: { code: "reasoning_model", message: "Reasoning model" },
+      },
+    });
+    renderForm();
+
+    fireEvent.click(screen.getByRole("button", { name: "Test connection" }));
+
+    expect(
+      await screen.findByText(
+        "Model ini berpikir dulu sebelum menjawab; pada diff besar bisa kehabisan token.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Koneksi berhasil/)).toBeInTheDocument();
+  });
+
+  it("keeps the reasoning-model info from the saved last test", () => {
+    renderForm({
+      ...SETTINGS,
+      lastTest: {
+        at: "2026-10-21T08:37:00Z",
+        ok: true,
+        latencyMs: 7525,
+        structuredOutput: "native",
+        model: "gemini-3.8-flash",
+        warning: "reasoning_model",
+      },
+    });
+
+    expect(screen.getByText(/Terakhir dites/)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Model ini berpikir dulu sebelum menjawab; pada diff besar bisa kehabisan token.",
       ),
     ).toBeInTheDocument();
   });

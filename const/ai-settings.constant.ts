@@ -5,6 +5,7 @@ import type {
   AiSettingsErrorCode,
   AiTestErrorCode,
 } from "@/lib/types/ai-settings.types";
+import { GOOGLE_AI_STUDIO_API_KEY_URL } from "@/routes";
 
 // Reviewer/Viewer responses carry no `providers` list, so the read-only view
 // needs its own labels.
@@ -13,6 +14,21 @@ export const AI_PROVIDER_LABEL: Record<AiProviderId, string> = {
   openai: "OpenAI",
   openai_compatible: "OpenAI-compatible (self-hosted / gateway)",
   google: "Google",
+};
+
+// Key format hint for providers whose keys are easy to mix up.
+export const AI_KEY_PLACEHOLDER: Partial<Record<AiProviderId, string>> = {
+  google: "AIza…",
+};
+
+// Where an Admin creates a key, for providers whose console is hard to find.
+export const AI_KEY_SOURCE: Partial<
+  Record<AiProviderId, { label: string; href: string }>
+> = {
+  google: {
+    label: "Google AI Studio → Get API key",
+    href: GOOGLE_AI_STUDIO_API_KEY_URL,
+  },
 };
 
 export const AI_LOCALE_OPTIONS: SegmentedOption<AiLocale>[] = [
@@ -39,8 +55,10 @@ export const AI_SETTINGS_ERROR_MESSAGE: Record<AiSettingsErrorCode, string> = {
   model_required: "Pilih atau ketik model.",
 };
 
+// No status code in the copy: providers refuse a bad key differently
+// (Gemini answers 400, the others 401).
 export const AI_TEST_ERROR_MESSAGE: Record<AiTestErrorCode, string> = {
-  auth_failed: "Provider menolak API key (401).",
+  auth_failed: "Provider menolak API key.",
   rate_limited: "Provider membatasi permintaan. Coba lagi sebentar lagi.",
   timeout: "Provider tidak merespons tepat waktu.",
   provider_unreachable: "Provider tidak bisa dihubungi.",
@@ -54,7 +72,12 @@ export const AI_TEST_ERROR_MESSAGE: Record<AiTestErrorCode, string> = {
 
 export const AI_MODELS_WARNING_MESSAGE: Record<string, string> = {
   api_key_missing: "Belum ada API key untuk provider ini.",
-  auth_failed: "Provider menolak API key (401).",
+  auth_failed: AI_TEST_ERROR_MESSAGE.auth_failed,
+};
+
+export const AI_TEST_WARNING_MESSAGE: Record<string, string> = {
+  reasoning_model:
+    "Model ini berpikir dulu sebelum menjawab; pada diff besar bisa kehabisan token.",
 };
 
 export const AI_TEST_RATE_LIMIT_MESSAGE =

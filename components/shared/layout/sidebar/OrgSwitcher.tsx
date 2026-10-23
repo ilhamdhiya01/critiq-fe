@@ -8,6 +8,7 @@ import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Icon from "@/components/ui/icon/Icon";
 import { getOrgSwitchHref } from "@/lib/helpers/organization.helper";
+import { useAppHost } from "@/lib/hooks/useAppHost";
 import { useDismissable } from "@/lib/hooks/useDismissable";
 import type { MembershipWithOrg } from "@/lib/types/membership.type";
 import { ROUTES } from "@/routes";
@@ -32,6 +33,7 @@ const OrgSwitcher = React.memo(
   ({ memberships, activeSlug, isCollapsed }: OrgSwitcherProps) => {
     const router = useRouter();
     const pathname = usePathname();
+    const appHost = useAppHost();
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
@@ -125,7 +127,8 @@ const OrgSwitcher = React.memo(
                       {org.name}
                     </span>
                     <span className="truncate font-mono text-[9.5px] text-text-muted">
-                      critiq.app/{org.slug}
+                      {appHost}
+                      {ROUTES.dashboard(org.slug)}
                     </span>
                   </span>
                   {isUnfinished ? (

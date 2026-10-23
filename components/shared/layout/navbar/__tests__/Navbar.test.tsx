@@ -10,9 +10,10 @@ import { useSidebarStore } from "@/stores/useSidebarStore";
 import Navbar from "../Navbar";
 
 const replace = vi.fn();
+const push = vi.fn();
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace, push: vi.fn() }),
+  useRouter: () => ({ replace, push }),
   useParams: () => ({ slug: "acme" }),
 }));
 
@@ -76,5 +77,40 @@ describe("Navbar sign out", () => {
 
     fireEvent.click(menu);
     expect(useSidebarStore.getState().isMobileOpen).toBe(true);
+  });
+
+  const openAccountMenu = async (role: "ADMIN" | "REVIEWER" | "VIEWER") => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ActiveOrgTestProvider orgId="org_1" role={role}>
+          <Navbar title="Dashboard" />
+        </ActiveOrgTestProvider>
+      </QueryClientProvider>,
+    );
+    await screen.findByText("Ilham Dhiya Ulhaq");
+    fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    return screen.getByRole("menu", { name: "Account" });
+  };
+
+  it("shows who is signed in, their role, and opens Preferences (Settings)", async () => {
+    const menu = await openAccountMenu("REVIEWER");
+
+    expect(menu).toHaveTextContent("ilham@acme.dev");
+    expect(
+      screen.getByRole("button", { name: "Account menu" }),
+    ).toHaveTextContent("REVIEWER");
+    fireEvent.click(screen.getByRole("menuitem", { name: "Preferences" }));
+    expect(push).toHaveBeenCalledWith("/acme/settings");
+  });
+
+  it("offers Preferences to every role", async () => {
+    await openAccountMenu("VIEWER");
+
+    expect(
+      screen.getByRole("menuitem", { name: "Preferences" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Sign out" }),
+    ).toBeInTheDocument();
   });
 });

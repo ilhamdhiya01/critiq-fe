@@ -25,12 +25,20 @@ export type AiConsent =
 
 export type AiStructuredOutput = "native" | "json_mode" | "failed";
 
+// A passed test the Admin should still know about, e.g. `reasoning_model`.
+export interface AiTestWarning {
+  code: string;
+  message: string;
+}
+
 export interface AiLastTest {
   at: string;
   ok: boolean;
   latencyMs: number;
   structuredOutput: AiStructuredOutput;
   model: string | null;
+  // Only the warning's code is kept with the saved test, not the object.
+  warning?: AiTestWarning["code"] | null;
 }
 
 export interface AiSettingsAdmin {
@@ -122,6 +130,7 @@ export interface AiTestResult {
   structuredOutput: AiStructuredOutput;
   usage: { inputTokens: number; outputTokens: number } | null;
   error: { code: AiTestErrorCode; message: string } | null;
+  warning?: AiTestWarning | null;
 }
 
 export interface ListAiModelsInput {

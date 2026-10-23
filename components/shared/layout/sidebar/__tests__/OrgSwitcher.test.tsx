@@ -63,7 +63,10 @@ describe("OrgSwitcher", () => {
       "Acme Engineering",
     );
     expect(within(menu).getAllByRole("menuitem")).toHaveLength(4);
-    expect(within(menu).getByText("critiq.app/beta")).toBeInTheDocument();
+    // The org URL uses the host the app is served from.
+    expect(
+      within(menu).getByText(`${window.location.host}/beta`),
+    ).toBeInTheDocument();
   });
 
   it("labels an unfinished org but still opens it", () => {

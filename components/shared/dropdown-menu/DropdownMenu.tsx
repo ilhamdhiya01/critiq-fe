@@ -2,8 +2,37 @@
 
 import classNames from "classnames";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { tv } from "tailwind-variants";
 
-import Icon from "@/components/ui/icon/Icon";
+import Icon, { type IconName } from "@/components/ui/icon/Icon";
+
+const menuItem = tv({
+  slots: {
+    row: "flex w-full cursor-pointer flex-col gap-0.5 text-left hover:bg-surface-hover",
+    label: "flex items-center",
+    icon: "shrink-0",
+  },
+  variants: {
+    // sm: compact mono list (e.g. a role picker); md: account-style menu
+    // with icons.
+    size: {
+      sm: {
+        row: "px-3.5 py-2",
+        label: "gap-1.5 font-mono text-[11.5px]",
+      },
+      md: {
+        row: "px-4 py-2.5",
+        label: "gap-3 text-[13px]",
+        icon: "text-text-secondary",
+      },
+    },
+    tone: {
+      default: { label: "text-neutral-100" },
+      danger: { label: "text-danger-light", icon: "text-danger-light" },
+    },
+  },
+  defaultVariants: { size: "sm", tone: "default" },
+});
 
 export interface DropdownMenuItem {
   key: string;
@@ -12,6 +41,9 @@ export interface DropdownMenuItem {
   // Marks the current choice (e.g. the member's role).
   checked?: boolean;
   tone?: "default" | "danger";
+  icon?: IconName;
+  // Draws a divider above the item (e.g. before "Sign out").
+  separated?: boolean;
   onSelect: () => void;
 }
 
@@ -20,12 +52,22 @@ interface DropdownMenuProps {
   // Renders the button that opens the menu.
   trigger: (props: { isOpen: boolean; toggle: () => void }) => React.ReactNode;
   ariaLabel: string;
+  // Non-interactive block above the items (e.g. the account's name/email).
+  header?: React.ReactNode;
+  size?: "sm" | "md";
   className?: string;
 }
 
 // Small anchored menu: closes on outside click, Escape, or after a choice.
 const DropdownMenu = React.memo(
-  ({ items, trigger, ariaLabel, className }: DropdownMenuProps) => {
+  ({
+    items,
+    trigger,
+    ariaLabel,
+    header,
+    size = "sm",
+    className,
+  }: DropdownMenuProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
 
@@ -64,37 +106,56 @@ const DropdownMenu = React.memo(
               className,
             )}
           >
-            {items.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  close();
-                  item.onSelect();
-                }}
-                className="flex w-full cursor-pointer flex-col gap-0.5 px-3.5 py-2 text-left hover:bg-surface-hover"
-              >
-                <span
-                  className={classNames(
-                    "flex items-center gap-1.5 font-mono text-[11.5px]",
-                    item.tone === "danger"
-                      ? "text-danger-light"
-                      : "text-neutral-100",
+            {header && (
+              <div className="mb-1.5 border-b border-border-subtle px-4 pt-1.5 pb-3">
+                {header}
+              </div>
+            )}
+            {items.map((item) => {
+              const slots = menuItem({ size, tone: item.tone });
+              return (
+                <React.Fragment key={item.key}>
+                  {item.separated && (
+                    <div
+                      role="separator"
+                      className="mx-3 my-1.5 h-px bg-border-subtle"
+                    />
                   )}
-                >
-                  {item.checked && (
-                    <Icon icon="TbCheck" size={12} className="text-success" />
-                  )}
-                  {item.label}
-                </span>
-                {item.description && (
-                  <span className="text-[11px] leading-normal text-text-faint">
-                    {item.description}
-                  </span>
-                )}
-              </button>
-            ))}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      close();
+                      item.onSelect();
+                    }}
+                    className={slots.row()}
+                  >
+                    <span className={slots.label()}>
+                      {item.icon && (
+                        <Icon
+                          icon={item.icon}
+                          size={size === "md" ? 17 : 12}
+                          className={slots.icon()}
+                        />
+                      )}
+                      {item.checked && (
+                        <Icon
+                          icon="TbCheck"
+                          size={12}
+                          className="text-success"
+                        />
+                      )}
+                      {item.label}
+                    </span>
+                    {item.description && (
+                      <span className="text-[11px] leading-normal text-text-faint">
+                        {item.description}
+                      </span>
+                    )}
+                  </button>
+                </React.Fragment>
+              );
+            })}
           </div>
         )}
       </div>

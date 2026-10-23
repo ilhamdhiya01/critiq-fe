@@ -5,6 +5,8 @@ import React from "react";
 import DetailRow from "@/components/shared/detail-row";
 import Badge from "@/components/ui/badge";
 import { useActiveOrg } from "@/lib/hooks/organisation/useActiveOrg";
+import { useAppHost } from "@/lib/hooks/useAppHost";
+import { ROUTES } from "@/routes";
 
 import OrganizationCardSkeleton from "./OrganizationCardSkeleton";
 
@@ -18,6 +20,7 @@ const getOrgInitials = (name: string): string =>
 
 const OrganizationCard = React.memo(() => {
   const { membership, isLoading, isError } = useActiveOrg();
+  const appHost = useAppHost();
 
   const renderBody = () => {
     if (isError) {
@@ -53,7 +56,8 @@ const OrganizationCard = React.memo(() => {
 
         <DetailRow label="URL">
           <span className="font-mono wrap-anywhere text-neutral-100">
-            critiq.app/{organization.slug}
+            {appHost}
+            {ROUTES.dashboard(organization.slug)}
           </span>
         </DetailRow>
 
