@@ -3,6 +3,7 @@ import type { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { TOO_MANY_ATTEMPTS_MESSAGE } from "@/const/api.constant";
 import { INVITE_ACCEPT_ERROR_STATUS } from "@/const/member.constant";
 import { getErrorCode } from "@/lib/helpers/integration.helper";
 import { clearPendingInvite } from "@/lib/helpers/invite.helper";
@@ -23,7 +24,8 @@ export const useAcceptInvite = (token: string) => {
     "pending"
   > | null>(null);
   // The signed-in account is already in the org. The invite stays valid for
-  // the real recipient, so the pending token is kept until the user chooses.
+  // the real recipient; "Sign out to accept with another account" stores the
+  // token again, so nothing is left behind otherwise.
   const [isAlreadyMember, setIsAlreadyMember] = useState(false);
 
   const mutation = useMutation({
@@ -36,8 +38,13 @@ export const useAcceptInvite = (token: string) => {
       router.replace(ROUTES.dashboard(response.data.organization.slug));
     },
     onError: (error: AxiosError<ErrorResponse>) => {
+      if (error.response?.status === 429) {
+        toast.error(TOO_MANY_ATTEMPTS_MESSAGE);
+        return;
+      }
       const code = getErrorCode(error) ?? "";
       if (code === "already_member") {
+        clearPendingInvite();
         setIsAlreadyMember(true);
         return;
       }

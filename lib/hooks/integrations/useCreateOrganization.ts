@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useShallow } from "zustand/shallow";
 
+import { TOO_MANY_ATTEMPTS_MESSAGE } from "@/const/api.constant";
 import { userKeys } from "@/lib/hooks/auth/queryKeys";
 import { toast } from "@/lib/toast";
 import type { ErrorResponse } from "@/lib/types/api.types";
@@ -43,6 +44,10 @@ export const useCreateOrganization = () => {
       toast.success(res.message || "Organization successfull created");
     },
     onError: (error: AxiosError<ErrorResponse>) => {
+      if (error.response?.status === 429) {
+        toast.error(TOO_MANY_ATTEMPTS_MESSAGE);
+        return;
+      }
       toast.error(error.response?.data?.message || error.message);
     },
   });

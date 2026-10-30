@@ -1,7 +1,11 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useSyncExternalStore } from "react";
 
-import { readPendingInvite } from "@/lib/helpers/invite.helper";
+import { isInviteToken } from "@/lib/helpers/id.helper";
+import {
+  clearPendingInvite,
+  readPendingInvite,
+} from "@/lib/helpers/invite.helper";
 import { ROUTES } from "@/routes";
 
 // sessionStorage has no change events within the same tab; reading it once
@@ -14,11 +18,14 @@ const subscribe = () => () => {};
 export const usePendingInviteRedirect = (): boolean => {
   const router = useRouter();
   // null on the server, so hydration never mismatches.
-  const token = useSyncExternalStore(subscribe, readPendingInvite, () => null);
+  const stored = useSyncExternalStore(subscribe, readPendingInvite, () => null);
+  // Anything that isn't a real token is dropped, never followed.
+  const token = isInviteToken(stored) ? stored : null;
 
   useEffect(() => {
     if (token) router.replace(ROUTES.invite(token));
-  }, [token, router]);
+    else if (stored) clearPendingInvite();
+  }, [token, stored, router]);
 
   return !!token;
 };

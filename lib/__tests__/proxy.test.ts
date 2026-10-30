@@ -70,6 +70,21 @@ describe("proxy", () => {
     expect(redirectedTo(await visit("/login"))).toBe("/");
   });
 
+  it("renders pages with a Report-Only CSP carrying a fresh nonce", async () => {
+    vi.mocked(getUserFromToken).mockResolvedValue(TOKEN);
+
+    const first = (await visit("/acme")).headers.get(
+      "content-security-policy-report-only",
+    );
+    const second = (await visit("/acme")).headers.get(
+      "content-security-policy-report-only",
+    );
+
+    expect(first).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/]+'/);
+    expect(first).toContain("frame-ancestors 'none'");
+    expect(first).not.toBe(second);
+  });
+
   it("leaves static assets such as the favicon out of the auth check", () => {
     const matcher = new RegExp(`^${config.matcher[0]}$`);
 

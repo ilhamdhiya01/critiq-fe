@@ -5,6 +5,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import GitHubReturnNotice from "@/components/shared/github-return-notice";
 import { DEFAULT_BRANCH_POLICY } from "@/const/repository.constant";
+import { isResourceId } from "@/lib/helpers/id.helper";
 import { readLastOrgSlug } from "@/lib/helpers/last-org.helper";
 import { pickExitMembership } from "@/lib/helpers/organization.helper";
 import { useConnectRepositories } from "@/lib/hooks/integrations/useConnectRepositories";
@@ -75,7 +76,9 @@ const OnboardingWizard = React.memo(
     // Signed in from an invite link: accept it before creating a new org.
     const isGoingToInvite = usePendingInviteRedirect();
     const searchParams = useSearchParams();
-    const queryOrgId = searchParams.get("orgId");
+    // Goes into API paths: anything but a real id is ignored.
+    const rawQueryOrgId = searchParams.get("orgId");
+    const queryOrgId = isResourceId(rawQueryOrgId) ? rawQueryOrgId : null;
     const queryStep = searchParams.get("step");
 
     const [step, setStep] = useState<OnboardingStep>(

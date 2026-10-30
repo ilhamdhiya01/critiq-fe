@@ -1,9 +1,15 @@
 import { Auth } from "@/components/features/auth";
 
-const LoginPage = () => {
+interface LoginPageProps {
+  searchParams: Promise<{ error?: string | string[] }>;
+}
+
+const LoginPage = async ({ searchParams }: LoginPageProps) => {
+  const { error } = await searchParams;
+
   return (
     <Auth.AuthLayout>
-      <Auth.LoginForm />
+      <Auth.LoginForm error={typeof error === "string" ? error : undefined} />
     </Auth.AuthLayout>
   );
 };

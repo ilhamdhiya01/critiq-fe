@@ -64,6 +64,41 @@ describe("GitHubReturnNotice", () => {
     expect(toast.info).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    ["installation_not_owned", /tidak punya akses ke instalasi ini/],
+    ["authorization_required", /Otorisasi GitHub dibatalkan/],
+    ["state_expired", /Waktu instalasi habis/],
+  ])(
+    "explains error reason %s and drops both params",
+    async (reason, message) => {
+      vi.mocked(toast.error).mockReset();
+      pathname = "/setup";
+      search = `step=2&github=error&reason=${reason}`;
+      renderNotice();
+
+      await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith(
+          expect.stringMatching(message),
+        ),
+      );
+      expect(toast.error).toHaveBeenCalledTimes(1);
+      expect(replace).toHaveBeenCalledWith("/setup?step=2", { scroll: false });
+    },
+  );
+
+  it("falls back to the generic error for an unknown reason", async () => {
+    vi.mocked(toast.error).mockReset();
+    pathname = "/acme/settings";
+    search = "github=error&reason=toString";
+    renderNotice();
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        "Failed to connect GitHub, try again",
+      ),
+    );
+  });
+
   it("does nothing without the param", () => {
     pathname = "/acme/settings";
     search = "";

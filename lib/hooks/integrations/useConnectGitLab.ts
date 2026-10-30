@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useCallback, useState } from "react";
 
+import { TOO_MANY_ATTEMPTS_MESSAGE } from "@/const/api.constant";
 import {
   getIntegrationErrorMessage,
   type GitLabFieldErrors,
@@ -44,6 +45,12 @@ export const useConnectGitLab = (orgId: string) => {
       toast.success("GitLab connected");
     },
     onError: (error: AxiosError<ErrorResponse>) => {
+      // Checked first: the BE tags this 429 with field "instance_url", which
+      // would otherwise show up as an error on that field.
+      if (error.response?.status === 429) {
+        toast.error(TOO_MANY_ATTEMPTS_MESSAGE);
+        return;
+      }
       const fieldErrors = toGitLabFieldErrors(
         error.response?.data?.errors ?? [],
       );
