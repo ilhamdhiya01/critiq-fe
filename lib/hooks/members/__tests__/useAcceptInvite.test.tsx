@@ -76,16 +76,30 @@ describe("useAcceptInvite", () => {
     );
   });
 
-  it("keeps the pending invite when the account is already a member", async () => {
+  it("clears the pending invite when the account is already a member", async () => {
     rejectWith(409, "already_member");
     const { result } = setup();
 
     act(() => result.current.handleAccept());
 
     await waitFor(() => expect(result.current.isAlreadyMember).toBe(true));
-    expect(pendingInvite()).toBe("tok_1");
+    expect(pendingInvite()).toBeNull();
     expect(result.current.failedStatus).toBeNull();
     expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("asks the user to wait when accepting is rate limited", async () => {
+    rejectWith(429, "invite_accept_rate_limited");
+    const { result } = setup();
+
+    act(() => result.current.handleAccept());
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        "Terlalu banyak percobaan, coba lagi nanti",
+      ),
+    );
+    expect(result.current.failedStatus).toBeNull();
   });
 
   it.each([

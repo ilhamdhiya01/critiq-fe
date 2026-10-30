@@ -126,4 +126,27 @@ describe("useCreateOrganization", () => {
     expect(toast.error).toHaveBeenCalledWith("Slug taken");
     expect(useOnboardingStore.getState().organisation.id).toBeNull();
   });
+
+  it("asks the user to wait when creating orgs is rate limited", async () => {
+    setOrganisation({ name: "Acme" });
+    vi.mocked(createOrganization).mockRejectedValue(
+      Object.assign(new Error("org_create_rate_limited"), {
+        response: {
+          status: 429,
+          data: {
+            errors: [{ field: "name", message: "org_create_rate_limited" }],
+          },
+        },
+      }),
+    );
+    const { result } = setup();
+
+    await act(() =>
+      expect(result.current.handleCreateOrganization()).rejects.toThrow(),
+    );
+
+    expect(toast.error).toHaveBeenCalledWith(
+      "Terlalu banyak percobaan, coba lagi nanti",
+    );
+  });
 });

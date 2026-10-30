@@ -1,3 +1,8 @@
+// Every dynamic segment goes through seg(): an id taken from the URL (e.g.
+// `?repoId=../../x`) must never be able to step out of its own path segment
+// and point the request at another endpoint.
+const seg = (value: string | number) => encodeURIComponent(String(value));
+
 // Application paths (client-side navigation).
 //
 // Every screen inside an organization is scoped by its slug (`/<slug>/...`),
@@ -10,18 +15,19 @@ export const ROUTES = {
   SETUP: "/setup",
   // Always open to a signed-in user, whatever orgs they already have.
   NEW_ORGANIZATION: "/organizations/new",
-  invite: (token: string) => `/invite/${token}`,
+  invite: (token: string) => `/invite/${seg(token)}`,
 
-  dashboard: (slug: string) => `/${slug}`,
-  pullRequests: (slug: string) => `/${slug}/pull-requests`,
+  dashboard: (slug: string) => `/${seg(slug)}`,
+  pullRequests: (slug: string) => `/${seg(slug)}/pull-requests`,
   pullRequestDetail: (slug: string, id: string, repositoryId: string) =>
-    `/${slug}/pull-requests/${id}?repoId=${repositoryId}`,
-  repositories: (slug: string) => `/${slug}/repositories`,
-  repositoryDetail: (slug: string, id: string) => `/${slug}/repositories/${id}`,
-  rules: (slug: string) => `/${slug}/rules`,
-  activity: (slug: string) => `/${slug}/activity`,
-  insights: (slug: string) => `/${slug}/insights`,
-  settings: (slug: string) => `/${slug}/settings`,
+    `/${seg(slug)}/pull-requests/${seg(id)}?repoId=${seg(repositoryId)}`,
+  repositories: (slug: string) => `/${seg(slug)}/repositories`,
+  repositoryDetail: (slug: string, id: string) =>
+    `/${seg(slug)}/repositories/${seg(id)}`,
+  rules: (slug: string) => `/${seg(slug)}/rules`,
+  activity: (slug: string) => `/${seg(slug)}/activity`,
+  insights: (slug: string) => `/${seg(slug)}/insights`,
+  settings: (slug: string) => `/${seg(slug)}/settings`,
 } as const;
 
 // API endpoints (consumed by services/*.service.ts)
@@ -39,46 +45,52 @@ export const API_OAUTH_LOGIN = (provider: "github" | "gitlab") =>
 export const API_ORG = `${API_BASE_URL}/orgs`;
 export const API_ME_ORG = `${API_BASE_URL}/me/orgs`;
 // SSE stream of "data changed" hints for one org (see RealtimeProvider).
-export const API_ORG_EVENTS = (orgId: string) => `${API_ORG}/${orgId}/events`;
+export const API_ORG_EVENTS = (orgId: string) =>
+  `${API_ORG}/${seg(orgId)}/events`;
 
 // Members & invites (org-scoped, Admin-only writes)
-export const API_ORG_MEMBERS = (orgId: string) => `${API_ORG}/${orgId}/members`;
+export const API_ORG_MEMBERS = (orgId: string) =>
+  `${API_ORG}/${seg(orgId)}/members`;
 export const API_ORG_MEMBER = (orgId: string, userId: string) =>
-  `${API_ORG_MEMBERS(orgId)}/${userId}`;
+  `${API_ORG_MEMBERS(orgId)}/${seg(userId)}`;
 export const API_ORG_INVITES = (orgId: string) =>
   `${API_ORG_MEMBERS(orgId)}/invites`;
 export const API_ORG_INVITE = (orgId: string, id: string) =>
-  `${API_ORG_INVITES(orgId)}/${id}`;
+  `${API_ORG_INVITES(orgId)}/${seg(id)}`;
 export const API_ORG_INVITE_RESEND = (orgId: string, id: string) =>
   `${API_ORG_INVITE(orgId, id)}/resend`;
 
 // Invite acceptance (global; the preview is public)
-export const API_INVITE = (token: string) => `${API_BASE_URL}/invites/${token}`;
+export const API_INVITE = (token: string) =>
+  `${API_BASE_URL}/invites/${seg(token)}`;
 export const API_INVITE_ACCEPT = (token: string) =>
   `${API_INVITE(token)}/accept`;
 
 // Activity (review decisions across the org, cursor paginated)
 export const API_ORG_ACTIVITY = (orgId: string) =>
-  `${API_ORG}/${orgId}/activity`;
+  `${API_ORG}/${seg(orgId)}/activity`;
 
 // Global search (⌘K): repos, PRs and rules
-export const API_ORG_SEARCH = (orgId: string) => `${API_ORG}/${orgId}/search`;
+export const API_ORG_SEARCH = (orgId: string) =>
+  `${API_ORG}/${seg(orgId)}/search`;
 
 // Insights (trends over the last weeks)
-export const API_INSIGHTS = (orgId: string) => `${API_ORG}/${orgId}/insights`;
+export const API_INSIGHTS = (orgId: string) =>
+  `${API_ORG}/${seg(orgId)}/insights`;
 
 // Dashboard
 export const API_DASHBOARD_SUMMARY = (orgId: string) =>
-  `${API_ORG}/${orgId}/dashboard/summary`;
+  `${API_ORG}/${seg(orgId)}/dashboard/summary`;
 export const API_DASHBOARD_CRITICAL_ISSUES = (orgId: string) =>
-  `${API_ORG}/${orgId}/dashboard/critical-issues`;
+  `${API_ORG}/${seg(orgId)}/dashboard/critical-issues`;
 export const API_DASHBOARD_RECENT_REVIEWS = (orgId: string) =>
-  `${API_ORG}/${orgId}/dashboard/recent-reviews`;
+  `${API_ORG}/${seg(orgId)}/dashboard/recent-reviews`;
 
 // Repositories
-export const API_CONNECT_REPOS = (ordId: string) => `${API_ORG}/${ordId}/repos`;
+export const API_CONNECT_REPOS = (ordId: string) =>
+  `${API_ORG}/${seg(ordId)}/repos`;
 export const API_ORG_REPO = (orgId: string, repoId: string) =>
-  `${API_ORG}/${orgId}/repos/${repoId}`;
+  `${API_ORG}/${seg(orgId)}/repos/${seg(repoId)}`;
 export const API_REPO_SCAN_CONFIG = (orgId: string, repoId: string) =>
   `${API_ORG_REPO(orgId, repoId)}/scan-config`;
 export const API_ORG_REPO_PULLS = (orgId: string, repoId: string) =>
@@ -90,7 +102,7 @@ export const API_ORG_REPO_BRANCHES = (orgId: string, repoId: string) =>
 
 // Integrations (GitHub/GitLab)
 export const API_INTEGRATIONS = (orgId: string) =>
-  `${API_ORG}/${orgId}/integrations`;
+  `${API_ORG}/${seg(orgId)}/integrations`;
 export const API_INTEGRATIONS_GITLAB = (orgId: string) =>
   `${API_INTEGRATIONS(orgId)}/gitlab`;
 export const API_INTEGRATIONS_GITLAB_HEALTH = (orgId: string) =>
@@ -107,12 +119,13 @@ export const API_INTEGRATION_REPO_BRANCHES = (
   orgId: string,
   source: "github" | "gitlab",
   providerRepoId: string | number,
-) => `${API_INTEGRATIONS(orgId)}/${source}/repos/${providerRepoId}/branches`;
+) =>
+  `${API_INTEGRATIONS(orgId)}/${source}/repos/${seg(providerRepoId)}/branches`;
 
 // Pull requests (org-wide, read-only, populated by webhook — no polling from BE)
-export const API_PULLS = (orgId: string) => `${API_ORG}/${orgId}/pulls`;
+export const API_PULLS = (orgId: string) => `${API_ORG}/${seg(orgId)}/pulls`;
 export const API_PULL_DETAIL = (orgId: string, repoId: string, id: string) =>
-  `${API_ORG}/${orgId}/repos/${repoId}/pulls/${id}`;
+  `${API_ORG}/${seg(orgId)}/repos/${seg(repoId)}/pulls/${seg(id)}`;
 export const API_PULL_DETAIL_DIFF = (
   orgId: string,
   repoId: string,
@@ -134,7 +147,7 @@ export const API_PULL_REVIEW_SYNC = (
   repoId: string,
   id: string,
   reviewId: string,
-) => `${API_PULL_REVIEWS(orgId, repoId, id)}/${reviewId}/sync`;
+) => `${API_PULL_REVIEWS(orgId, repoId, id)}/${seg(reviewId)}/sync`;
 export const API_PULL_COMMENTS = (orgId: string, repoId: string, id: string) =>
   `${API_PULL_DETAIL(orgId, repoId, id)}/comments`;
 export const API_PULL_COMMENT_SYNC = (
@@ -142,20 +155,22 @@ export const API_PULL_COMMENT_SYNC = (
   repoId: string,
   id: string,
   commentId: string,
-) => `${API_PULL_COMMENTS(orgId, repoId, id)}/${commentId}/sync`;
+) => `${API_PULL_COMMENTS(orgId, repoId, id)}/${seg(commentId)}/sync`;
 export const API_PULL_MERGE = (orgId: string, repoId: string, id: string) =>
   `${API_PULL_DETAIL(orgId, repoId, id)}/merge`;
 export const API_PULL_SUMMARY_REGENERATE = (
   orgId: string,
   repoId: string,
   id: string,
-) => `${API_ORG}/${orgId}/repos/${repoId}/pulls/${id}/summary/regenerate`;
+) =>
+  `${API_ORG}/${seg(orgId)}/repos/${seg(repoId)}/pulls/${seg(id)}/summary/regenerate`;
 
 export const API_PULL_RESCAN = (orgId: string, repoId: string) =>
-  `${API_ORG}/${orgId}/repos/${repoId}/rescan`;
+  `${API_ORG}/${seg(orgId)}/repos/${seg(repoId)}/rescan`;
 
 // Rules (quality profile)
-export const API_ORG_RULES = (orgId: string) => `${API_ORG}/${orgId}/rules`;
+export const API_ORG_RULES = (orgId: string) =>
+  `${API_ORG}/${seg(orgId)}/rules`;
 
 // External
 export const GITHUB_INSTALLATIONS_URL =
@@ -165,7 +180,7 @@ export const GOOGLE_AI_STUDIO_API_KEY_URL =
 
 // Settings
 export const API_SETTINGS_AI = (orgId: string) =>
-  `${API_ORG}/${orgId}/settings/ai`;
+  `${API_ORG}/${seg(orgId)}/settings/ai`;
 export const API_SETTINGS_AI_TEST = (orgId: string) =>
   `${API_SETTINGS_AI(orgId)}/test`;
 export const API_SETTINGS_AI_MODELS = (orgId: string) =>

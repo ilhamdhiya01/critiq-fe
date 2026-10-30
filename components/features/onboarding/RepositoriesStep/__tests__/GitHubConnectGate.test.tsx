@@ -24,17 +24,20 @@ const renderGate = () =>
   );
 
 describe("GitHubConnectGate", () => {
+  const assign = vi.fn();
+
   beforeEach(() => {
     vi.clearAllMocks();
+    // jsdom's location cannot be navigated; swap it for a stub.
+    vi.stubGlobal("location", { ...window.location, assign });
   });
 
   afterEach(() => {
-    window.location.hash = "";
+    vi.unstubAllGlobals();
   });
 
   it("asks for an install URL returning to setup, then redirects to it", async () => {
-    // A same-document URL, since jsdom cannot navigate to another page.
-    const installUrl = `${window.location.origin}${window.location.pathname}#github-install`;
+    const installUrl = "https://github.com/apps/critiq/installations/new";
     vi.mocked(installIntentGithub).mockResolvedValue({
       data: { installUrl },
     } as never);
@@ -49,7 +52,7 @@ describe("GitHubConnectGate", () => {
         returnTo: "setup",
       }),
     );
-    await waitFor(() => expect(window.location.hash).toBe("#github-install"));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith(installUrl));
     // Stays locked until the browser leaves the page.
     expect(
       await screen.findByRole("button", { name: /Redirect to GitHub/ }),

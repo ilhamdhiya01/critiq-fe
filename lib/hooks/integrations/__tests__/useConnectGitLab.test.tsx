@@ -101,4 +101,36 @@ describe("useConnectGitLab", () => {
     );
     expect(result.current.connectFieldErrors).toEqual({});
   });
+
+  it("toasts a rate limit instead of pinning it on the Instance URL field", async () => {
+    vi.mocked(verifyGitLabToken).mockRejectedValue(
+      httpError(429, [
+        { field: "instance_url", message: "gitlab_connect_rate_limited" },
+      ]),
+    );
+    const { result } = setup();
+
+    await act(() => result.current.handleConnectGitLab(INPUT));
+
+    expect(toast.error).toHaveBeenCalledWith(
+      "Terlalu banyak percobaan, coba lagi nanti",
+    );
+    expect(result.current.connectFieldErrors).toEqual({});
+  });
+
+  it("shows an insecure Instance URL on that field", async () => {
+    vi.mocked(verifyGitLabToken).mockRejectedValue(
+      httpError(422, [
+        { field: "instance_url", message: "insecure_instance_url" },
+      ]),
+    );
+    const { result } = setup();
+
+    await act(() => result.current.handleConnectGitLab(INPUT));
+
+    expect(result.current.connectFieldErrors).toEqual({
+      instance_url: "Gunakan https dan alamat publik",
+    });
+    expect(toast.error).not.toHaveBeenCalled();
+  });
 });

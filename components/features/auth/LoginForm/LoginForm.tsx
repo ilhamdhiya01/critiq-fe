@@ -2,8 +2,20 @@ import React from "react";
 
 import Logo from "@/components/shared/logo";
 import OAuthButtons from "@/components/shared/oauth-buttons";
+import Notice from "@/components/ui/notice";
+import { LOGIN_ERROR_MESSAGE } from "@/const/auth.constant";
 
-const LoginForm = React.memo(() => {
+interface LoginFormProps {
+  // `?error=` from the OAuth callback; unknown codes show nothing.
+  error?: string;
+}
+
+const LoginForm = React.memo(({ error }: LoginFormProps) => {
+  const errorMessage =
+    error && Object.hasOwn(LOGIN_ERROR_MESSAGE, error)
+      ? LOGIN_ERROR_MESSAGE[error]
+      : null;
+
   return (
     <>
       <Logo size={30} withWordmark />
@@ -14,6 +26,12 @@ const LoginForm = React.memo(() => {
       <p className="mt-2 text-[13px] leading-normal text-text-secondary">
         Connect your code host to log in or create an account.
       </p>
+
+      {errorMessage && (
+        <Notice tone="warning" className="mt-5">
+          {errorMessage}
+        </Notice>
+      )}
 
       <div className="mt-7 flex items-center gap-3">
         <div className="h-px flex-1 bg-border-default" />

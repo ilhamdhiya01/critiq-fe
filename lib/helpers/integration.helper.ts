@@ -177,3 +177,13 @@ export const hostOf = (url: string): string => {
     return url;
   }
 };
+
+// The install URL comes from the BE; only ever send the browser to GitHub.
+export const isGitHubUrl = (url: string | undefined): url is string => {
+  if (!url) return false;
+  try {
+    return new URL(url).origin === "https://github.com";
+  } catch {
+    return false;
+  }
+};

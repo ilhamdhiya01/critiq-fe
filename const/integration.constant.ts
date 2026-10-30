@@ -9,6 +9,8 @@ export const GITLAB_ERROR_MESSAGE: Record<string, string> = {
   instance_unreachable: "GitLab instance unreachable — check the URL.",
   provider_unreachable: "GitLab is not responding, try again later.",
   provider_bad_request: "GitLab rejected the request.",
+  // http://, localhost or a private address (BE SSRF guard).
+  insecure_instance_url: "Gunakan https dan alamat publik",
 };
 
 export const INTEGRATION_FORBIDDEN_MESSAGE =
@@ -52,3 +54,17 @@ export const GITHUB_RETURN_TOAST = {
 } as const;
 
 export type GitHubReturnStatus = keyof typeof GITHUB_RETURN_TOAST;
+
+// `?github=error&reason=…` after the extra GitHub authorization step of the
+// App install. Without a known reason the generic error toast is shown.
+export const GITHUB_ERROR_REASON_MESSAGE: Record<string, string> = {
+  installation_not_owned:
+    "Akun GitHub kamu tidak punya akses ke instalasi ini. Login GitHub dengan akun yang memasang Critiq, lalu coba lagi.",
+  authorization_required:
+    "Otorisasi GitHub dibatalkan. Klik Connect GitHub lagi untuk melanjutkan.",
+  state_expired:
+    "Waktu instalasi habis (lebih dari 10 menit). Klik Connect GitHub lagi.",
+};
+
+export const GITHUB_INSTALL_URL_INVALID_MESSAGE =
+  "Alamat instalasi GitHub tidak valid. Coba lagi atau hubungi admin Critiq.";

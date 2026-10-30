@@ -3,6 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { PENDING_INVITE_STORAGE_KEY } from "@/const/member.constant";
 import { toast } from "@/lib/toast";
 import { logout } from "@/services/auth.service";
 
@@ -30,13 +31,17 @@ const setup = () => {
 describe("useLogout", () => {
   afterEach(() => vi.clearAllMocks());
 
-  it("drops every cached query once the session ends", async () => {
+  it("drops every cached query and any pending invite once the session ends", async () => {
     vi.mocked(logout).mockResolvedValue({ data: null } as never);
+    window.sessionStorage.setItem(PENDING_INVITE_STORAGE_KEY, "tok_1");
     const { client, result } = setup();
 
     await act(() => result.current.handleLogout());
 
     expect(client.getQueryCache().getAll()).toHaveLength(0);
+    expect(
+      window.sessionStorage.getItem(PENDING_INVITE_STORAGE_KEY),
+    ).toBeNull();
   });
 
   it("keeps the cache and toasts the BE message on failure", async () => {

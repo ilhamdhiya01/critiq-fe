@@ -1,7 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getUserFromToken } from "./lib/helpers";
-import { authRoutes, isPublicPath, ROUTES } from "./routes";
+import {
+  apiOriginOf,
+  buildCsp,
+  createNonce,
+  CSP_HEADER,
+} from "./lib/helpers/csp.helper";
+import { API_BASE_URL, authRoutes, isPublicPath, ROUTES } from "./routes";
+
+// Renders the page with a fresh CSP nonce. The policy goes on the request
+// (Next.js reads the nonce from it for its own scripts) and on the response
+// (what the browser applies). Redirects render nothing, so they skip this.
+const nextWithCsp = (request: NextRequest) => {
+  const csp = buildCsp({
+    nonce: createNonce(),
+    apiOrigin: apiOriginOf(API_BASE_URL),
+    isDev: process.env.NODE_ENV === "development",
+  });
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(CSP_HEADER, csp);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set(CSP_HEADER, csp);
+  return response;
+};
 
 export const proxy = async (request: NextRequest) => {
   const { nextUrl, url } = request;
@@ -43,7 +66,7 @@ export const proxy = async (request: NextRequest) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  return nextWithCsp(request);
 };
 
 export const config = {
