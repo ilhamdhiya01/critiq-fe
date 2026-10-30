@@ -14,6 +14,8 @@ const router = { replace, push: vi.fn() };
 
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("@/services/membership-with-org.service", () => ({
@@ -102,11 +104,14 @@ describe("OrganisationRedirect", () => {
   });
 
   it("lets a pending invite win over every org", async () => {
-    window.sessionStorage.setItem(PENDING_INVITE_KEY, "tok_1");
+    const token = "a".repeat(43);
+    window.sessionStorage.setItem(PENDING_INVITE_KEY, token);
     window.localStorage.setItem(LAST_ORG_KEY, "globex");
     const { container } = renderRedirect();
 
-    await waitFor(() => expect(replace).toHaveBeenCalledWith("/invite/tok_1"));
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith(`/invite/${token}`),
+    );
     await waitFor(() => expect(getMembershipWithOrg).toHaveBeenCalled());
     // Let the memberships settle: still no org redirect.
     await act(async () => {});

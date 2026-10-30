@@ -69,6 +69,22 @@ describe("useInstallGitHubApps", () => {
     });
   });
 
+  it.each([
+    "https://evil.example/apps/critiq",
+    "https://github.com.evil.example/apps/critiq",
+    "javascript:alert(1)",
+  ])("refuses to leave for %s", async (installUrl) => {
+    vi.mocked(installIntentGithub).mockResolvedValue({
+      data: { installUrl },
+    });
+    const { result } = setup();
+
+    await act(() => result.current.handleInstallIntentGitHub());
+
+    expect(assign).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalled();
+  });
+
   it("stays on the page and toasts when the intent fails", async () => {
     vi.mocked(installIntentGithub).mockRejectedValue(new Error("Forbidden"));
     const { result } = setup();

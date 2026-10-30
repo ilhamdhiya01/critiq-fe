@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
+import GitHubReturnNotice from "@/components/shared/github-return-notice";
 import Logo from "@/components/shared/logo";
 import StateStatus from "@/components/shared/state-status";
 import Button from "@/components/ui/button";
@@ -19,7 +20,7 @@ import { ROUTES } from "@/routes";
 // the API origin are both already there, so no extra configuration is needed.
 // Resolving it server-side would mean a second, absolute API origin plus its
 // own TLS trust setup, for a screen that is only ever shown in passing.
-const OrganisationRedirect = React.memo(() => {
+const Landing = () => {
   const router = useRouter();
   // A pending invite (started before login) wins over the usual landing.
   const isGoingToInvite = usePendingInviteRedirect();
@@ -104,7 +105,16 @@ const OrganisationRedirect = React.memo(() => {
       />
     </div>
   );
-});
+};
+
+// A GitHub install whose authorization step expired comes back to `/`
+// (`?github=error&reason=state_expired`); its toast outlives the redirect.
+const OrganisationRedirect = React.memo(() => (
+  <>
+    <GitHubReturnNotice />
+    <Landing />
+  </>
+));
 
 OrganisationRedirect.displayName = "OrganisationRedirect";
 

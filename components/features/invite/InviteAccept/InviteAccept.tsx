@@ -73,6 +73,13 @@ const InviteAccept = React.memo(({ token }: InviteAcceptProps) => {
     if (isPending && isSignedOut) savePendingInvite(token);
   }, [isPending, isSignedOut, token]);
 
+  // A dead invite (unknown, expired, revoked, used) must not keep pulling the
+  // user back here after login.
+  const isDeadInvite = isNotFound || (!!invite && invite.status !== "pending");
+  useEffect(() => {
+    if (isDeadInvite) clearPendingInvite();
+  }, [isDeadInvite]);
+
   // "Not you?": end this session but keep the invite for the next login.
   const handleSignOut = useCallback(async () => {
     try {

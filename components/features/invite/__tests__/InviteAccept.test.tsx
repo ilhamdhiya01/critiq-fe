@@ -136,7 +136,7 @@ describe("InviteAccept", () => {
     expect(window.sessionStorage.getItem("critiq.pendingInvite")).toBeNull();
   });
 
-  it("explains already_member without redirecting, and keeps the invite", async () => {
+  it("explains already_member without redirecting, and re-stores the invite only for another account", async () => {
     window.sessionStorage.setItem("critiq.pendingInvite", "tok_1");
     vi.mocked(acceptInvite).mockRejectedValue(
       axiosError(409, "already_member"),
@@ -151,7 +151,7 @@ describe("InviteAccept", () => {
       await screen.findByText(/still valid for someone else/),
     ).toHaveTextContent("You're already a member of Acme as Alex Winter.");
     expect(replace).not.toHaveBeenCalled();
-    expect(window.sessionStorage.getItem("critiq.pendingInvite")).toBe("tok_1");
+    expect(window.sessionStorage.getItem("critiq.pendingInvite")).toBeNull();
     expect(screen.getByRole("link", { name: "Go to Acme" })).toHaveAttribute(
       "href",
       "/acme",
@@ -183,7 +183,8 @@ describe("InviteAccept", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows a terminal status without actions", async () => {
+  it("shows a terminal status without actions and forgets the invite", async () => {
+    window.sessionStorage.setItem("critiq.pendingInvite", "tok_1");
     vi.mocked(getInvitePreview).mockResolvedValue({
       data: { ...PREVIEW, status: "revoked" },
     });
@@ -195,14 +196,17 @@ describe("InviteAccept", () => {
     expect(
       screen.queryByRole("button", { name: "Accept invitation" }),
     ).not.toBeInTheDocument();
+    expect(window.sessionStorage.getItem("critiq.pendingInvite")).toBeNull();
   });
 
-  it("explains an unknown link", async () => {
+  it("explains an unknown link and forgets the invite", async () => {
+    window.sessionStorage.setItem("critiq.pendingInvite", "tok_1");
     vi.mocked(getInvitePreview).mockRejectedValue(axiosError(404, "not_found"));
     renderPage();
 
     expect(
       await screen.findByText("This invitation link isn't valid"),
     ).toBeInTheDocument();
+    expect(window.sessionStorage.getItem("critiq.pendingInvite")).toBeNull();
   });
 });

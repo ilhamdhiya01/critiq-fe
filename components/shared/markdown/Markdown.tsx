@@ -1,5 +1,5 @@
 import React from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
 import { tv } from "tailwind-variants";
 
 const markdown = tv({
@@ -18,11 +18,48 @@ interface MarkdownProps {
   tone?: "default" | "ai";
 }
 
-// Markdown from the AI summary or from GitHub/GitLab comments. Raw HTML is
-// not rendered (react-markdown escapes it by default).
+const SAFE_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
+
+const isSafeHref = (href: string | undefined): href is string => {
+  if (!href) return false;
+  try {
+    // The base only resolves relative links; they are judged by protocol too.
+    return SAFE_PROTOCOLS.has(new URL(href, "https://invalid.local").protocol);
+  } catch {
+    return false;
+  }
+};
+
+const SafeLink = ({
+  href,
+  children,
+}: React.AnchorHTMLAttributes<HTMLAnchorElement>) =>
+  isSafeHref(href) ? (
+    <a href={href} target="_blank" rel="noopener noreferrer nofollow">
+      {children}
+    </a>
+  ) : (
+    <span>{children}</span>
+  );
+
+// Images become a text link and are never loaded: fetching one would hand
+// every viewer's IP to whoever wrote the comment or steered the AI summary.
+const ImageAsLink = ({
+  src,
+  alt,
+}: React.ImgHTMLAttributes<HTMLImageElement>) => (
+  <SafeLink href={typeof src === "string" ? src : undefined}>
+    {alt || "gambar"}
+  </SafeLink>
+);
+
+const COMPONENTS: Components = { a: SafeLink, img: ImageAsLink };
+
+// Markdown from the AI summary or from GitHub/GitLab comments — untrusted.
+// Raw HTML is never rendered (no rehype-raw, no dangerouslySetInnerHTML).
 const Markdown = React.memo(({ children, tone }: MarkdownProps) => (
   <div className={markdown({ tone })}>
-    <ReactMarkdown>{children}</ReactMarkdown>
+    <ReactMarkdown components={COMPONENTS}>{children}</ReactMarkdown>
   </div>
 ));
 

@@ -142,6 +142,15 @@ This is the only environment variable the frontend reads. OAuth client IDs live 
 >
 > There is no mock layer: the backend must be running and reachable in development as well as production.
 
+### Local development with the backend
+
+The backend's security checks expect the frontend's exact origin, so a few backend settings (`critiq-be/.env`) must match how you run the frontend:
+
+- **`FE_URL` = the frontend origin, exactly** (e.g. `http://localhost:3000`). The backend rejects every `POST`/`PUT`/`PATCH`/`DELETE` whose `Origin` header differs with **403 `origin_not_allowed`** (CSRF protection). A different port or `127.0.0.1` instead of `localhost` counts as a different origin.
+- **Session cookie `SameSite`.** The session cookie is `SameSite=Lax`, which works when the frontend and backend share a scheme. If they don't (frontend on `http://localhost:3000`, backend on `https://localhost:3001`), the browser treats them as cross-site and drops the cookie: set `SESSION_COOKIE_SAMESITE=none` in the backend `.env`. Never use `none` in deployed environments, which are same-origin.
+- **Content Security Policy.** `proxy.ts` sends a `Content-Security-Policy-Report-Only` header with a per-request nonce. When `NEXT_PUBLIC_API_URL` is absolute, its origin is added to `connect-src` automatically. Violations show up in the browser console; nothing is blocked yet.
+- **HSTS** is set at the edge (nginx / Cloudflare), not by this app.
+
 ---
 
 ## API Integration

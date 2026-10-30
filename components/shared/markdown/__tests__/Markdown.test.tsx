@@ -6,20 +6,30 @@ import Markdown from "../Markdown";
 
 // Renders untrusted text from the AI summary and GitHub/GitLab comments.
 describe("Markdown", () => {
-  it("renders safe links with their href", () => {
+  it("renders safe links in a new tab without leaking the opener or referrer", () => {
     render(<Markdown>{"See [docs](https://example.com/a?b=1)."}</Markdown>);
 
-    expect(screen.getByRole("link", { name: "docs" })).toHaveAttribute(
-      "href",
-      "https://example.com/a?b=1",
-    );
+    const link = screen.getByRole("link", { name: "docs" });
+    expect(link).toHaveAttribute("href", "https://example.com/a?b=1");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer nofollow");
   });
 
-  it("strips javascript: URLs from links", () => {
+  it("renders a javascript: link as plain text", () => {
     render(<Markdown>{"[click](javascript:alert(1))"}</Markdown>);
 
-    const link = screen.getByText("click").closest("a");
-    expect(link?.getAttribute("href") ?? "").not.toMatch(/javascript:/i);
+    expect(screen.getByText("click").closest("a")).toBeNull();
+  });
+
+  it("turns images into a text link, so nothing is fetched", () => {
+    const { container } = render(
+      <Markdown>{"![tracking pixel](https://example.com/a.png)"}</Markdown>,
+    );
+
+    expect(container.querySelector("img")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "tracking pixel" }),
+    ).toHaveAttribute("href", "https://example.com/a.png");
   });
 
   it("does not render raw HTML", () => {
